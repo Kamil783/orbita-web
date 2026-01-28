@@ -4,6 +4,7 @@ import { LandingPageComponent } from './pages/landing/landing-page.component';
 export const routes: Routes = [
   {
     path: '',
-    component: LandingPageComponent,
+    loadComponent: () =>
+      import('./pages/landing/landing-page.component').then(m => m.LandingPageComponent),
   },
 ];

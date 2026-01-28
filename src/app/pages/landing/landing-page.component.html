@@ -1,6 +1,10 @@
 <app-landing-shell>
-  <app-landing-header />
-  <app-landing-hero />
-  <app-landing-preview />
-  <app-landing-footer />
+  <app-landing-header></app-landing-header>
+
+  <main class="content">
+    <app-landing-hero (enterClick)="onEnter()"></app-landing-hero>
+    <app-landing-preview></app-landing-preview>
+  </main>
+
+  <app-landing-footer></app-landing-footer>
 </app-landing-shell>

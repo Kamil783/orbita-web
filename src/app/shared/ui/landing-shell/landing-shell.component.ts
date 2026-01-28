@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 
 @Component({
   selector: 'app-landing-shell',
-  imports: [],
+  standalone: true,
   templateUrl: './landing-shell.component.html',
   styleUrl: './landing-shell.component.scss',
 })

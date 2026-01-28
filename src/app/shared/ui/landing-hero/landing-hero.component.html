@@ -1,3 +1,26 @@
-<section class="landing-hero">
-  <!-- Hero content -->
+<section class="hero">
+  <div class="badge">
+    <!-- <span class="material-symbols-outlined badge__icon">colors_spark</span> -->
+    <span class="badge__text">Упрощаем семейную жизнь</span>
+  </div>
+
+  <h1 class="title">
+    Персональный помощник вашей семьи для
+    <span class="title__accent">задач</span>,
+    расписания, питания и бюджета
+  </h1>
+
+  <p class="subtitle">
+    Минималистичное управление для семей. Держите всех в синхронизации и без стресса — в одном удобном приложении.
+  </p>
+
+  <div class="cta">
+    <button type="button" class="cta__btn" (click)="enterClick.emit()">
+      <span class="cta__btnText">Начать в Orbita</span>
+      <span class="material-symbols-outlined cta__icon">arrow_forward</span>
+      <span class="cta__shine" aria-hidden="true"></span>
+    </button>
+
+    <p class="note">Можно начать бесплатно. Лишь бы был доступ...</p>
+  </div>
 </section>

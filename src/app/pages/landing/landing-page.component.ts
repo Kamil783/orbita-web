@@ -7,6 +7,7 @@ import { LandingFooterComponent } from '../../shared/ui/landing-footer/landing-f
 
 @Component({
   selector: 'app-landing-page',
+  standalone: true,
   imports: [
     LandingShellComponent,
     LandingHeaderComponent,
@@ -17,4 +18,8 @@ import { LandingFooterComponent } from '../../shared/ui/landing-footer/landing-f
   templateUrl: './landing-page.component.html',
   styleUrl: './landing-page.component.scss',
 })
-export class LandingPageComponent {}
+export class LandingPageComponent {
+  onEnter(): void {
+    console.log('Enter Orbita clicked');
+  }
+}
