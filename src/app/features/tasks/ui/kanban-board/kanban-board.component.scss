@@ -1,0 +1,39 @@
+.board {
+  height: 100%;
+  padding: 32px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  display: flex;
+  gap: 24px;
+  min-width: max-content;
+}
+
+.addcol {
+  width: 320px;
+  height: 128px;
+  border-radius: 14px;
+  border: 2px dashed #dbe0e6;
+  background: transparent;
+  cursor: pointer;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+
+  color: #60758a;
+  transition: border-color .2s ease, color .2s ease;
+
+  &:hover {
+    border-color: rgba(37, 140, 244, 0.5);
+    color: var(--color-primary);
+  }
+
+  .material-symbols-outlined { font-size: 30px; }
+}
+
+.addcol__text {
+  font-size: 14px;
+  font-weight: 600;
+}
