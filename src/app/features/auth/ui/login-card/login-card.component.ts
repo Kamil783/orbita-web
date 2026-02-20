@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators, FormGroup } from '@angular/forms';
-import { FloatingInputComponent } from '../../../shared/ui/floating-input/floating-input.component';
+import { FloatingInputComponent } from '../../../../shared/ui/floating-input/floating-input.component';
 
 @Component({
   selector: 'app-login-card',
