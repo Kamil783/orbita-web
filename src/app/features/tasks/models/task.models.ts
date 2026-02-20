@@ -1,19 +1,27 @@
-export type TaskPriority = 'high' | 'medium' | 'low' | 'done';
+export type TaskPriority = 'high' | 'medium' | 'low';
+export type TaskStatus = 'todo' | 'inprogress' | 'done';
+
+export interface TaskAssignee {
+  avatarUrl: string;
+  name?: string;
+}
 
 export interface TaskCardVm {
   id: string;
   title: string;
-  dueText?: string;
-  progressPct?: number;
+  status: TaskStatus;
   priority: TaskPriority;
-  assignees?: string[];
-  doneText?: string;
+  deadlineText?: string;
+  completedText?: string;
+  progressPct?: number;
+  assignees?: TaskAssignee[];
 }
 
 export interface KanbanColumnVm {
-  id: 'todo' | 'inprogress' | 'done';
+  id: TaskStatus;
   title: string;
-  count: number;
+  /** Общее число задач на сервере (может не совпадать с cards.length при пагинации) */
+  totalCount: number;
   headerActionIcon: string;
   muted?: boolean;
   cards: TaskCardVm[];
