@@ -7,4 +7,9 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./pages/landing/landing-page.component').then(m => m.LandingPageComponent),
   },
+  {
+    path: 'login',
+    loadComponent: () =>
+      import('./pages/login/login-page.component').then(m => m.LoginPageComponent),
+  }
 ];
