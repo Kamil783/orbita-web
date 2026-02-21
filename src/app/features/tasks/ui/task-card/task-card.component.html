@@ -6,9 +6,49 @@
   <div class="top">
     <span class="badge" [ngClass]="badgeClass">{{ badgeText }}</span>
 
-    <button class="more" type="button" aria-label="Меню">
-      <span class="material-symbols-outlined">more_horiz</span>
-    </button>
+    <div class="menu-anchor">
+      <button
+        class="more"
+        type="button"
+        aria-label="Меню"
+        [class.more--active]="menuOpen()"
+        (click)="toggleMenu($event)"
+      >
+        <span class="material-symbols-outlined">more_horiz</span>
+      </button>
+
+      @if (menuOpen()) {
+        <div class="dropdown">
+          <button class="dropdown__item" (click)="onEdit($event)">
+            <span class="material-symbols-outlined">edit</span>
+            Редактировать
+          </button>
+
+          <div class="dropdown__submenu-wrap">
+            <button class="dropdown__item">
+              <span class="material-symbols-outlined">drive_file_move</span>
+              Переместить в...
+              <span class="material-symbols-outlined dropdown__chevron">chevron_right</span>
+            </button>
+
+            <div class="dropdown__submenu">
+              @for (target of moveTargets; track target.status) {
+                <button class="dropdown__item" (click)="onMoveTo($event, target.status)">
+                  {{ target.label }}
+                </button>
+              }
+            </div>
+          </div>
+
+          <div class="dropdown__divider"></div>
+
+          <button class="dropdown__item dropdown__item--danger" (click)="onDelete($event)">
+            <span class="material-symbols-outlined">delete</span>
+            Удалить
+          </button>
+        </div>
+      }
+    </div>
   </div>
 
   <h4 class="title" [class.title--strike]="task().status === 'done'">

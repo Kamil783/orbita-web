@@ -1,0 +1,25 @@
+<div class="overlay" (click)="onBackdropClick()">
+  <div class="dialog" (click)="onDialogClick($event)">
+    <div class="dialog__icon" [class.dialog__icon--danger]="danger()">
+      <span class="material-symbols-outlined">{{ icon() }}</span>
+    </div>
+
+    <h3 class="dialog__title">{{ title() }}</h3>
+    <p class="dialog__message">{{ message() }}</p>
+
+    <div class="dialog__actions">
+      <button class="btn btn--secondary" type="button" (click)="cancel.emit()">
+        {{ cancelText() }}
+      </button>
+      <button
+        class="btn"
+        [class.btn--danger]="danger()"
+        [class.btn--primary]="!danger()"
+        type="button"
+        (click)="confirm.emit()"
+      >
+        {{ confirmText() }}
+      </button>
+    </div>
+  </div>
+</div>
