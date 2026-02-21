@@ -13,6 +13,14 @@
   </main>
 </app-app-shell>
 
+@if (showCreatePanel()) {
+  <app-task-create-panel
+    [assignees]="assigneeOptions"
+    (save)="onSaveTask($event)"
+    (cancel)="onCancelCreate()"
+  />
+}
+
 @if (deleteTaskId()) {
   <app-confirm-dialog
     title="Удалить задачу"

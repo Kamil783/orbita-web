@@ -5,12 +5,13 @@ import { TopbarComponent } from '../../shared/ui/topbar/topbar.component';
 import { TasksService } from '../../features/tasks/tasks.service';
 import { TasksFilterComponent } from '../../features/tasks/ui/tasks-filter/tasks-filter.component';
 import { ConfirmDialogComponent } from '../../shared/ui/confirm-dialog/confirm-dialog.component';
-import { TasksFilterItemVm, TaskMenuAction } from '../../features/tasks/models/task.models';
+import { TaskCreatePanelComponent } from '../../features/tasks/ui/task-create-panel/task-create-panel.component';
+import { AssigneeOption, TaskCreatePayload, TasksFilterItemVm, TaskMenuAction } from '../../features/tasks/models/task.models';
 
 @Component({
   selector: 'app-tasks-page',
   standalone: true,
-  imports: [AppShellComponent, KanbanBoardComponent, TopbarComponent, TasksFilterComponent, ConfirmDialogComponent],
+  imports: [AppShellComponent, KanbanBoardComponent, TopbarComponent, TasksFilterComponent, ConfirmDialogComponent, TaskCreatePanelComponent],
   templateUrl: './tasks-page.component.html',
   styleUrl: './tasks-page.component.scss',
 })
@@ -53,7 +54,13 @@ export class TasksPageComponent {
       .map(col => ({ ...col, totalCount: col.cards.length }));
   });
 
+  readonly showCreatePanel = signal(false);
   readonly deleteTaskId = signal<string | null>(null);
+
+  readonly assigneeOptions: AssigneeOption[] = [
+    { id: 'alex', name: 'Alex Rivera' },
+    { id: 'sarah', name: 'Sarah Chen' },
+  ];
 
   onMenuAction(action: TaskMenuAction): void {
     switch (action.type) {
@@ -78,6 +85,15 @@ export class TasksPageComponent {
   }
 
   onQuickAdd(): void {
-    console.log('quick add');
+    this.showCreatePanel.set(true);
+  }
+
+  onSaveTask(payload: TaskCreatePayload): void {
+    console.log('save task:', payload);
+    this.showCreatePanel.set(false);
+  }
+
+  onCancelCreate(): void {
+    this.showCreatePanel.set(false);
   }
 }

@@ -40,6 +40,20 @@ export type TaskMenuAction =
   | { type: 'moveTo'; taskId: string; targetStatus: TaskStatus }
   | { type: 'delete'; taskId: string };
 
+export interface TaskCreatePayload {
+  title: string;
+  priority: TaskPriority;
+  dueDate: string;
+  assigneeId: string;
+  description: string;
+}
+
+export interface AssigneeOption {
+  id: string;
+  name: string;
+  avatarUrl?: string;
+}
+
 export const TASK_STATUS_LABELS: Record<TaskStatus, string> = {
   todo: 'К выполнению',
   inprogress: 'В процессе',
