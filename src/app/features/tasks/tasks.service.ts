@@ -1,5 +1,5 @@
 import { Injectable, signal } from '@angular/core';
-import { KanbanColumnVm } from './models/task.models';
+import { KanbanColumnVm, TaskStatus } from './models/task.models';
 
 const PLACEHOLDER_AVATAR_1 =
   `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Crect width='40' height='40' rx='20' fill='%234f86c6'/%3E%3Ctext x='50%25' y='54%25' dominant-baseline='middle' text-anchor='middle' fill='white' font-size='18' font-family='sans-serif'%3EА%3C/text%3E%3C/svg%3E`;
@@ -10,6 +10,59 @@ const PLACEHOLDER_AVATAR_2 =
 @Injectable({ providedIn: 'root' })
 export class TasksService {
   readonly columns = signal<KanbanColumnVm[]>(MOCK_COLUMNS);
+
+  moveTask(fromColumnId: TaskStatus, toColumnId: TaskStatus, fromIndex: number, toIndex: number): void {
+    this.columns.update(cols => {
+      const result = cols.map(col => ({ ...col, cards: [...col.cards] }));
+      const fromCol = result.find(c => c.id === fromColumnId)!;
+      const toCol = result.find(c => c.id === toColumnId)!;
+
+      const [card] = fromCol.cards.splice(fromIndex, 1);
+      card.status = toColumnId;
+      toCol.cards.splice(toIndex, 0, card);
+
+      fromCol.totalCount = fromCol.cards.length;
+      toCol.totalCount = toCol.cards.length;
+
+      return result;
+    });
+  }
+
+  moveTaskById(taskId: string, targetStatus: TaskStatus): void {
+    this.columns.update(cols => {
+      const result = cols.map(col => ({ ...col, cards: [...col.cards] }));
+
+      let card;
+      for (const col of result) {
+        const idx = col.cards.findIndex(c => c.id === taskId);
+        if (idx !== -1) {
+          [card] = col.cards.splice(idx, 1);
+          col.totalCount = col.cards.length;
+          break;
+        }
+      }
+
+      if (card) {
+        card.status = targetStatus;
+        const targetCol = result.find(c => c.id === targetStatus)!;
+        targetCol.cards.unshift(card);
+        targetCol.totalCount = targetCol.cards.length;
+      }
+
+      return result;
+    });
+  }
+
+  deleteTask(taskId: string): void {
+    this.columns.update(cols =>
+      cols.map(col => {
+        const filtered = col.cards.filter(c => c.id !== taskId);
+        return filtered.length === col.cards.length
+          ? col
+          : { ...col, cards: filtered, totalCount: filtered.length };
+      }),
+    );
+  }
 }
 
 const MOCK_COLUMNS: KanbanColumnVm[] = [

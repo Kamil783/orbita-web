@@ -1,0 +1,81 @@
+<div class="overlay" (click)="onBackdropClick()">
+  <div class="panel" (click)="onPanelClick($event)">
+    <header class="panel__header">
+      <h3 class="panel__title">Новая задача</h3>
+      <button class="panel__close" type="button" (click)="onCancel()">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </header>
+
+    <div class="panel__body">
+      <div class="field">
+        <label class="field__label">Название задачи</label>
+        <input
+          class="field__input"
+          type="text"
+          placeholder="Например: Аудит дизайн-системы"
+          [(ngModel)]="title"
+        />
+      </div>
+
+      <div class="field">
+        <label class="field__label">Приоритет</label>
+        <div class="segmented">
+          @for (p of priorities; track p.value) {
+            <button
+              class="segmented__btn"
+              [class.segmented__btn--active]="priority() === p.value"
+              type="button"
+              (click)="selectPriority(p.value)"
+            >
+              {{ p.label }}
+            </button>
+          }
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label class="field__label">Срок</label>
+          <div class="field__icon-wrap">
+            <span class="material-symbols-outlined field__icon">calendar_today</span>
+            <input
+              class="field__input field__input--icon"
+              type="date"
+              [(ngModel)]="dueDate"
+            />
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="field__label">Исполнитель</label>
+          <div class="field__icon-wrap">
+            <span class="material-symbols-outlined field__icon">person</span>
+            <select class="field__input field__input--icon field__select" [(ngModel)]="assigneeId">
+              <option value="">Выбрать</option>
+              @for (a of assignees(); track a.id) {
+                <option [value]="a.id">{{ a.name }}</option>
+              }
+            </select>
+            <span class="material-symbols-outlined field__chevron">expand_more</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="field__label">Описание</label>
+        <textarea
+          class="field__input field__textarea"
+          placeholder="Добавьте детали задачи..."
+          rows="4"
+          [(ngModel)]="description"
+        ></textarea>
+      </div>
+    </div>
+
+    <footer class="panel__footer">
+      <button class="btn btn--primary" type="button" (click)="onSave()">Сохранить</button>
+      <button class="btn btn--secondary" type="button" (click)="onCancel()">Отмена</button>
+    </footer>
+  </div>
+</div>

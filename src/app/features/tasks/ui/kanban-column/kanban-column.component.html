@@ -10,9 +10,17 @@
     </button>
   </header>
 
-  <div class="col__cards">
+  <div
+    class="col__cards"
+    cdkDropList
+    [cdkDropListData]="column().id"
+    (cdkDropListDropped)="onDrop($event)"
+  >
     @for (t of column().cards; track t.id) {
-      <app-task-card [task]="t" />
+      <div cdkDrag>
+        <app-task-card [task]="t" (menuAction)="menuAction.emit($event)" />
+        <div class="drag-placeholder" *cdkDragPlaceholder></div>
+      </div>
     }
   </div>
 </section>
