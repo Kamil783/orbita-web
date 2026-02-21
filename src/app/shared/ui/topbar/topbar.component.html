@@ -2,6 +2,8 @@
   <div class="left">
     <h2 class="title">{{ title }}</h2>
 
+    <ng-content select="[topbar-left-extra]"></ng-content>
+
     <div class="search">
       <span class="material-symbols-outlined search__icon">search</span>
       <input class="search__input" type="text" [placeholder]="placeholder" />
