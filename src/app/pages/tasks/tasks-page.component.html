@@ -1,8 +1,8 @@
 <app-app-shell>
-  <app-topbar
-    [title]="title"
-    placeholder="Поиск задач..."
-  ></app-topbar>
+  <app-topbar [title]="title" placeholder="Поиск...">
+    <app-tasks-filter topbar-left-extra [items]="filterItems" [(selectedId)]="selectedFilterId">
+    </app-tasks-filter>
+  </app-topbar>
 
   <main class="page">
     <app-kanban-board [columns]="columns"></app-kanban-board>
