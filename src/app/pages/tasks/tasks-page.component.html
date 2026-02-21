@@ -12,3 +12,14 @@
     </button>
   </main>
 </app-app-shell>
+
+@if (deleteTaskId()) {
+  <app-confirm-dialog
+    title="Удалить задачу"
+    message="Вы уверены, что хотите удалить эту задачу? Это действие нельзя отменить."
+    confirmText="Удалить"
+    cancelText="Отмена"
+    (confirm)="onConfirmDelete()"
+    (cancel)="onCancelDelete()"
+  />
+}

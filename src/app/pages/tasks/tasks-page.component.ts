@@ -4,12 +4,13 @@ import { KanbanBoardComponent } from '../../features/tasks/ui/kanban-board/kanba
 import { TopbarComponent } from '../../shared/ui/topbar/topbar.component';
 import { TasksService } from '../../features/tasks/tasks.service';
 import { TasksFilterComponent } from '../../features/tasks/ui/tasks-filter/tasks-filter.component';
+import { ConfirmDialogComponent } from '../../shared/ui/confirm-dialog/confirm-dialog.component';
 import { TasksFilterItemVm, TaskMenuAction } from '../../features/tasks/models/task.models';
 
 @Component({
   selector: 'app-tasks-page',
   standalone: true,
-  imports: [AppShellComponent, KanbanBoardComponent, TopbarComponent, TasksFilterComponent],
+  imports: [AppShellComponent, KanbanBoardComponent, TopbarComponent, TasksFilterComponent, ConfirmDialogComponent],
   templateUrl: './tasks-page.component.html',
   styleUrl: './tasks-page.component.scss',
 })
@@ -52,8 +53,28 @@ export class TasksPageComponent {
       .map(col => ({ ...col, totalCount: col.cards.length }));
   });
 
+  readonly deleteTaskId = signal<string | null>(null);
+
   onMenuAction(action: TaskMenuAction): void {
-    console.log('task menu action:', action);
+    switch (action.type) {
+      case 'delete':
+        this.deleteTaskId.set(action.taskId);
+        break;
+      default:
+        console.log('task menu action:', action);
+    }
+  }
+
+  onConfirmDelete(): void {
+    const taskId = this.deleteTaskId();
+    if (taskId) {
+      console.log('confirmed delete task:', taskId);
+      this.deleteTaskId.set(null);
+    }
+  }
+
+  onCancelDelete(): void {
+    this.deleteTaskId.set(null);
   }
 
   onQuickAdd(): void {
