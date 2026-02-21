@@ -4,7 +4,7 @@ import { KanbanBoardComponent } from '../../features/tasks/ui/kanban-board/kanba
 import { TopbarComponent } from '../../shared/ui/topbar/topbar.component';
 import { TasksService } from '../../features/tasks/tasks.service';
 import { TasksFilterComponent } from '../../features/tasks/ui/tasks-filter/tasks-filter.component';
-import { TasksFilterItemVm } from '../../features/tasks/models/task.models';
+import { TasksFilterItemVm, TaskMenuAction } from '../../features/tasks/models/task.models';
 
 @Component({
   selector: 'app-tasks-page',
@@ -51,6 +51,10 @@ export class TasksPageComponent {
       }))
       .map(col => ({ ...col, totalCount: col.cards.length }));
   });
+
+  onMenuAction(action: TaskMenuAction): void {
+    console.log('task menu action:', action);
+  }
 
   onQuickAdd(): void {
     console.log('quick add');

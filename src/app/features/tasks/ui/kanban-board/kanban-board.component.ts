@@ -1,6 +1,6 @@
-import { Component, input } from '@angular/core';
+import { Component, input, output } from '@angular/core';
 import { KanbanColumnComponent } from '../kanban-column/kanban-column.component';
-import { KanbanColumnVm } from '../../models/task.models';
+import { KanbanColumnVm, TaskMenuAction } from '../../models/task.models';
 
 @Component({
   selector: 'app-kanban-board',
@@ -11,4 +11,5 @@ import { KanbanColumnVm } from '../../models/task.models';
 })
 export class KanbanBoardComponent {
   columns = input.required<KanbanColumnVm[]>();
+  readonly menuAction = output<TaskMenuAction>();
 }

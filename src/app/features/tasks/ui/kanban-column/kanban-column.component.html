@@ -12,7 +12,7 @@
 
   <div class="col__cards">
     @for (t of column().cards; track t.id) {
-      <app-task-card [task]="t" />
+      <app-task-card [task]="t" (menuAction)="menuAction.emit($event)" />
     }
   </div>
 </section>

@@ -1,6 +1,6 @@
-import { Component, input } from '@angular/core';
+import { Component, input, output } from '@angular/core';
 import { TaskCardComponent } from '../task-card/task-card.component';
-import { KanbanColumnVm } from '../../models/task.models';
+import { KanbanColumnVm, TaskMenuAction } from '../../models/task.models';
 
 @Component({
   selector: 'app-kanban-column',
@@ -15,4 +15,5 @@ import { KanbanColumnVm } from '../../models/task.models';
 export class KanbanColumnComponent {
   readonly showDivider = input(false);
   readonly column = input.required<KanbanColumnVm>();
+  readonly menuAction = output<TaskMenuAction>();
 }
