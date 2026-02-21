@@ -2,6 +2,8 @@
   <div class="left">
     <h2 class="title">{{ title }}</h2>
 
+    <ng-content select="[topbar-left-extra]"></ng-content>
+
     <div class="search">
       <span class="material-symbols-outlined search__icon">search</span>
       <input class="search__input" type="text" [placeholder]="placeholder" />
@@ -16,6 +18,13 @@
     <button class="iconbtn iconbtn--notify" type="button" (click)="openNotifications()" aria-label="Уведомления">
       <span class="material-symbols-outlined">notifications</span>
       <span class="dot" aria-hidden="true"></span>
+    </button>
+
+    <div class="divider"></div>
+
+    <button class="profile" type="button" aria-label="Профиль">
+      <span class="profile__avatar" aria-hidden="true">И</span>
+      <span class="profile__name">Иван Петров</span>
     </button>
   </div>
 </header>

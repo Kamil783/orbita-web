@@ -2,6 +2,7 @@ export type TaskPriority = 'high' | 'medium' | 'low';
 export type TaskStatus = 'todo' | 'inprogress' | 'done';
 
 export interface TaskAssignee {
+  id: string;
   avatarUrl: string;
   name?: string;
 }
@@ -25,4 +26,11 @@ export interface KanbanColumnVm {
   headerActionIcon: string;
   muted?: boolean;
   cards: TaskCardVm[];
+}
+
+export interface TasksFilterItemVm {
+  id: string;
+  name: string;
+  avatarUrl?: string;
+  isAll?: boolean;
 }

@@ -1,11 +1,15 @@
-import { Injectable } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 import { KanbanColumnVm } from './models/task.models';
+
+const PLACEHOLDER_AVATAR_1 =
+  `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Crect width='40' height='40' rx='20' fill='%234f86c6'/%3E%3Ctext x='50%25' y='54%25' dominant-baseline='middle' text-anchor='middle' fill='white' font-size='18' font-family='sans-serif'%3EА%3C/text%3E%3C/svg%3E`;
+
+const PLACEHOLDER_AVATAR_2 =
+  `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Crect width='40' height='40' rx='20' fill='%23e67e50'/%3E%3Ctext x='50%25' y='54%25' dominant-baseline='middle' text-anchor='middle' fill='white' font-size='18' font-family='sans-serif'%3EС%3C/text%3E%3C/svg%3E`;
 
 @Injectable({ providedIn: 'root' })
 export class TasksService {
-  getColumns(): KanbanColumnVm[] {
-    return MOCK_COLUMNS;
-  }
+  readonly columns = signal<KanbanColumnVm[]>(MOCK_COLUMNS);
 }
 
 const MOCK_COLUMNS: KanbanColumnVm[] = [
@@ -23,9 +27,9 @@ const MOCK_COLUMNS: KanbanColumnVm[] = [
         deadlineText: '24 окт',
         assignees: [
           {
-            avatarUrl:
-              'https://lh3.googleusercontent.com/aida-public/AB6AXuDC4CstSZcLmPGnmiu765x3Ty2AHZgX6Zq_BBm1Lkcc29wYVkrXwlZPFtMn8aWFa1_qqZ27M40TR8GNmY4b9TlbrzVW9e-LY9reIQHPd6QPIjIpbnlKF3xUllDSM1rZJzVgCdzSFX8Z_Qjhqlsc3twEgHD9OyzHg8T_cFcR7kN6KOzkL3L0FX4NIw2TMQPAhjK6Ar7KGOuRLVwIAd9VahFX4MhQFEoHTBfuwDZTVYYiL8ba3gG0xG6XvAApuh7tldasRkOLD0E3xTw',
-            name: 'Пользователь 1',
+            id: 'alex',
+            avatarUrl: PLACEHOLDER_AVATAR_1,
+            name: 'Alex Rivera',
           },
         ],
       },
@@ -42,6 +46,13 @@ const MOCK_COLUMNS: KanbanColumnVm[] = [
         status: 'todo',
         priority: 'low',
         deadlineText: '28 окт',
+        assignees: [
+          {
+            id: 'sarah',
+            avatarUrl: PLACEHOLDER_AVATAR_2,
+            name: 'Sarah Chen',
+          },
+        ],
       },
     ],
   },
@@ -59,9 +70,9 @@ const MOCK_COLUMNS: KanbanColumnVm[] = [
         progressPct: 65,
         assignees: [
           {
-            avatarUrl:
-              'https://lh3.googleusercontent.com/aida-public/AB6AXuBkCC03sWslhhcyDd_60Z1c4g-2nfKse_PoSOLZQSdpwNpme0wZQoDNPN2KCRybHx1FAGG68zWZI34rUNsVll_4wq44WkRjle0X1vzq-SF-ol_mu7LNGgYTnrLqJW8c76TtKy0LEaa-J_YShrWSCsiGP10XdfOt2wHCIjPTMfFiu8xGk4_s1ePBeVsEjB46Ra9PePVb0gh6I5PPqLXnvZv2ra6uIfsIaj_Nc7kwFpNf1GlMUMmnVi4eEaLGAB3hTtxk8EwQ889eE',
-            name: 'Пользователь 2',
+            id: 'sarah',
+            avatarUrl: PLACEHOLDER_AVATAR_2,
+            name: 'Sarah Chen',
           },
         ],
       },
@@ -71,6 +82,13 @@ const MOCK_COLUMNS: KanbanColumnVm[] = [
         status: 'inprogress',
         priority: 'medium',
         deadlineText: 'Сегодня',
+        assignees: [
+          {
+            id: 'alex',
+            avatarUrl: PLACEHOLDER_AVATAR_1,
+            name: 'Alex Rivera',
+          },
+        ],
       },
     ],
   },
@@ -87,6 +105,13 @@ const MOCK_COLUMNS: KanbanColumnVm[] = [
         status: 'done',
         priority: 'low',
         completedText: 'Завершено 20 окт',
+        assignees: [
+          {
+            id: 'alex',
+            avatarUrl: PLACEHOLDER_AVATAR_1,
+            name: 'Alex Rivera',
+          },
+        ],
       },
     ],
   },

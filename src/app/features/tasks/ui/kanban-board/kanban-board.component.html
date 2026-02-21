@@ -1,9 +1,7 @@
 <div class="board">
-  <app-kanban-column
-    *ngFor="let c of columns; let last = last"
-    [column]="c"
-    [showDivider]="!last"
-  ></app-kanban-column>
+  @for (c of columns(); track c.id; let last = $last) {
+    <app-kanban-column [column]="c" [showDivider]="true"></app-kanban-column>
+  }
 
   <section class="newcol">
     <header class="newcol__hdr">

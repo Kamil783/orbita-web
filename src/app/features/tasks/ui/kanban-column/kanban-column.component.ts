@@ -1,4 +1,4 @@
-import { Component, Input, input } from '@angular/core';
+import { Component, input } from '@angular/core';
 import { TaskCardComponent } from '../task-card/task-card.component';
 import { KanbanColumnVm } from '../../models/task.models';
 
@@ -8,8 +8,11 @@ import { KanbanColumnVm } from '../../models/task.models';
   imports: [TaskCardComponent],
   templateUrl: './kanban-column.component.html',
   styleUrl: './kanban-column.component.scss',
+  host: {
+    '[class.divider]': 'showDivider()',
+  },
 })
 export class KanbanColumnComponent {
-  @Input() showDivider = false;
-   @Input({ required: true }) column!: KanbanColumnVm;
+  readonly showDivider = input(false);
+  readonly column = input.required<KanbanColumnVm>();
 }

@@ -1,8 +1,26 @@
-.col {
+:host {
   flex: 1;
   min-width: 200px;
   max-width: 320px;
+  display: flex;
+}
 
+:host(.divider) {
+  position: relative;
+
+  &::after {
+    content: '';
+    position: absolute;
+    right: -9px;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: #e5e7eb;
+  }
+}
+
+.col {
+  flex: 1;
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -10,11 +28,6 @@
 
 .col--muted .col__cards {
   opacity: 0.65;
-}
-
-.col--divider {
-  border-right: 1px solid #e5e7eb;
-  padding-right: 16px;
 }
 
 .col__hdr {
