@@ -8,6 +8,9 @@ import { KanbanColumnVm } from '../../models/task.models';
   imports: [TaskCardComponent],
   templateUrl: './kanban-column.component.html',
   styleUrl: './kanban-column.component.scss',
+  host: {
+    '[class.divider]': 'showDivider()',
+  },
 })
 export class KanbanColumnComponent {
   readonly showDivider = input(false);
