@@ -1,5 +1,5 @@
 .sidebar {
-  width: 80px;
+  width: 100px;
   height: 100%;
   background: #ffffff;
   border-right: 1px solid #e5e7eb;
@@ -10,12 +10,21 @@
   flex: 0 0 auto;
 }
 
-.logo {
+.logo__container {
   color: var(--color-primary);
   margin-bottom: 40px;
 
-  .material-symbols-outlined { font-size: 36px; }
+
+  .logo {
+    width: 50px;
+    height: 50px;
+    margin-bottom: 40px;
+    object-fit: contain;
+    display: block;
+  }
 }
+
+
 
 .nav {
   width: 100%;
@@ -39,7 +48,9 @@
   &:hover {
     color: var(--color-primary);
 
-    .nav__icon { transform: scale(1.1); }
+    .nav__icon {
+      transform: scale(1.1);
+    }
   }
 }
 
@@ -83,6 +94,11 @@
   padding: 8px;
   border-radius: 10px;
 
-  &:hover { color: var(--color-primary); }
-  .material-symbols-outlined { font-size: 26px; }
+  &:hover {
+    color: var(--color-primary);
+  }
+
+  .material-symbols-outlined {
+    font-size: 26px;
+  }
 }
