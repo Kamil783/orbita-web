@@ -5,7 +5,7 @@
   </app-topbar>
 
   <main class="page">
-    <app-kanban-board [columns]="filteredColumns()" (menuAction)="onMenuAction($event)"></app-kanban-board>
+    <app-kanban-board [columns]="filteredColumns()" (menuAction)="onMenuAction($event)" (taskDrop)="onTaskDrop($event)"></app-kanban-board>
 
     <button class="fab" type="button" (click)="onQuickAdd()" aria-label="Добавить задачу">
       <span class="material-symbols-outlined">add</span>

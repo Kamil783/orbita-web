@@ -1,6 +1,6 @@
-<div class="board">
+<div class="board" cdkDropListGroup>
   @for (c of columns(); track c.id; let last = $last) {
-    <app-kanban-column [column]="c" [showDivider]="true" (menuAction)="menuAction.emit($event)"></app-kanban-column>
+    <app-kanban-column [column]="c" [showDivider]="true" (menuAction)="menuAction.emit($event)" (taskDrop)="taskDrop.emit($event)"></app-kanban-column>
   }
 
   <section class="newcol">

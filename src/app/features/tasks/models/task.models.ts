@@ -54,6 +54,13 @@ export interface AssigneeOption {
   avatarUrl?: string;
 }
 
+export interface TaskDropEvent {
+  fromColumnId: TaskStatus;
+  toColumnId: TaskStatus;
+  fromIndex: number;
+  toIndex: number;
+}
+
 export const TASK_STATUS_LABELS: Record<TaskStatus, string> = {
   todo: 'К выполнению',
   inprogress: 'В процессе',

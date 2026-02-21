@@ -6,7 +6,7 @@ import { TasksService } from '../../features/tasks/tasks.service';
 import { TasksFilterComponent } from '../../features/tasks/ui/tasks-filter/tasks-filter.component';
 import { ConfirmDialogComponent } from '../../shared/ui/confirm-dialog/confirm-dialog.component';
 import { TaskCreatePanelComponent } from '../../features/tasks/ui/task-create-panel/task-create-panel.component';
-import { AssigneeOption, TaskCreatePayload, TasksFilterItemVm, TaskMenuAction } from '../../features/tasks/models/task.models';
+import { AssigneeOption, TaskCreatePayload, TaskDropEvent, TasksFilterItemVm, TaskMenuAction } from '../../features/tasks/models/task.models';
 
 @Component({
   selector: 'app-tasks-page',
@@ -67,15 +67,22 @@ export class TasksPageComponent {
       case 'delete':
         this.deleteTaskId.set(action.taskId);
         break;
+      case 'moveTo':
+        this.tasksService.moveTaskById(action.taskId, action.targetStatus);
+        break;
       default:
         console.log('task menu action:', action);
     }
   }
 
+  onTaskDrop(event: TaskDropEvent): void {
+    this.tasksService.moveTask(event.fromColumnId, event.toColumnId, event.fromIndex, event.toIndex);
+  }
+
   onConfirmDelete(): void {
     const taskId = this.deleteTaskId();
     if (taskId) {
-      console.log('confirmed delete task:', taskId);
+      this.tasksService.deleteTask(taskId);
       this.deleteTaskId.set(null);
     }
   }
