@@ -6,7 +6,17 @@
 }
 
 :host(.divider) {
-  border-right: 1px solid #e5e7eb;
+  position: relative;
+
+  &::after {
+    content: '';
+    position: absolute;
+    right: -9px;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: #e5e7eb;
+  }
 }
 
 .col {
