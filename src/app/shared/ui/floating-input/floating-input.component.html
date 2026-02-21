@@ -1,0 +1,13 @@
+<div class="field" [class.field--raised]="isRaised" [class.field--disabled]="disabled">
+  <input
+    class="input"
+    [type]="type"
+    [value]="value"
+    [disabled]="disabled"
+    placeholder=" "
+    (input)="setValue(($any($event.target)).value)"
+    (focus)="onFocus()"
+    (blur)="onBlur()"
+  />
+  <label class="label">{{ label }}</label>
+</div>

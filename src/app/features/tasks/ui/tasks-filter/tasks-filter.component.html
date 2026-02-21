@@ -1,0 +1,28 @@
+<div class="filter" role="group" aria-label="Фильтр задач по исполнителю">
+  <span class="filter__label">Фильтр:</span>
+
+  <div class="stack">
+    @for (i of items(); track i.id) {
+      <button
+        type="button"
+        class="chip"
+        [class.chip--all]="i.isAll"
+        [class.chip--active]="selectedId() === i.id"
+        (click)="select(i.id)"
+        [attr.aria-pressed]="selectedId() === i.id"
+        [attr.title]="i.name"
+      >
+        @if (i.isAll) {
+          <span class="chip__text">ВСЕ</span>
+        } @else {
+          <span
+            class="chip__avatar"
+            [style.backgroundImage]="i.avatarUrl ? 'url(' + i.avatarUrl + ')' : null"
+            aria-hidden="true"
+          ></span>
+          <span class="chip__tooltip" aria-hidden="true">{{ i.name }}</span>
+        }
+      </button>
+    }
+  </div>
+</div>

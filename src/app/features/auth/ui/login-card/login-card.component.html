@@ -1,0 +1,43 @@
+<div class="wrap">
+  <div class="card">
+    <div class="brand">
+      <div class="logo-ring">
+        <img class="logo" src="branding/logo-2.png" alt="Orbita" />
+      </div>
+
+      <h1 class="title">Orbita</h1>
+      <p class="subtitle">С возвращением. Давайте продолжим.</p>
+    </div>
+
+    <form class="form" [formGroup]="form" (ngSubmit)="submit()">
+      <app-floating-input
+        label="Email"
+        type="email"
+        formControlName="email">
+      </app-floating-input>
+
+      <app-floating-input
+        label="Пароль"
+        type="password"
+        formControlName="password">
+      </app-floating-input>
+
+      <div class="tools">
+        <button type="button" class="link" (click)="forgotPassword()">
+          Забыли пароль?
+        </button>
+      </div>
+
+      <button class="primary" type="submit">
+        Войти
+      </button>
+    </form>
+
+    <div class="footer">
+      <p class="muted">
+        Нет аккаунта?
+        <button type="button" class="link strong" (click)="signup()">Зарегистрироваться</button>
+      </p>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,18 @@
+<section class="col" [class.col--muted]="column().muted">
+  <header class="col__hdr">
+    <div class="col__titleWrap">
+      <h3 class="col__title">{{ column().title }}</h3>
+      <span class="pill" [class.pill--muted]="column().muted">{{ column().totalCount }}</span>
+    </div>
+
+    <button class="hdrbtn" type="button" aria-label="Действие">
+      <span class="material-symbols-outlined">{{ column().headerActionIcon }}</span>
+    </button>
+  </header>
+
+  <div class="col__cards">
+    @for (t of column().cards; track t.id) {
+      <app-task-card [task]="t" />
+    }
+  </div>
+</section>

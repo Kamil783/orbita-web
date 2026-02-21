@@ -1,0 +1,47 @@
+<article
+  class="card"
+  [class.card--inprogress]="task().progressPct != null"
+  [class.card--done]="task().status === 'done'"
+>
+  <div class="top">
+    <span class="badge" [ngClass]="badgeClass">{{ badgeText }}</span>
+
+    <button class="more" type="button" aria-label="Меню">
+      <span class="material-symbols-outlined">more_horiz</span>
+    </button>
+  </div>
+
+  <h4 class="title" [class.title--strike]="task().status === 'done'">
+    {{ task().title }}
+  </h4>
+
+  @if (task().progressPct != null) {
+    <div class="progress">
+      <div class="progress__bar" [style.width.%]="task().progressPct"></div>
+    </div>
+  }
+
+  <div class="bottom">
+    @if (task().deadlineText) {
+      <div class="meta">
+        <span class="material-symbols-outlined">event</span>
+        <span>{{ task().deadlineText }}</span>
+      </div>
+    }
+
+    @if (task().completedText) {
+      <div class="meta">
+        <span class="material-symbols-outlined">done_all</span>
+        <span>{{ task().completedText }}</span>
+      </div>
+    }
+
+    @if (task().assignees?.length) {
+      <div class="avatars">
+        @for (a of task().assignees; track a.avatarUrl) {
+          <span class="avatar" [style.backgroundImage]="'url(' + a.avatarUrl + ')'"></span>
+        }
+      </div>
+    }
+  </div>
+</article>

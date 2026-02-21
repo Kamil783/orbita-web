@@ -1,0 +1,23 @@
+<aside class="sidebar">
+  <div class="logo__container">
+    <img class="logo" src="branding/logo-2.png" alt="Orbita" />
+  </div>
+
+  <nav class="nav">
+    <a
+      *ngFor="let i of items"
+      class="nav__item"
+      [class.nav__item--active]="i.active"
+      href="#"
+    >
+      <span class="material-symbols-outlined nav__icon">{{ i.icon }}</span>
+      <span class="nav__label">{{ i.label }}</span>
+    </a>
+  </nav>
+
+  <div class="bottom">
+    <button class="iconbtn" type="button" aria-label="Настройки">
+      <span class="material-symbols-outlined">settings</span>
+    </button>
+  </div>
+</aside>

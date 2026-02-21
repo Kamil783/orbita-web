@@ -1,0 +1,38 @@
+.page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+
+  background: #f0f7ff;
+  position: relative;
+  overflow: hidden;
+}
+
+.bg {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.20;
+}
+
+.blob {
+  position: absolute;
+  width: 40%;
+  height: 40%;
+  border-radius: 9999px;
+  filter: blur(120px);
+}
+
+.blob--a {
+  top: -10%;
+  right: -10%;
+  background: rgba(37, 140, 244, 0.20);
+}
+
+.blob--b {
+  bottom: -10%;
+  left: -10%;
+  background: rgba(37, 140, 244, 0.10);
+}
