@@ -76,3 +76,43 @@
   background: #ef4444;
   border: 2px solid #ffffff;
 }
+
+.divider {
+  width: 1px;
+  height: 24px;
+  background: #e5e7eb;
+}
+
+.profile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 10px;
+  transition: background 0.2s ease;
+
+  &:hover { background: #f5f7f8; }
+}
+
+.profile__avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #4f86c6;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.profile__name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #111418;
+  white-space: nowrap;
+}
