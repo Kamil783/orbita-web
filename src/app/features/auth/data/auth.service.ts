@@ -1,7 +1,8 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, tap, catchError, throwError } from 'rxjs';
+import { environment } from '../../../../environments/environment';
 
 export interface AuthResponse {
   accessToken: string;
@@ -18,6 +19,7 @@ const REFRESH_TOKEN_KEY = 'refresh_token';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
+  private readonly apiUrl = environment.apiUrl;
   private readonly _isLoggedIn = signal(this.hasToken());
 
   readonly isLoggedIn = this._isLoggedIn.asReadonly();
@@ -28,7 +30,7 @@ export class AuthService {
   ) {}
 
   login(credentials: LoginRequest): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>('/api/Auth/login', credentials).pipe(
+    return this.http.post<AuthResponse>(`${this.apiUrl}/api/Auth/login`, credentials).pipe(
       tap(res => this.setTokens(res)),
       catchError(err => throwError(() => err)),
     );
@@ -36,7 +38,7 @@ export class AuthService {
 
   refresh(): Observable<AuthResponse> {
     const refreshToken = this.getRefreshToken();
-    return this.http.post<AuthResponse>('/api/Auth/refresh', { refreshToken }).pipe(
+    return this.http.post<AuthResponse>(`${this.apiUrl}/api/Auth/refresh`, { refreshToken }).pipe(
       tap(res => this.setTokens(res)),
     );
   }
