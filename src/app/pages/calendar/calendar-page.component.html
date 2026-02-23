@@ -171,12 +171,19 @@
     }
 
     <!-- FAB -->
-    <button class="fab" type="button" (click)="addEvent()" aria-label="Добавить событие">
+    <button class="fab" type="button" (click)="onAddEvent()" aria-label="Добавить событие">
       <span class="material-symbols-outlined">add</span>
-      <span class="fab__label">Добавить событие</span>
     </button>
   </main>
 </app-app-shell>
+
+<!-- Create Event Panel -->
+@if (showCreatePanel()) {
+  <app-event-create-panel
+    (save)="onSaveEvent($event)"
+    (cancel)="onCancelCreate()"
+  />
+}
 
 <!-- Event Detail Popup -->
 @if (selectedEvent(); as event) {

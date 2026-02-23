@@ -33,6 +33,16 @@ export const EVENT_COLOR_MAP: Record<CalendarEventColor, { bg: string; border: s
   rose:   { bg: 'rgba(244,63,94,0.08)',  border: '#f43f5e', text: '#e11d48', bgHover: 'rgba(244,63,94,0.15)' },
 };
 
+export interface EventCreatePayload {
+  title: string;
+  type: CalendarEventType;
+  color: CalendarEventColor;
+  date: string;
+  startTime: string;
+  endTime: string;
+  location: string;
+}
+
 export const HOURS: number[] = Array.from({ length: 13 }, (_, i) => i + 8); // 8..20
 
 export const DAY_NAMES_SHORT: string[] = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];

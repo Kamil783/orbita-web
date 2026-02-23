@@ -3,7 +3,8 @@ import { CommonModule } from '@angular/common';
 import { AppShellComponent } from '../../shared/ui/app-shell/app-shell.component';
 import { TopbarComponent } from '../../shared/ui/topbar/topbar.component';
 import { CalendarService } from '../../features/calendar/data/calendar.service';
-import { CalendarViewMode, HOURS, EVENT_COLOR_MAP, CalendarEvent } from '../../features/calendar/models/calendar-event.models';
+import { CalendarViewMode, HOURS, EVENT_COLOR_MAP, CalendarEvent, EventCreatePayload } from '../../features/calendar/models/calendar-event.models';
+import { EventCreatePanelComponent } from '../../features/calendar/ui/event-create-panel/event-create-panel.component';
 
 const EVENT_TYPE_LABELS: Record<string, string> = {
   personal: 'Личное',
@@ -14,7 +15,7 @@ const EVENT_TYPE_LABELS: Record<string, string> = {
 @Component({
   selector: 'app-calendar-page',
   standalone: true,
-  imports: [AppShellComponent, TopbarComponent, CommonModule],
+  imports: [AppShellComponent, TopbarComponent, CommonModule, EventCreatePanelComponent],
   templateUrl: './calendar-page.component.html',
   styleUrl: './calendar-page.component.scss',
 })
@@ -26,6 +27,7 @@ export class CalendarPageComponent {
   readonly colorMap = EVENT_COLOR_MAP;
 
   readonly selectedEvent = signal<CalendarEvent | null>(null);
+  readonly showCreatePanel = signal(false);
 
   readonly headerSubtitle = computed(() => {
     if (this.calendarService.viewMode() === 'day') {
@@ -109,7 +111,26 @@ export class CalendarPageComponent {
     e.stopPropagation();
   }
 
-  addEvent(): void {
-    console.log('add event');
+  onAddEvent(): void {
+    this.showCreatePanel.set(true);
+  }
+
+  onSaveEvent(payload: EventCreatePayload): void {
+    const id = 'ev-' + Date.now();
+    this.calendarService.addEvent({
+      id,
+      title: payload.title,
+      type: payload.type,
+      date: payload.date,
+      startTime: payload.startTime,
+      endTime: payload.endTime,
+      location: payload.location || undefined,
+      color: payload.color,
+    });
+    this.showCreatePanel.set(false);
+  }
+
+  onCancelCreate(): void {
+    this.showCreatePanel.set(false);
   }
 }
