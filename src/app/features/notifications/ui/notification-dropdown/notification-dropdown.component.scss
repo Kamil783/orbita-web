@@ -1,0 +1,138 @@
+.dropdown {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  width: 340px;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  z-index: 100;
+  animation: dropdownIn 0.15s ease-out;
+}
+
+@keyframes dropdownIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dropdown__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.dropdown__title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #111418;
+}
+
+.dropdown__mark-all {
+  border: 0;
+  background: transparent;
+  font-size: 12px;
+  font-weight: 600;
+  color: #258cf4;
+  cursor: pointer;
+  padding: 0;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.dropdown__list {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.notification-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid #f5f5f5;
+  position: relative;
+  cursor: pointer;
+  transition: background 0.15s;
+
+  &:last-child {
+    border-bottom: 0;
+  }
+
+  &:hover {
+    background: #f9fafb;
+  }
+
+  &--unread {
+    background: rgba(37, 140, 244, 0.04);
+  }
+}
+
+.notification-item__dot {
+  position: absolute;
+  right: 16px;
+  top: 16px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #258cf4;
+}
+
+.notification-item__icon {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  .material-symbols-outlined {
+    font-size: 20px;
+  }
+}
+
+.notification-item__body {
+  flex: 1;
+  min-width: 0;
+}
+
+.notification-item__title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #111418;
+  line-height: 1.4;
+}
+
+.notification-item__time {
+  margin: 4px 0 0;
+  font-size: 11px;
+  color: #60758a;
+}
+
+.dropdown__empty {
+  padding: 40px 16px;
+  text-align: center;
+  color: #9ca3af;
+
+  p {
+    margin: 8px 0 0;
+    font-size: 13px;
+  }
+}
+
+.dropdown__empty-icon {
+  font-size: 32px;
+  color: #d1d5db;
+}

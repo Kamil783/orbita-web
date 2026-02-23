@@ -1,0 +1,30 @@
+<div class="toast-stack">
+  @for (toast of notificationService.toasts(); track toast.id) {
+    <div
+      class="toast"
+      [style.border-left-color]="colors[toast.type].border"
+    >
+      <div
+        class="toast__icon"
+        [style.background]="colors[toast.type].bg"
+        [style.color]="colors[toast.type].text"
+      >
+        <span class="material-symbols-outlined">{{ icons[toast.type] }}</span>
+      </div>
+
+      <div class="toast__body">
+        <h5 class="toast__title">{{ toast.title }}</h5>
+        <p class="toast__message">{{ toast.message }}</p>
+      </div>
+
+      <button
+        class="toast__close"
+        type="button"
+        aria-label="Закрыть"
+        (click)="notificationService.dismissToast(toast.id)"
+      >
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+  }
+</div>
