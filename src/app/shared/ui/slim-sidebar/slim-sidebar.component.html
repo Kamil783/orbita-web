@@ -7,8 +7,8 @@
     <a
       *ngFor="let i of items"
       class="nav__item"
-      [class.nav__item--active]="i.active"
-      href="#"
+      [routerLink]="i.route"
+      routerLinkActive="nav__item--active"
     >
       <span class="material-symbols-outlined nav__icon">{{ i.icon }}</span>
       <span class="nav__label">{{ i.label }}</span>
@@ -16,7 +16,7 @@
   </nav>
 
   <div class="bottom">
-    <button class="iconbtn" type="button" aria-label="Настройки">
+    <button class="iconbtn" type="button" aria-label="Настройки" routerLink="/profile">
       <span class="material-symbols-outlined">settings</span>
     </button>
   </div>

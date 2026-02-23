@@ -294,6 +294,73 @@
   }
 }
 
+// --- Integration Row (Google Calendar) ---
+.integration-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  border-radius: var(--radius-md);
+  background: #f5f7f8;
+}
+
+.integration-row__icon-wrapper {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: rgba(37, 140, 244, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.integration-row__icon {
+  font-size: 22px;
+  color: var(--color-primary);
+}
+
+.integration-row__text {
+  flex: 1;
+  min-width: 0;
+}
+
+.integration-row__btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 40px;
+  padding: 0 20px;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: var(--color-primary);
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s ease;
+
+  &:hover {
+    background: #1d7ad8;
+  }
+
+  .material-symbols-outlined {
+    font-size: 18px;
+  }
+
+  &--connected {
+    background: #fef2f2;
+    color: #dc2626;
+    border: 1px solid #fecaca;
+
+    &:hover {
+      background: #dc2626;
+      color: #ffffff;
+    }
+  }
+}
+
 // --- Security Row ---
 .security-row {
   display: flex;

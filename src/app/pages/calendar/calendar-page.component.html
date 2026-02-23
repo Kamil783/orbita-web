@@ -1,0 +1,173 @@
+<app-app-shell>
+  <app-topbar [title]="title" placeholder="Поиск событий...">
+    <!-- View mode toggle in topbar -->
+    <div topbar-left-extra class="view-toggle">
+      <button
+        class="view-toggle__btn"
+        [class.view-toggle__btn--active]="calendarService.viewMode() === 'day'"
+        (click)="setView('day')"
+      >
+        День
+      </button>
+      <button
+        class="view-toggle__btn"
+        [class.view-toggle__btn--active]="calendarService.viewMode() === 'week'"
+        (click)="setView('week')"
+      >
+        Неделя
+      </button>
+    </div>
+  </app-topbar>
+
+  <main class="page">
+    <!-- Sub-header with navigation -->
+    <div class="cal-header">
+      <div class="cal-header__left">
+        <div class="cal-header__icon-wrapper">
+          <span class="material-symbols-outlined">event</span>
+        </div>
+        <div class="cal-header__info">
+          <h2 class="cal-header__title">
+            {{ calendarService.viewMode() === 'day' ? 'Расписание на день' : 'Расписание на неделю' }}
+          </h2>
+          <p class="cal-header__subtitle">{{ headerSubtitle() }}</p>
+        </div>
+      </div>
+      <div class="cal-header__nav">
+        <button class="cal-nav-btn" (click)="calendarService.goPrev()">
+          <span class="material-symbols-outlined">chevron_left</span>
+        </button>
+        <button class="cal-nav-btn cal-nav-btn--today" (click)="calendarService.goToday()">
+          Сегодня
+        </button>
+        <button class="cal-nav-btn" (click)="calendarService.goNext()">
+          <span class="material-symbols-outlined">chevron_right</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- DAY VIEW -->
+    @if (calendarService.viewMode() === 'day') {
+      <div class="day-grid-wrapper">
+        <div class="day-grid">
+          @for (h of hours; track h) {
+            <!-- Time label -->
+            <div class="day-grid__time">{{ formatHour(h) }}</div>
+            <!-- Cell -->
+            <div class="day-grid__cell"></div>
+          }
+
+          <!-- Events overlay -->
+          <div class="day-grid__events">
+            @for (event of calendarService.eventsForDay(); track event.id) {
+              <div
+                class="cal-event"
+                [style.top.px]="eventTop(event)"
+                [style.height.px]="eventHeight(event)"
+                [style.background]="colorMap[event.color].bg"
+                [style.border-left-color]="colorMap[event.color].border"
+              >
+                <p class="cal-event__title" [style.color]="colorMap[event.color].text">
+                  {{ event.title }}
+                </p>
+                <p class="cal-event__time">
+                  {{ eventTimeLabel(event) }}
+                  @if (event.location) {
+                    <span> &bull; {{ event.location }}</span>
+                  }
+                </p>
+                @if (event.type === 'google') {
+                  <span class="cal-event__badge cal-event__badge--google">Google</span>
+                }
+                @if (event.type === 'task') {
+                  <span class="cal-event__badge cal-event__badge--task">Задача</span>
+                }
+              </div>
+            }
+
+            <!-- Current time indicator -->
+            @if (showCurrentTimeLine()) {
+              <div class="current-time" [style.top.px]="currentTimeOffset() * 64 / 60">
+                <div class="current-time__dot"></div>
+                <div class="current-time__line"></div>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- WEEK VIEW -->
+    @if (calendarService.viewMode() === 'week') {
+      <div class="week-grid-wrapper">
+        <!-- Week header -->
+        <div class="week-header">
+          <div class="week-header__spacer"></div>
+          @for (day of calendarService.weekDays(); track day.dayNumber) {
+            <div
+              class="week-header__day"
+              [class.week-header__day--today]="day.isToday"
+              [class.week-header__day--weekend]="day.isWeekend"
+            >
+              <span class="week-header__dayname">{{ day.dayOfWeek }}</span>
+              <span class="week-header__daynumber">{{ day.dayNumber }}</span>
+            </div>
+          }
+        </div>
+
+        <!-- Week body -->
+        <div class="week-body">
+          <!-- Time column -->
+          <div class="week-body__times">
+            @for (h of hours; track h) {
+              <div class="week-body__time-cell">{{ formatHour(h) }}</div>
+            }
+          </div>
+
+          <!-- Day columns -->
+          @for (day of calendarService.weekDays(); track day.dayNumber; let i = $index) {
+            <div
+              class="week-body__col"
+              [class.week-body__col--today]="day.isToday"
+              [class.week-body__col--weekend]="day.isWeekend"
+            >
+              @for (h of hours; track h) {
+                <div class="week-body__cell"></div>
+              }
+
+              <!-- Events for this day -->
+              @for (event of calendarService.eventsForDate(day.date); track event.id) {
+                <div
+                  class="week-event"
+                  [style.top.px]="eventTop(event)"
+                  [style.height.px]="eventHeight(event)"
+                  [style.background]="colorMap[event.color].bg"
+                  [style.border-left-color]="colorMap[event.color].border"
+                >
+                  <p class="week-event__title" [style.color]="colorMap[event.color].text">
+                    {{ event.title }}
+                  </p>
+                  <p class="week-event__time">{{ event.startTime }} — {{ event.endTime }}</p>
+                </div>
+              }
+
+              <!-- Current time indicator for today -->
+              @if (day.isToday && showCurrentTimeLine()) {
+                <div class="current-time" [style.top.px]="currentTimeOffset() * 64 / 60">
+                  <div class="current-time__dot"></div>
+                  <div class="current-time__line"></div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- FAB -->
+    <button class="fab" type="button" (click)="addEvent()" aria-label="Добавить событие">
+      <span class="material-symbols-outlined">add</span>
+      <span class="fab__label">Добавить событие</span>
+    </button>
+  </main>
+</app-app-shell>

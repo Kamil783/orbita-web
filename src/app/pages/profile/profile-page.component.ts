@@ -5,6 +5,7 @@ import { TopbarComponent } from '../../shared/ui/topbar/topbar.component';
 import { UserService } from '../../features/user/data/user.service';
 import { AuthService } from '../../features/auth/data/auth.service';
 import { NotificationService } from '../../features/notifications/data/notification.service';
+import { CalendarService } from '../../features/calendar/data/calendar.service';
 
 @Component({
   selector: 'app-profile-page',
@@ -19,6 +20,7 @@ export class ProfilePageComponent {
   protected readonly userService = inject(UserService);
   private readonly authService = inject(AuthService);
   protected readonly notificationService = inject(NotificationService);
+  protected readonly calendarService = inject(CalendarService);
 
   readonly avatarUrl = signal<string | null>(null);
   readonly pushNotifications = signal(true);
@@ -76,6 +78,14 @@ export class ProfilePageComponent {
 
   sendTestNotification(): void {
     this.notificationService.sendTestNotification();
+  }
+
+  toggleGoogleCalendar(): void {
+    if (this.calendarService.googleConnected()) {
+      this.calendarService.disconnectGoogle();
+    } else {
+      this.calendarService.connectGoogle();
+    }
   }
 
   changePassword(): void {

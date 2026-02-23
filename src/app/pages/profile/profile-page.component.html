@@ -90,6 +90,41 @@
             </div>
           </div>
 
+          <!-- Google Calendar Integration -->
+          <div class="preferences__section">
+            <h2 class="preferences__heading">
+              <span class="material-symbols-outlined preferences__heading-icon">calendar_month</span>
+              Интеграции
+            </h2>
+
+            <div class="integration-row">
+              <div class="integration-row__icon-wrapper">
+                <span class="material-symbols-outlined integration-row__icon">event</span>
+              </div>
+              <div class="integration-row__text">
+                <p class="toggle-row__title">Google Calendar</p>
+                <p class="toggle-row__desc">
+                  @if (calendarService.googleConnected()) {
+                    Календарь подключён — события синхронизируются
+                  } @else {
+                    Синхронизируйте события из Google Календаря
+                  }
+                </p>
+              </div>
+              <button
+                class="integration-row__btn"
+                [class.integration-row__btn--connected]="calendarService.googleConnected()"
+                type="button"
+                (click)="toggleGoogleCalendar()"
+              >
+                <span class="material-symbols-outlined">
+                  {{ calendarService.googleConnected() ? 'link_off' : 'add_link' }}
+                </span>
+                {{ calendarService.googleConnected() ? 'Отключить' : 'Подключить' }}
+              </button>
+            </div>
+          </div>
+
           <!-- Security -->
           <div class="preferences__section preferences__section--last">
             <h2 class="preferences__heading">
