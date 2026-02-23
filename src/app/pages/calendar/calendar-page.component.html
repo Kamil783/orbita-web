@@ -51,38 +51,38 @@
       <div class="day-grid-wrapper">
         <div class="day-grid">
           @for (h of hours; track h) {
-            <!-- Time label -->
             <div class="day-grid__time">{{ formatHour(h) }}</div>
-            <!-- Cell -->
             <div class="day-grid__cell"></div>
           }
 
           <!-- Events overlay -->
           <div class="day-grid__events">
-            @for (event of calendarService.eventsForDay(); track event.id) {
+            @for (layout of dayLayouts(); track layout.event.id) {
               <div
                 class="cal-event"
-                [class.cal-event--short]="isShortEvent(event)"
-                [style.top.px]="eventTop(event)"
-                [style.height.px]="eventHeight(event)"
-                [style.background]="colorMap[event.color].bg"
-                [style.border-left-color]="colorMap[event.color].border"
-                (click)="openEventDetail(event, $event)"
+                [class.cal-event--short]="isShortEvent(layout.event)"
+                [style.top.px]="eventTop(layout.event)"
+                [style.height.px]="eventHeight(layout.event)"
+                [style.left]="dayEventLeft(layout)"
+                [style.width]="dayEventWidth(layout)"
+                [style.background]="colorMap[layout.event.color].bg"
+                [style.border-left-color]="colorMap[layout.event.color].border"
+                (click)="openEventDetail(layout.event, $event)"
               >
-                <p class="cal-event__title" [style.color]="colorMap[event.color].text">
-                  {{ event.title }}
+                <p class="cal-event__title" [style.color]="colorMap[layout.event.color].text">
+                  {{ layout.event.title }}
                 </p>
                 <p class="cal-event__time">
-                  {{ eventTimeLabel(event) }}
-                  @if (event.location) {
-                    <span> &bull; {{ event.location }}</span>
+                  {{ eventTimeLabel(layout.event) }}
+                  @if (layout.event.location) {
+                    <span> &bull; {{ layout.event.location }}</span>
                   }
                 </p>
-                @if (!isShortEvent(event)) {
-                  @if (event.type === 'google') {
+                @if (!isShortEvent(layout.event)) {
+                  @if (layout.event.type === 'google') {
                     <span class="cal-event__badge cal-event__badge--google">Google</span>
                   }
-                  @if (event.type === 'task') {
+                  @if (layout.event.type === 'task') {
                     <span class="cal-event__badge cal-event__badge--task">Задача</span>
                   }
                 }
@@ -90,12 +90,10 @@
             }
 
             <!-- Current time indicator -->
-            @if (showCurrentTimeLine()) {
-              <div class="current-time" [style.top.px]="currentTimeOffset() * 64 / 60">
-                <div class="current-time__dot"></div>
-                <div class="current-time__line"></div>
-              </div>
-            }
+            <div class="current-time" [style.top.px]="currentTimeOffset()">
+              <div class="current-time__dot"></div>
+              <div class="current-time__line"></div>
+            </div>
           </div>
         </div>
       </div>
@@ -129,7 +127,7 @@
           </div>
 
           <!-- Day columns -->
-          @for (day of calendarService.weekDays(); track day.dayNumber; let i = $index) {
+          @for (day of calendarService.weekDays(); track day.dayNumber) {
             <div
               class="week-body__col"
               [class.week-body__col--today]="day.isToday"
@@ -139,27 +137,29 @@
                 <div class="week-body__cell"></div>
               }
 
-              <!-- Events for this day -->
-              @for (event of calendarService.eventsForDate(day.date); track event.id) {
+              <!-- Events for this day with layout -->
+              @for (layout of weekLayoutsForDate(day.date); track layout.event.id) {
                 <div
                   class="week-event"
-                  [class.week-event--short]="isShortEvent(event)"
-                  [style.top.px]="eventTop(event)"
-                  [style.height.px]="eventHeight(event)"
-                  [style.background]="colorMap[event.color].bg"
-                  [style.border-left-color]="colorMap[event.color].border"
-                  (click)="openEventDetail(event, $event)"
+                  [class.week-event--short]="isShortEvent(layout.event)"
+                  [style.top.px]="eventTop(layout.event)"
+                  [style.height.px]="eventHeight(layout.event)"
+                  [style.left]="weekEventLeft(layout)"
+                  [style.width]="weekEventWidth(layout)"
+                  [style.background]="colorMap[layout.event.color].bg"
+                  [style.border-left-color]="colorMap[layout.event.color].border"
+                  (click)="openEventDetail(layout.event, $event)"
                 >
-                  <p class="week-event__title" [style.color]="colorMap[event.color].text">
-                    {{ event.title }}
+                  <p class="week-event__title" [style.color]="colorMap[layout.event.color].text">
+                    {{ layout.event.title }}
                   </p>
-                  <p class="week-event__time">{{ event.startTime }} — {{ event.endTime }}</p>
+                  <p class="week-event__time">{{ layout.event.startTime }} — {{ layout.event.endTime }}</p>
                 </div>
               }
 
               <!-- Current time indicator for today -->
-              @if (day.isToday && showCurrentTimeLine()) {
-                <div class="current-time" [style.top.px]="currentTimeOffset() * 64 / 60">
+              @if (day.isToday) {
+                <div class="current-time" [style.top.px]="currentTimeOffset()">
                   <div class="current-time__dot"></div>
                   <div class="current-time__line"></div>
                 </div>

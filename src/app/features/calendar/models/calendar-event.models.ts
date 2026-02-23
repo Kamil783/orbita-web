@@ -25,6 +25,12 @@ export interface CalendarDayInfo {
   isWeekend: boolean;
 }
 
+export interface EventLayout {
+  event: CalendarEvent;
+  column: number;
+  totalColumns: number;
+}
+
 export const EVENT_COLOR_MAP: Record<CalendarEventColor, { bg: string; border: string; text: string; bgHover: string }> = {
   blue:   { bg: 'rgba(37,140,244,0.08)', border: '#258cf4', text: '#258cf4', bgHover: 'rgba(37,140,244,0.15)' },
   green:  { bg: 'rgba(16,185,129,0.08)', border: '#10b981', text: '#059669', bgHover: 'rgba(16,185,129,0.15)' },
@@ -43,6 +49,83 @@ export interface EventCreatePayload {
   location: string;
 }
 
-export const HOURS: number[] = Array.from({ length: 13 }, (_, i) => i + 8); // 8..20
+export const HOURS: number[] = Array.from({ length: 24 }, (_, i) => i); // 0..23
+
+export const HOUR_HEIGHT = 64; // px per hour row
 
 export const DAY_NAMES_SHORT: string[] = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+
+/** Convert 'HH:mm' to total minutes from midnight */
+export function timeToMinutes(time: string): number {
+  const [h, m] = time.split(':').map(Number);
+  return h * 60 + m;
+}
+
+/**
+ * Layout overlapping events side-by-side (Google Calendar style).
+ * Returns each event with its column index and the total columns in its group.
+ */
+export function layoutEvents(events: CalendarEvent[]): EventLayout[] {
+  if (events.length === 0) return [];
+
+  const sorted = [...events].sort((a, b) => {
+    const sa = timeToMinutes(a.startTime);
+    const sb = timeToMinutes(b.startTime);
+    if (sa !== sb) return sa - sb;
+    // longer events first so they get earlier columns
+    return timeToMinutes(b.endTime) - timeToMinutes(a.endTime);
+  });
+
+  // Assign each event to the first available column
+  const columns: { id: string; endMin: number }[][] = [];
+  const eventCol = new Map<string, number>();
+
+  for (const ev of sorted) {
+    const startMin = timeToMinutes(ev.startTime);
+    let placed = false;
+
+    for (let col = 0; col < columns.length; col++) {
+      const last = columns[col][columns[col].length - 1];
+      if (last.endMin <= startMin) {
+        columns[col].push({ id: ev.id, endMin: timeToMinutes(ev.endTime) });
+        eventCol.set(ev.id, col);
+        placed = true;
+        break;
+      }
+    }
+
+    if (!placed) {
+      columns.push([{ id: ev.id, endMin: timeToMinutes(ev.endTime) }]);
+      eventCol.set(ev.id, columns.length - 1);
+    }
+  }
+
+  // For each event, count how many columns overlap with it
+  const results: EventLayout[] = [];
+
+  for (const ev of sorted) {
+    const col = eventCol.get(ev.id)!;
+    const startMin = timeToMinutes(ev.startTime);
+    const endMin = timeToMinutes(ev.endTime);
+
+    let maxCol = col;
+    for (let c = 0; c < columns.length; c++) {
+      for (const entry of columns[c]) {
+        const entryEvent = sorted.find(e => e.id === entry.id)!;
+        const eStart = timeToMinutes(entryEvent.startTime);
+        const eEnd = timeToMinutes(entryEvent.endTime);
+        if (eStart < endMin && eEnd > startMin) {
+          maxCol = Math.max(maxCol, c);
+        }
+      }
+    }
+
+    results.push({
+      event: ev,
+      column: col,
+      totalColumns: maxCol + 1,
+    });
+  }
+
+  return results;
+}

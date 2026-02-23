@@ -3,7 +3,11 @@ import { CommonModule } from '@angular/common';
 import { AppShellComponent } from '../../shared/ui/app-shell/app-shell.component';
 import { TopbarComponent } from '../../shared/ui/topbar/topbar.component';
 import { CalendarService } from '../../features/calendar/data/calendar.service';
-import { CalendarViewMode, HOURS, EVENT_COLOR_MAP, CalendarEvent, EventCreatePayload } from '../../features/calendar/models/calendar-event.models';
+import {
+  CalendarViewMode, HOURS, HOUR_HEIGHT, EVENT_COLOR_MAP,
+  CalendarEvent, EventCreatePayload, EventLayout,
+  timeToMinutes, layoutEvents,
+} from '../../features/calendar/models/calendar-event.models';
 import { EventCreatePanelComponent } from '../../features/calendar/ui/event-create-panel/event-create-panel.component';
 
 const EVENT_TYPE_LABELS: Record<string, string> = {
@@ -29,6 +33,11 @@ export class CalendarPageComponent {
   readonly selectedEvent = signal<CalendarEvent | null>(null);
   readonly showCreatePanel = signal(false);
 
+  // Laid-out events for the day view
+  readonly dayLayouts = computed<EventLayout[]>(() => {
+    return layoutEvents(this.calendarService.eventsForDay());
+  });
+
   readonly headerSubtitle = computed(() => {
     if (this.calendarService.viewMode() === 'day') {
       return this.calendarService.selectedDateLabel();
@@ -38,13 +47,8 @@ export class CalendarPageComponent {
 
   readonly currentTimeOffset = computed(() => {
     const now = new Date();
-    const minutes = (now.getHours() - 8) * 60 + now.getMinutes();
-    return Math.max(0, minutes);
-  });
-
-  readonly showCurrentTimeLine = computed(() => {
-    const now = new Date();
-    return now.getHours() >= 8 && now.getHours() <= 20;
+    const minutes = now.getHours() * 60 + now.getMinutes();
+    return (minutes / 60) * HOUR_HEIGHT;
   });
 
   setView(mode: CalendarViewMode): void {
@@ -55,27 +59,58 @@ export class CalendarPageComponent {
     return `${String(h).padStart(2, '0')}:00`;
   }
 
+  // --- Position helpers (0-based hours) ---
+
   eventTop(event: CalendarEvent): number {
-    const [h, m] = event.startTime.split(':').map(Number);
-    return (h - 8) * 64 + (m / 60) * 64;
+    const min = timeToMinutes(event.startTime);
+    return (min / 60) * HOUR_HEIGHT;
   }
 
   eventHeight(event: CalendarEvent): number {
-    const [sh, sm] = event.startTime.split(':').map(Number);
-    const [eh, em] = event.endTime.split(':').map(Number);
-    const durationMin = (eh * 60 + em) - (sh * 60 + sm);
-    return Math.max(24, (durationMin / 60) * 64);
+    const durationMin = timeToMinutes(event.endTime) - timeToMinutes(event.startTime);
+    return Math.max(20, (durationMin / 60) * HOUR_HEIGHT);
   }
 
   eventDurationMin(event: CalendarEvent): number {
-    const [sh, sm] = event.startTime.split(':').map(Number);
-    const [eh, em] = event.endTime.split(':').map(Number);
-    return (eh * 60 + em) - (sh * 60 + sm);
+    return timeToMinutes(event.endTime) - timeToMinutes(event.startTime);
   }
 
   isShortEvent(event: CalendarEvent): boolean {
     return this.eventDurationMin(event) <= 45;
   }
+
+  // --- Overlap layout style helpers ---
+
+  /** Left offset as CSS calc for day view events */
+  dayEventLeft(layout: EventLayout): string {
+    const pct = (layout.column / layout.totalColumns) * 100;
+    return `calc(${pct}% + 4px)`;
+  }
+
+  /** Width as CSS calc for day view events */
+  dayEventWidth(layout: EventLayout): string {
+    const pct = 100 / layout.totalColumns;
+    return `calc(${pct}% - 8px)`;
+  }
+
+  /** Left offset as CSS calc for week view events */
+  weekEventLeft(layout: EventLayout): string {
+    const pct = (layout.column / layout.totalColumns) * 100;
+    return `calc(${pct}% + 2px)`;
+  }
+
+  /** Width as CSS calc for week view events */
+  weekEventWidth(layout: EventLayout): string {
+    const pct = 100 / layout.totalColumns;
+    return `calc(${pct}% - 4px)`;
+  }
+
+  /** Layout events for a specific date (used in week view) */
+  weekLayoutsForDate(date: Date): EventLayout[] {
+    return layoutEvents(this.calendarService.eventsForDate(date));
+  }
+
+  // --- Labels ---
 
   eventTimeLabel(event: CalendarEvent): string {
     return `${event.startTime} — ${event.endTime}`;
@@ -94,6 +129,8 @@ export class CalendarPageComponent {
     return `${m} мин`;
   }
 
+  // --- Detail popup ---
+
   openEventDetail(event: CalendarEvent, e: MouseEvent): void {
     e.stopPropagation();
     this.selectedEvent.set(event);
@@ -110,6 +147,8 @@ export class CalendarPageComponent {
   onDetailCardClick(e: MouseEvent): void {
     e.stopPropagation();
   }
+
+  // --- Create panel ---
 
   onAddEvent(): void {
     this.showCreatePanel.set(true);

@@ -171,8 +171,7 @@
 // --- Day event card ---
 .cal-event {
   position: absolute;
-  left: 8px;
-  right: 8px;
+  // left & width set via inline style (overlap layout)
   border-left: 4px solid;
   border-radius: 8px;
   padding: 8px 12px;
@@ -363,8 +362,7 @@
 // --- Week event card ---
 .week-event {
   position: absolute;
-  left: 4px;
-  right: 4px;
+  // left & width set via inline style (overlap layout)
   border-left: 4px solid;
   border-radius: 6px;
   padding: 4px 8px;
