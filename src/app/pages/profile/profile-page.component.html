@@ -1,0 +1,95 @@
+<app-app-shell>
+  <app-topbar [title]="title" placeholder="Поиск..."></app-topbar>
+
+  <main class="page">
+    <div class="page__header">
+      <h1 class="page__title">Настройки</h1>
+      <p class="page__subtitle">Управление личным профилем и настройками приложения</p>
+    </div>
+
+    <div class="page__grid">
+      <!-- Left column: profile card -->
+      <div class="page__left">
+        <div class="profile-card">
+          <div class="profile-card__content">
+            <div class="profile-card__avatar-wrapper">
+              <span class="profile-card__avatar">{{ userInitial }}</span>
+              <button class="profile-card__avatar-edit" type="button" aria-label="Изменить фото">
+                <span class="material-symbols-outlined">edit</span>
+              </button>
+            </div>
+
+            <div class="profile-card__info">
+              <h2 class="profile-card__name">{{ userName }}</h2>
+              <p class="profile-card__email">{{ userEmail }}</p>
+            </div>
+
+            <button class="profile-card__edit-btn" type="button" (click)="editProfile()">
+              Редактировать профиль
+            </button>
+          </div>
+        </div>
+
+        <button class="logout-btn" type="button" (click)="logout()">
+          <span class="material-symbols-outlined">logout</span>
+          <span>Выйти</span>
+        </button>
+      </div>
+
+      <!-- Right column: preferences -->
+      <div class="page__right">
+        <div class="preferences">
+          <!-- Notifications -->
+          <div class="preferences__section">
+            <h2 class="preferences__heading">
+              <span class="material-symbols-outlined preferences__heading-icon">notifications_active</span>
+              Уведомления
+            </h2>
+
+            <div class="toggle-row">
+              <div class="toggle-row__text">
+                <p class="toggle-row__title">Push-уведомления</p>
+                <p class="toggle-row__desc">Получать оповещения о задачах и сроках</p>
+              </div>
+              <label class="toggle">
+                <input
+                  type="checkbox"
+                  class="toggle__input"
+                  [checked]="pushNotifications()"
+                  (change)="togglePushNotifications()"
+                />
+                <span class="toggle__slider"></span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Security -->
+          <div class="preferences__section preferences__section--last">
+            <h2 class="preferences__heading">
+              <span class="material-symbols-outlined preferences__heading-icon">security</span>
+              Безопасность
+            </h2>
+
+            <div class="security-row">
+              <div class="security-row__text">
+                <p class="security-row__title">Управление паролем</p>
+                <p class="security-row__desc">Последнее изменение 3 месяца назад</p>
+              </div>
+              <button class="security-row__btn" type="button" (click)="changePassword()">
+                Сменить пароль
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- App status -->
+        <div class="app-status">
+          <p class="app-status__text">
+            Orbita v2.4.0 • Все системы работают
+            <span class="app-status__dot"></span>
+          </p>
+        </div>
+      </div>
+    </div>
+  </main>
+</app-app-shell>
