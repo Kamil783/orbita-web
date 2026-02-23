@@ -62,10 +62,12 @@
             @for (event of calendarService.eventsForDay(); track event.id) {
               <div
                 class="cal-event"
+                [class.cal-event--short]="isShortEvent(event)"
                 [style.top.px]="eventTop(event)"
                 [style.height.px]="eventHeight(event)"
                 [style.background]="colorMap[event.color].bg"
                 [style.border-left-color]="colorMap[event.color].border"
+                (click)="openEventDetail(event, $event)"
               >
                 <p class="cal-event__title" [style.color]="colorMap[event.color].text">
                   {{ event.title }}
@@ -76,11 +78,13 @@
                     <span> &bull; {{ event.location }}</span>
                   }
                 </p>
-                @if (event.type === 'google') {
-                  <span class="cal-event__badge cal-event__badge--google">Google</span>
-                }
-                @if (event.type === 'task') {
-                  <span class="cal-event__badge cal-event__badge--task">Задача</span>
+                @if (!isShortEvent(event)) {
+                  @if (event.type === 'google') {
+                    <span class="cal-event__badge cal-event__badge--google">Google</span>
+                  }
+                  @if (event.type === 'task') {
+                    <span class="cal-event__badge cal-event__badge--task">Задача</span>
+                  }
                 }
               </div>
             }
@@ -139,10 +143,12 @@
               @for (event of calendarService.eventsForDate(day.date); track event.id) {
                 <div
                   class="week-event"
+                  [class.week-event--short]="isShortEvent(event)"
                   [style.top.px]="eventTop(event)"
                   [style.height.px]="eventHeight(event)"
                   [style.background]="colorMap[event.color].bg"
                   [style.border-left-color]="colorMap[event.color].border"
+                  (click)="openEventDetail(event, $event)"
                 >
                   <p class="week-event__title" [style.color]="colorMap[event.color].text">
                     {{ event.title }}
@@ -171,3 +177,76 @@
     </button>
   </main>
 </app-app-shell>
+
+<!-- Event Detail Popup -->
+@if (selectedEvent(); as event) {
+  <div class="detail-overlay" (click)="onDetailBackdropClick()">
+    <div class="detail-card" (click)="onDetailCardClick($event)">
+      <!-- Color accent bar -->
+      <div class="detail-card__accent" [style.background]="colorMap[event.color].border"></div>
+
+      <div class="detail-card__body">
+        <!-- Header -->
+        <div class="detail-card__header">
+          <div class="detail-card__header-left">
+            <h3 class="detail-card__title">{{ event.title }}</h3>
+            <span
+              class="detail-card__type-badge"
+              [style.background]="colorMap[event.color].bg"
+              [style.color]="colorMap[event.color].text"
+            >
+              {{ eventTypeLabel(event) }}
+            </span>
+          </div>
+          <button class="detail-card__close" type="button" (click)="closeEventDetail()">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+
+        <!-- Info rows -->
+        <div class="detail-card__rows">
+          <div class="detail-card__row">
+            <span class="material-symbols-outlined detail-card__row-icon">schedule</span>
+            <div>
+              <p class="detail-card__row-primary">{{ eventTimeLabel(event) }}</p>
+              <p class="detail-card__row-secondary">{{ eventDurationLabel(event) }}</p>
+            </div>
+          </div>
+
+          <div class="detail-card__row">
+            <span class="material-symbols-outlined detail-card__row-icon">calendar_today</span>
+            <p class="detail-card__row-primary">{{ event.date }}</p>
+          </div>
+
+          @if (event.location) {
+            <div class="detail-card__row">
+              <span class="material-symbols-outlined detail-card__row-icon">location_on</span>
+              <p class="detail-card__row-primary">{{ event.location }}</p>
+            </div>
+          }
+
+          @if (event.type === 'google') {
+            <div class="detail-card__row">
+              <span class="material-symbols-outlined detail-card__row-icon">cloud</span>
+              <p class="detail-card__row-primary">Импортировано из Google Calendar</p>
+            </div>
+          }
+
+          @if (event.type === 'task' && event.taskId) {
+            <div class="detail-card__row">
+              <span class="material-symbols-outlined detail-card__row-icon">task_alt</span>
+              <p class="detail-card__row-primary">Связано с задачей</p>
+            </div>
+          }
+        </div>
+
+        <!-- Actions -->
+        <div class="detail-card__actions">
+          <button class="detail-card__action-btn detail-card__action-btn--secondary" (click)="closeEventDetail()">
+            Закрыть
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}

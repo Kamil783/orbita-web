@@ -1,9 +1,15 @@
-import { Component, inject, computed } from '@angular/core';
+import { Component, inject, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AppShellComponent } from '../../shared/ui/app-shell/app-shell.component';
 import { TopbarComponent } from '../../shared/ui/topbar/topbar.component';
 import { CalendarService } from '../../features/calendar/data/calendar.service';
 import { CalendarViewMode, HOURS, EVENT_COLOR_MAP, CalendarEvent } from '../../features/calendar/models/calendar-event.models';
+
+const EVENT_TYPE_LABELS: Record<string, string> = {
+  personal: 'Личное',
+  task: 'Задача',
+  google: 'Google Calendar',
+};
 
 @Component({
   selector: 'app-calendar-page',
@@ -18,6 +24,8 @@ export class CalendarPageComponent {
   readonly title = 'Расписание';
   readonly hours = HOURS;
   readonly colorMap = EVENT_COLOR_MAP;
+
+  readonly selectedEvent = signal<CalendarEvent | null>(null);
 
   readonly headerSubtitle = computed(() => {
     if (this.calendarService.viewMode() === 'day') {
@@ -57,8 +65,48 @@ export class CalendarPageComponent {
     return Math.max(24, (durationMin / 60) * 64);
   }
 
+  eventDurationMin(event: CalendarEvent): number {
+    const [sh, sm] = event.startTime.split(':').map(Number);
+    const [eh, em] = event.endTime.split(':').map(Number);
+    return (eh * 60 + em) - (sh * 60 + sm);
+  }
+
+  isShortEvent(event: CalendarEvent): boolean {
+    return this.eventDurationMin(event) <= 45;
+  }
+
   eventTimeLabel(event: CalendarEvent): string {
     return `${event.startTime} — ${event.endTime}`;
+  }
+
+  eventTypeLabel(event: CalendarEvent): string {
+    return EVENT_TYPE_LABELS[event.type] ?? event.type;
+  }
+
+  eventDurationLabel(event: CalendarEvent): string {
+    const min = this.eventDurationMin(event);
+    const h = Math.floor(min / 60);
+    const m = min % 60;
+    if (h > 0 && m > 0) return `${h} ч ${m} мин`;
+    if (h > 0) return `${h} ч`;
+    return `${m} мин`;
+  }
+
+  openEventDetail(event: CalendarEvent, e: MouseEvent): void {
+    e.stopPropagation();
+    this.selectedEvent.set(event);
+  }
+
+  closeEventDetail(): void {
+    this.selectedEvent.set(null);
+  }
+
+  onDetailBackdropClick(): void {
+    this.closeEventDetail();
+  }
+
+  onDetailCardClick(e: MouseEvent): void {
+    e.stopPropagation();
   }
 
   addEvent(): void {

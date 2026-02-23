@@ -174,15 +174,43 @@
   left: 8px;
   right: 8px;
   border-left: 4px solid;
-  border-radius: 0 8px 8px 0;
+  border-radius: 8px;
   padding: 8px 12px;
   pointer-events: auto;
   cursor: pointer;
   overflow: hidden;
-  transition: filter 0.15s ease;
+  transition: filter 0.15s ease, box-shadow 0.15s ease;
 
   &:hover {
     filter: brightness(0.97);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  // Compact layout for short events (< ~45min)
+  &--short {
+    padding: 4px 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  &--short &__title {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex-shrink: 1;
+    min-width: 0;
+  }
+
+  &--short &__time {
+    margin: 0;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  &--short &__badge {
+    margin: 0;
+    flex-shrink: 0;
   }
 }
 
@@ -338,15 +366,35 @@
   left: 4px;
   right: 4px;
   border-left: 4px solid;
-  border-radius: 0 6px 6px 0;
+  border-radius: 6px;
   padding: 4px 8px;
   overflow: hidden;
   cursor: pointer;
   z-index: 5;
-  transition: filter 0.15s ease;
+  transition: filter 0.15s ease, box-shadow 0.15s ease;
 
   &:hover {
     filter: brightness(0.95);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  }
+
+  // Compact: single-line for short events
+  &--short {
+    padding: 2px 6px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  &--short &__title {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+  }
+
+  &--short &__time {
+    display: none;
   }
 }
 
@@ -431,5 +479,168 @@
 
   &:hover .material-symbols-outlined {
     transform: rotate(90deg);
+  }
+}
+
+// ========================================
+// EVENT DETAIL POPUP
+// ========================================
+.detail-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(4px);
+  animation: detailOverlayIn 0.15s ease-out;
+}
+
+@keyframes detailOverlayIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes detailCardIn {
+  from { opacity: 0; transform: scale(0.95) translateY(8px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.detail-card {
+  width: 100%;
+  max-width: 420px;
+  background: #ffffff;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.16);
+  border: 1px solid #e5e7eb;
+  animation: detailCardIn 0.2s ease-out;
+}
+
+.detail-card__accent {
+  height: 4px;
+  width: 100%;
+}
+
+.detail-card__body {
+  padding: 24px;
+}
+
+.detail-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.detail-card__header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.detail-card__title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-900);
+  line-height: 1.3;
+}
+
+.detail-card__type-badge {
+  display: inline-flex;
+  align-self: flex-start;
+  padding: 3px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.detail-card__close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 8px;
+  background: #f0f2f5;
+  color: var(--text-500);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s ease, color 0.15s ease;
+
+  &:hover {
+    background: #e2e5e9;
+    color: var(--text-900);
+  }
+
+  .material-symbols-outlined {
+    font-size: 18px;
+  }
+}
+
+.detail-card__rows {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.detail-card__row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.detail-card__row-icon {
+  font-size: 20px;
+  color: var(--text-400);
+  margin-top: 1px;
+  flex-shrink: 0;
+}
+
+.detail-card__row-primary {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-900);
+}
+
+.detail-card__row-secondary {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: var(--text-500);
+}
+
+.detail-card__actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid #f0f2f5;
+}
+
+.detail-card__action-btn {
+  padding: 10px 24px;
+  font-size: 13px;
+  font-weight: 600;
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+
+  &--secondary {
+    background: #f0f2f5;
+    color: var(--text-900);
+
+    &:hover {
+      background: #e2e5e9;
+    }
   }
 }
