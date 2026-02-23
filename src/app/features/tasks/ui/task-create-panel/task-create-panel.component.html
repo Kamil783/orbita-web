@@ -13,7 +13,7 @@
         <input
           class="field__input"
           type="text"
-          placeholder="Например: Аудит дизайн-системы"
+          placeholder="Например: Уборка кухни"
           [(ngModel)]="title"
         />
       </div>
@@ -51,7 +51,10 @@
           <label class="field__label">Исполнитель</label>
           <div class="field__icon-wrap">
             <span class="material-symbols-outlined field__icon">person</span>
-            <select class="field__input field__input--icon field__select" [(ngModel)]="assigneeId">
+            <select
+              class="field__input field__input--icon field__select"
+              [(ngModel)]="assigneeId"
+            >
               <option value="">Выбрать</option>
               @for (a of assignees(); track a.id) {
                 <option [value]="a.id">{{ a.name }}</option>
@@ -62,7 +65,8 @@
         </div>
       </div>
 
-      <div class="field">
+      <!-- ВАЖНО: добавили field--grow, чтобы “Описание” заполняло низ -->
+      <div class="field field--grow">
         <label class="field__label">Описание</label>
         <textarea
           class="field__input field__textarea"

@@ -1,5 +1,4 @@
 /* ── Overlay ── */
-
 .overlay {
   position: fixed;
   inset: 0;
@@ -18,7 +17,6 @@
 }
 
 /* ── Panel ── */
-
 .panel {
   position: relative;
   width: 100%;
@@ -38,7 +36,6 @@
 }
 
 /* ── Header ── */
-
 .panel__header {
   display: flex;
   align-items: center;
@@ -63,9 +60,7 @@
   border-radius: 8px;
   transition: color 0.15s ease;
 
-  &:hover {
-    color: #4b5563;
-  }
+  &:hover { color: #4b5563; }
 
   .material-symbols-outlined {
     font-size: 22px;
@@ -73,22 +68,25 @@
 }
 
 /* ── Body ── */
-
 .panel__body {
   flex: 1;
   overflow-y: auto;
   padding: 24px;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+
+  /* чуть плотнее, чтобы не было “воздуха” */
+  gap: 16px;
 }
 
 /* ── Field ── */
-
 .field {
   display: flex;
   flex-direction: column;
-  flex: 1;
+
+  /* ВАЖНО: не растягиваем все поля по высоте (это и “разбрасывало” контент) */
+  flex: 0 0 auto;
+
   min-width: 0;
 }
 
@@ -114,9 +112,7 @@
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
   font-family: inherit;
 
-  &::placeholder {
-    color: #9ca3af;
-  }
+  &::placeholder { color: #9ca3af; }
 
   &:focus {
     border-color: var(--color-primary);
@@ -163,6 +159,19 @@
   line-height: 1.5;
 }
 
+/* ── Делаем “Описание” растягивающимся ── */
+.field--grow {
+  flex: 1 1 auto;
+  min-height: 0; /* важно, чтобы flex-элемент мог ужиматься и скролл работал корректно */
+}
+
+.field--grow .field__textarea {
+  flex: 1 1 auto;
+  height: 100%;
+  min-height: 140px; /* можно увеличить/убрать по вкусу */
+}
+
+/* ── Two fields in a row ── */
 .field-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -170,7 +179,6 @@
 }
 
 /* ── Segmented priority control ── */
-
 .segmented {
   display: flex;
   background: #f5f7f8;
@@ -204,7 +212,6 @@
 }
 
 /* ── Footer ── */
-
 .panel__footer {
   display: flex;
   gap: 12px;
@@ -228,16 +235,12 @@
   color: #ffffff;
   box-shadow: 0 4px 12px rgba(37, 140, 244, 0.20);
 
-  &:hover {
-    background: #1d7ad8;
-  }
+  &:hover { background: #1d7ad8; }
 }
 
 .btn--secondary {
   background: #f3f4f6;
   color: #4b5563;
 
-  &:hover {
-    background: #e5e7eb;
-  }
+  &:hover { background: #e5e7eb; }
 }
