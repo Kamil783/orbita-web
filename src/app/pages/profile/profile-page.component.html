@@ -16,7 +16,7 @@
               @if (avatarUrl()) {
                 <img class="profile-card__avatar profile-card__avatar--img" [src]="avatarUrl()" alt="Аватар" />
               } @else {
-                <span class="profile-card__avatar">{{ userInitial }}</span>
+                <span class="profile-card__avatar">{{ userService.initial() }}</span>
               }
               <button
                 class="profile-card__avatar-edit"
@@ -36,8 +36,8 @@
             </div>
 
             <div class="profile-card__info">
-              <h2 class="profile-card__name">{{ userName() }}</h2>
-              <p class="profile-card__email">{{ userEmail() }}</p>
+              <h2 class="profile-card__name">{{ userService.name() }}</h2>
+              <p class="profile-card__email">{{ userService.email() }}</p>
             </div>
 
             <button class="profile-card__edit-btn" type="button" (click)="editProfile()">

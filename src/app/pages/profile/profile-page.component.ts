@@ -1,7 +1,9 @@
-import { Component, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { AppShellComponent } from '../../shared/ui/app-shell/app-shell.component';
 import { TopbarComponent } from '../../shared/ui/topbar/topbar.component';
+import { UserService } from '../../features/user/data/user.service';
+import { AuthService } from '../../features/auth/data/auth.service';
 
 @Component({
   selector: 'app-profile-page',
@@ -13,14 +15,10 @@ import { TopbarComponent } from '../../shared/ui/topbar/topbar.component';
 export class ProfilePageComponent {
   readonly title = 'Настройки';
 
-  readonly userName = signal('Иван Петров');
-  readonly userEmail = signal('ivan.petrov@orbita.io');
+  protected readonly userService = inject(UserService);
+  private readonly authService = inject(AuthService);
+
   readonly avatarUrl = signal<string | null>(null);
-
-  get userInitial(): string {
-    return this.userName().charAt(0);
-  }
-
   readonly pushNotifications = signal(true);
 
   // Edit profile dialog
@@ -33,8 +31,8 @@ export class ProfilePageComponent {
   }
 
   editProfile(): void {
-    this.editName = this.userName();
-    this.editEmail = this.userEmail();
+    this.editName = this.userService.name();
+    this.editEmail = this.userService.email();
     this.showEditDialog.set(true);
   }
 
@@ -45,11 +43,8 @@ export class ProfilePageComponent {
   saveEdit(): void {
     const name = this.editName.trim();
     const email = this.editEmail.trim();
-    if (name) {
-      this.userName.set(name);
-    }
-    if (email) {
-      this.userEmail.set(email);
+    if (name || email) {
+      this.userService.updateLocal(name, email);
     }
     this.showEditDialog.set(false);
   }
@@ -74,7 +69,6 @@ export class ProfilePageComponent {
     };
     reader.readAsDataURL(file);
 
-    // Reset so the same file can be re-selected
     input.value = '';
   }
 
@@ -83,6 +77,6 @@ export class ProfilePageComponent {
   }
 
   logout(): void {
-    console.log('logout');
+    this.authService.logout();
   }
 }

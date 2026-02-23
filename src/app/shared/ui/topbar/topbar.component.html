@@ -23,8 +23,8 @@
     <div class="divider"></div>
 
     <a class="profile" routerLink="/profile" aria-label="Профиль">
-      <span class="profile__avatar" aria-hidden="true">И</span>
-      <span class="profile__name">Иван Петров</span>
+      <span class="profile__avatar" aria-hidden="true">{{ userService.initial() }}</span>
+      <span class="profile__name">{{ userService.name() }}</span>
     </a>
   </div>
 </header>

@@ -1,5 +1,6 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { UserService } from '../../../features/user/data/user.service';
 
 @Component({
   selector: 'app-topbar',
@@ -11,6 +12,8 @@ import { RouterLink } from '@angular/router';
 export class TopbarComponent {
   @Input() title = '';
   @Input() placeholder = 'Поиск...';
+
+  protected readonly userService = inject(UserService);
 
   toggleTheme(): void {
     console.log('toggle theme');

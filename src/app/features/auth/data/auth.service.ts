@@ -1,8 +1,9 @@
 import { Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { Observable, tap, catchError, throwError } from 'rxjs';
+import { Observable, tap, switchMap, map, catchError, throwError } from 'rxjs';
 import { environment } from '../../../../environments/environment';
+import { UserService } from '../../user/data/user.service';
 
 export interface AuthResponse {
   accessToken: string;
@@ -27,11 +28,13 @@ export class AuthService {
   constructor(
     private readonly http: HttpClient,
     private readonly router: Router,
+    private readonly userService: UserService,
   ) {}
 
   login(credentials: LoginRequest): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.apiUrl}/api/Auth/login`, credentials).pipe(
       tap(res => this.setTokens(res)),
+      switchMap(res => this.userService.loadProfile().pipe(map(() => res))),
       catchError(err => throwError(() => err)),
     );
   }
@@ -47,6 +50,7 @@ export class AuthService {
     localStorage.removeItem(ACCESS_TOKEN_KEY);
     localStorage.removeItem(REFRESH_TOKEN_KEY);
     this._isLoggedIn.set(false);
+    this.userService.clear();
     this.router.navigate(['/login']);
   }
 
