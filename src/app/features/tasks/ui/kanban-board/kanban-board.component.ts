@@ -1,7 +1,7 @@
 import { Component, input, output } from '@angular/core';
 import { CdkDropListGroup } from '@angular/cdk/drag-drop';
 import { KanbanColumnComponent } from '../kanban-column/kanban-column.component';
-import { KanbanColumnVm, TaskDropEvent, TaskMenuAction } from '../../models/task.models';
+import { ColumnHeaderAction, KanbanColumnVm, TaskDropEvent, TaskMenuAction } from '../../models/task.models';
 
 @Component({
   selector: 'app-kanban-board',
@@ -14,4 +14,5 @@ export class KanbanBoardComponent {
   columns = input.required<KanbanColumnVm[]>();
   readonly menuAction = output<TaskMenuAction>();
   readonly taskDrop = output<TaskDropEvent>();
+  readonly headerAction = output<ColumnHeaderAction>();
 }

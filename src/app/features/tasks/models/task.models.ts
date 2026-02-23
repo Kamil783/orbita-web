@@ -1,5 +1,6 @@
 export type TaskPriority = 'high' | 'medium' | 'low';
 export type TaskStatus = 'todo' | 'inprogress' | 'done';
+export type TasksTab = 'board' | 'backlog';
 
 export interface TaskAssignee {
   id: string;
@@ -16,6 +17,7 @@ export interface TaskCardVm {
   completedText?: string;
   progressPct?: number;
   assignees?: TaskAssignee[];
+  backlogId?: string;
 }
 
 export interface KanbanColumnVm {
@@ -26,6 +28,17 @@ export interface KanbanColumnVm {
   headerActionIcon: string;
   muted?: boolean;
   cards: TaskCardVm[];
+}
+
+export interface BacklogTask {
+  id: string;
+  title: string;
+  priority: TaskPriority;
+  dueDate?: string;
+  assignees?: TaskAssignee[];
+  description?: string;
+  inWeek: boolean;
+  done: boolean;
 }
 
 export interface TasksFilterItemVm {
@@ -39,6 +52,8 @@ export type TaskMenuAction =
   | { type: 'edit'; taskId: string }
   | { type: 'moveTo'; taskId: string; targetStatus: TaskStatus }
   | { type: 'delete'; taskId: string };
+
+export type ColumnHeaderAction = { columnId: TaskStatus; icon: string };
 
 export interface TaskCreatePayload {
   title: string;
@@ -65,4 +80,10 @@ export const TASK_STATUS_LABELS: Record<TaskStatus, string> = {
   todo: 'К выполнению',
   inprogress: 'В процессе',
   done: 'Готово',
+};
+
+export const PRIORITY_LABELS: Record<TaskPriority, string> = {
+  high: 'Высокий',
+  medium: 'Средний',
+  low: 'Низкий',
 };

@@ -1,0 +1,126 @@
+<div class="backlog">
+  <!-- Header -->
+  <div class="backlog__header">
+    <div class="backlog__header-left">
+      <div class="backlog__icon-wrapper">
+        <span class="material-symbols-outlined">list_alt</span>
+      </div>
+      <div>
+        <h2 class="backlog__title">Бэклог</h2>
+        <p class="backlog__subtitle">{{ taskCount() }} задач</p>
+      </div>
+    </div>
+    <button class="backlog__add-btn" type="button" (click)="onAddTask()">
+      <span class="material-symbols-outlined">add</span>
+      Добавить задачу
+    </button>
+  </div>
+
+  <!-- Filters & Search -->
+  <div class="backlog__toolbar">
+    <div class="backlog__filters">
+      @for (f of filters; track f.value) {
+        <button
+          class="filter-chip"
+          [class.filter-chip--active]="filter() === f.value"
+          type="button"
+          (click)="setFilter(f.value)"
+        >
+          {{ f.label }}
+        </button>
+      }
+    </div>
+    <div class="backlog__search">
+      <span class="material-symbols-outlined backlog__search-icon">search</span>
+      <input
+        class="backlog__search-input"
+        type="text"
+        placeholder="Поиск задач..."
+        [value]="searchQuery()"
+        (input)="onSearch($event)"
+      />
+    </div>
+  </div>
+
+  <!-- Add task form (inline) -->
+  @if (showAddForm()) {
+    <div class="add-form">
+      <div class="add-form__row">
+        <input
+          class="add-form__input"
+          type="text"
+          placeholder="Название задачи..."
+          [(ngModel)]="newTitle"
+          (keydown.enter)="onSaveNewTask()"
+        />
+      </div>
+      <div class="add-form__row add-form__row--secondary">
+        <div class="add-form__priority">
+          @for (p of priorities; track p.value) {
+            <button
+              class="seg-btn"
+              [class.seg-btn--active]="newPriority() === p.value"
+              type="button"
+              (click)="selectPriority(p.value)"
+            >
+              {{ p.label }}
+            </button>
+          }
+        </div>
+        <input
+          class="add-form__date"
+          type="date"
+          [(ngModel)]="newDueDate"
+        />
+        <div class="add-form__actions">
+          <button class="add-form__save" type="button" (click)="onSaveNewTask()">Добавить</button>
+          <button class="add-form__cancel" type="button" (click)="onCancelAdd()">Отмена</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Task list -->
+  <div class="backlog__list">
+    @for (task of filteredTasks(); track task.id) {
+      <div class="task-row" [class.task-row--in-week]="task.inWeek">
+        <div class="task-row__left">
+          <span class="task-row__priority" [class]="priorityClass(task.priority)"></span>
+          <span class="task-row__title">{{ task.title }}</span>
+        </div>
+        <div class="task-row__right">
+          @if (task.dueDate) {
+            <span class="task-row__date">
+              <span class="material-symbols-outlined">calendar_today</span>
+              {{ task.dueDate }}
+            </span>
+          }
+          @if (task.assignees?.length) {
+            <div class="task-row__avatars">
+              @for (a of task.assignees; track a.id) {
+                <img class="task-row__avatar" [src]="a.avatarUrl" [alt]="a.name ?? ''" />
+              }
+            </div>
+          }
+          <button
+            class="task-row__week-btn"
+            [class.task-row__week-btn--active]="task.inWeek"
+            type="button"
+            (click)="toggleWeek(task)"
+            [attr.aria-label]="task.inWeek ? 'Убрать из недели' : 'Добавить в неделю'"
+          >
+            <span class="material-symbols-outlined">
+              {{ task.inWeek ? 'event_busy' : 'date_range' }}
+            </span>
+            {{ task.inWeek ? 'Убрать' : 'В неделю' }}
+          </button>
+        </div>
+      </div>
+    } @empty {
+      <div class="backlog__empty">
+        <span class="material-symbols-outlined backlog__empty-icon">inbox</span>
+        <p>Нет задач</p>
+      </div>
+    }
+  </div>
+</div>
