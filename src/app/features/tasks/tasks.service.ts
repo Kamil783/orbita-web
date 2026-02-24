@@ -23,7 +23,11 @@ export class TasksService {
   private readonly apiUrl = environment.apiUrl;
   private readonly http = inject(HttpClient);
 
-  readonly columns = signal<KanbanColumnVm[]>([]);
+  readonly columns = signal<KanbanColumnVm[]>([
+    { id: 'todo', title: 'К выполнению', totalCount: 0, headerActionIcon: 'add_circle', cards: [] },
+    { id: 'inprogress', title: 'В процессе', totalCount: 0, headerActionIcon: 'add_circle', cards: [] },
+    { id: 'done', title: 'Готово', totalCount: 0, headerActionIcon: 'checklist', muted: true, cards: [] },
+  ]);
   readonly backlog = signal<BacklogTask[]>([]);
 
   readonly availableBacklogTasks = computed(() =>
