@@ -1,5 +1,5 @@
 import { Component, computed, inject, output } from '@angular/core';
-import { TasksService } from '../../tasks.service';
+import { TasksService } from '../../data/tasks.service';
 import { TaskPriority } from '../../models/task.models';
 
 @Component({

@@ -1,7 +1,7 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { environment } from '../../../environments/environment';
-import { BacklogTask, KanbanColumnVm, TaskCardVm, TaskStatus } from './models/task.models';
+import { environment } from '../../../../environments/environment';
+import { BacklogTask, KanbanColumnVm, TaskCardVm, TaskStatus } from '../models/task.models';
 
 /**
  * API endpoints:

@@ -1,7 +1,7 @@
 import { Component, computed, inject, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DatePickerComponent } from '../../../../shared/ui/date-picker/date-picker.component';
-import { TasksService } from '../../tasks.service';
+import { TasksService } from '../../data/tasks.service';
 import { AssigneeOption, BacklogTask, TaskPriority, PRIORITY_LABELS } from '../../models/task.models';
 
 type BacklogFilter = 'all' | 'week' | 'available';

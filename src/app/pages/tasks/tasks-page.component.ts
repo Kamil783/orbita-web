@@ -2,7 +2,7 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { AppShellComponent } from '../../shared/ui/app-shell/app-shell.component';
 import { KanbanBoardComponent } from '../../features/tasks/ui/kanban-board/kanban-board.component';
 import { TopbarComponent } from '../../shared/ui/topbar/topbar.component';
-import { TasksService } from '../../features/tasks/tasks.service';
+import { TasksService } from '../../features/tasks/data/tasks.service';
 import { TasksFilterComponent } from '../../features/tasks/ui/tasks-filter/tasks-filter.component';
 import { ConfirmDialogComponent } from '../../shared/ui/confirm-dialog/confirm-dialog.component';
 import { TaskCreatePanelComponent } from '../../features/tasks/ui/task-create-panel/task-create-panel.component';
