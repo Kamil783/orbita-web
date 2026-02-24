@@ -1,0 +1,120 @@
+<div class="overlay" (click)="onBackdropClick()">
+  <div class="panel" (click)="onPanelClick($event)">
+    <header class="panel__header">
+      <h3 class="panel__title">Новое событие</h3>
+      <button class="panel__close" type="button" (click)="onCancel()">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </header>
+
+    <div class="panel__body">
+      <div class="field">
+        <label class="field__label">Название</label>
+        <input
+          class="field__input"
+          type="text"
+          placeholder="Например: Встреча с командой"
+          [(ngModel)]="title"
+        />
+      </div>
+
+      <div class="field">
+        <label class="field__label">Тип</label>
+        <div class="segmented">
+          @for (t of eventTypes; track t.value) {
+            <button
+              class="segmented__btn"
+              [class.segmented__btn--active]="eventType() === t.value"
+              type="button"
+              (click)="selectType(t.value)"
+            >
+              {{ t.label }}
+            </button>
+          }
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="field__label">Цвет</label>
+        <div class="color-picker">
+          @for (c of colors; track c.value) {
+            <button
+              class="color-picker__btn"
+              [class.color-picker__btn--active]="color() === c.value"
+              [style.--swatch-color]="c.hex"
+              type="button"
+              (click)="selectColor(c.value)"
+              [attr.aria-label]="c.label"
+            >
+              @if (color() === c.value) {
+                <span class="material-symbols-outlined color-picker__check">check</span>
+              }
+            </button>
+          }
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label class="field__label">Дата начала</label>
+          <app-date-picker
+            [ngModel]="startDate"
+            (ngModelChange)="onStartDateChange($event)"
+            placeholder="Начало"
+          />
+        </div>
+        <div class="field">
+          <label class="field__label">Дата окончания</label>
+          <app-date-picker
+            [(ngModel)]="endDate"
+            placeholder="Окончание"
+          />
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label class="field__label">Начало</label>
+          <div class="field__icon-wrap">
+            <span class="material-symbols-outlined field__icon">schedule</span>
+            <input
+              class="field__input field__input--icon"
+              type="time"
+              [(ngModel)]="startTime"
+            />
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="field__label">Конец</label>
+          <div class="field__icon-wrap">
+            <span class="material-symbols-outlined field__icon">schedule</span>
+            <input
+              class="field__input field__input--icon"
+              type="time"
+              [(ngModel)]="endTime"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="field__label">Место</label>
+        <div class="field__icon-wrap">
+          <span class="material-symbols-outlined field__icon">location_on</span>
+          <input
+            class="field__input field__input--icon"
+            type="text"
+            placeholder="Например: Переговорная А"
+            [(ngModel)]="location"
+          />
+        </div>
+      </div>
+    </div>
+
+    <footer class="panel__footer">
+      <button class="btn btn--primary" type="button" (click)="onSave()">Сохранить</button>
+      <button class="btn btn--secondary" type="button" (click)="onCancel()">Отмена</button>
+    </footer>
+  </div>
+</div>

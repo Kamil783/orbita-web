@@ -1,15 +1,46 @@
 <app-app-shell>
   <app-topbar [title]="title" placeholder="Поиск...">
-    <app-tasks-filter topbar-left-extra [items]="filterItems" [(selectedId)]="selectedFilterId">
-    </app-tasks-filter>
+    <!-- Tab toggle -->
+    <div topbar-left-extra class="tab-toggle">
+      <button
+        class="tab-toggle__btn"
+        [class.tab-toggle__btn--active]="activeTab() === 'board'"
+        (click)="setTab('board')"
+      >
+        Доска
+      </button>
+      <button
+        class="tab-toggle__btn"
+        [class.tab-toggle__btn--active]="activeTab() === 'backlog'"
+        (click)="setTab('backlog')"
+      >
+        Бэклог
+      </button>
+    </div>
+
+    @if (activeTab() === 'board') {
+      <app-tasks-filter topbar-left-extra [items]="filterItems" [(selectedId)]="selectedFilterId">
+      </app-tasks-filter>
+    }
   </app-topbar>
 
   <main class="page">
-    <app-kanban-board [columns]="filteredColumns()" (menuAction)="onMenuAction($event)" (taskDrop)="onTaskDrop($event)"></app-kanban-board>
+    @if (activeTab() === 'board') {
+      <app-kanban-board
+        [columns]="filteredColumns()"
+        (menuAction)="onMenuAction($event)"
+        (taskDrop)="onTaskDrop($event)"
+        (headerAction)="onHeaderAction($event)"
+      ></app-kanban-board>
 
-    <button class="fab" type="button" (click)="onQuickAdd()" aria-label="Добавить задачу">
-      <span class="material-symbols-outlined">add</span>
-    </button>
+      <button class="fab" type="button" (click)="onQuickAdd()" aria-label="Добавить задачу">
+        <span class="material-symbols-outlined">add</span>
+      </button>
+    }
+
+    @if (activeTab() === 'backlog') {
+      <app-backlog-view [assigneeOptions]="assigneeOptions" />
+    }
   </main>
 </app-app-shell>
 
@@ -29,5 +60,18 @@
     cancelText="Отмена"
     (confirm)="onConfirmDelete()"
     (cancel)="onCancelDelete()"
+  />
+}
+
+@if (pickerTargetStatus(); as status) {
+  <app-backlog-picker-dialog
+    [targetStatus]="status"
+    (close)="onClosePickerDialog()"
+  />
+}
+
+@if (showCompletedDialog()) {
+  <app-completed-tasks-dialog
+    (close)="onCloseCompletedDialog()"
   />
 }

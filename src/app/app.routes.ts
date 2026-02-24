@@ -19,6 +19,18 @@ export const routes: Routes = [
       import('./pages/tasks/tasks-page.component').then(m => m.TasksPageComponent),
   },
   {
+    path: 'calendar',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./pages/calendar/calendar-page.component').then(m => m.CalendarPageComponent),
+  },
+  {
+    path: 'profile',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./pages/profile/profile-page.component').then(m => m.ProfilePageComponent),
+  },
+  {
     path: '**',
     redirectTo: '',
   },

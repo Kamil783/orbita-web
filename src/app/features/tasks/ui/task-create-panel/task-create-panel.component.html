@@ -37,14 +37,7 @@
       <div class="field-row">
         <div class="field">
           <label class="field__label">Срок</label>
-          <div class="field__icon-wrap">
-            <span class="material-symbols-outlined field__icon">calendar_today</span>
-            <input
-              class="field__input field__input--icon"
-              type="date"
-              [(ngModel)]="dueDate"
-            />
-          </div>
+          <app-date-picker [(ngModel)]="dueDate" placeholder="Выберите дату" />
         </div>
 
         <div class="field">

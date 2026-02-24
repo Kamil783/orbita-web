@@ -1,0 +1,44 @@
+<div class="dropdown">
+  <div class="dropdown__header">
+    <span class="dropdown__title">Уведомления</span>
+    <button
+      class="dropdown__mark-all"
+      type="button"
+      (click)="notificationService.markAllAsRead()"
+    >
+      Прочитать все
+    </button>
+  </div>
+
+  <div class="dropdown__list">
+    @for (n of notificationService.notifications(); track n.id) {
+      <div
+        class="notification-item"
+        [class.notification-item--unread]="!n.read"
+        (click)="notificationService.markAsRead(n.id)"
+      >
+        @if (!n.read) {
+          <span class="notification-item__dot"></span>
+        }
+
+        <div
+          class="notification-item__icon"
+          [style.background]="colors[n.type].bg"
+          [style.color]="colors[n.type].text"
+        >
+          <span class="material-symbols-outlined">{{ icons[n.type] }}</span>
+        </div>
+
+        <div class="notification-item__body">
+          <p class="notification-item__title">{{ n.title }}</p>
+          <p class="notification-item__time">{{ formatTime(n.createdAt) }}</p>
+        </div>
+      </div>
+    } @empty {
+      <div class="dropdown__empty">
+        <span class="material-symbols-outlined dropdown__empty-icon">notifications_off</span>
+        <p>Нет уведомлений</p>
+      </div>
+    }
+  </div>
+</div>

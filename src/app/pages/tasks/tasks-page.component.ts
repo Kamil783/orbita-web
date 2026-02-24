@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { AppShellComponent } from '../../shared/ui/app-shell/app-shell.component';
 import { KanbanBoardComponent } from '../../features/tasks/ui/kanban-board/kanban-board.component';
 import { TopbarComponent } from '../../shared/ui/topbar/topbar.component';
@@ -6,19 +6,35 @@ import { TasksService } from '../../features/tasks/tasks.service';
 import { TasksFilterComponent } from '../../features/tasks/ui/tasks-filter/tasks-filter.component';
 import { ConfirmDialogComponent } from '../../shared/ui/confirm-dialog/confirm-dialog.component';
 import { TaskCreatePanelComponent } from '../../features/tasks/ui/task-create-panel/task-create-panel.component';
-import { AssigneeOption, TaskCreatePayload, TaskDropEvent, TasksFilterItemVm, TaskMenuAction } from '../../features/tasks/models/task.models';
+import { BacklogViewComponent } from '../../features/tasks/ui/backlog-view/backlog-view.component';
+import { BacklogPickerDialogComponent } from '../../features/tasks/ui/backlog-picker-dialog/backlog-picker-dialog.component';
+import { CompletedTasksDialogComponent } from '../../features/tasks/ui/completed-tasks-dialog/completed-tasks-dialog.component';
+import {
+  AssigneeOption, ColumnHeaderAction, TaskCreatePayload,
+  TaskDropEvent, TasksFilterItemVm, TasksTab, TaskMenuAction, TaskStatus,
+} from '../../features/tasks/models/task.models';
 
 @Component({
   selector: 'app-tasks-page',
   standalone: true,
-  imports: [AppShellComponent, KanbanBoardComponent, TopbarComponent, TasksFilterComponent, ConfirmDialogComponent, TaskCreatePanelComponent],
+  imports: [
+    AppShellComponent, KanbanBoardComponent, TopbarComponent,
+    TasksFilterComponent, ConfirmDialogComponent, TaskCreatePanelComponent,
+    BacklogViewComponent, BacklogPickerDialogComponent, CompletedTasksDialogComponent,
+  ],
   templateUrl: './tasks-page.component.html',
   styleUrl: './tasks-page.component.scss',
 })
-export class TasksPageComponent {
+export class TasksPageComponent implements OnInit {
   private readonly tasksService = inject(TasksService);
 
-  readonly title = 'Задачи на неделю';
+  readonly title = 'Задачи';
+  readonly activeTab = signal<TasksTab>('board');
+
+  ngOnInit(): void {
+    this.tasksService.loadWeeklyBoard();
+    this.tasksService.loadBacklog();
+  }
 
   readonly filterItems: TasksFilterItemVm[] = [
     { id: 'all', name: 'Все', isAll: true },
@@ -56,11 +72,17 @@ export class TasksPageComponent {
 
   readonly showCreatePanel = signal(false);
   readonly deleteTaskId = signal<string | null>(null);
+  readonly pickerTargetStatus = signal<TaskStatus | null>(null);
+  readonly showCompletedDialog = signal(false);
 
   readonly assigneeOptions: AssigneeOption[] = [
     { id: 'alex', name: 'Alex Rivera' },
     { id: 'sarah', name: 'Sarah Chen' },
   ];
+
+  setTab(tab: TasksTab): void {
+    this.activeTab.set(tab);
+  }
 
   onMenuAction(action: TaskMenuAction): void {
     switch (action.type) {
@@ -77,6 +99,14 @@ export class TasksPageComponent {
 
   onTaskDrop(event: TaskDropEvent): void {
     this.tasksService.moveTask(event.fromColumnId, event.toColumnId, event.fromIndex, event.toIndex);
+  }
+
+  onHeaderAction(action: ColumnHeaderAction): void {
+    if (action.columnId === 'done') {
+      this.showCompletedDialog.set(true);
+    } else {
+      this.pickerTargetStatus.set(action.columnId);
+    }
   }
 
   onConfirmDelete(): void {
@@ -102,5 +132,13 @@ export class TasksPageComponent {
 
   onCancelCreate(): void {
     this.showCreatePanel.set(false);
+  }
+
+  onClosePickerDialog(): void {
+    this.pickerTargetStatus.set(null);
+  }
+
+  onCloseCompletedDialog(): void {
+    this.showCompletedDialog.set(false);
   }
 }

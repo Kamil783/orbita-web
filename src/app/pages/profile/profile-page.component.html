@@ -1,0 +1,204 @@
+<app-app-shell>
+  <app-topbar [title]="title" placeholder="Поиск..."></app-topbar>
+
+  <main class="page">
+    <div class="page__header">
+      <h1 class="page__title">Настройки</h1>
+      <p class="page__subtitle">Управление личным профилем и настройками приложения</p>
+    </div>
+
+    <div class="page__grid">
+      <!-- Left column: profile card -->
+      <div class="page__left">
+        <div class="profile-card">
+          <div class="profile-card__content">
+            <div class="profile-card__avatar-wrapper">
+              @if (avatarUrl()) {
+                <img class="profile-card__avatar profile-card__avatar--img" [src]="avatarUrl()" alt="Аватар" />
+              } @else {
+                <span class="profile-card__avatar">{{ userService.initial() }}</span>
+              }
+              <button
+                class="profile-card__avatar-edit"
+                type="button"
+                aria-label="Изменить фото"
+                (click)="avatarInput.click()"
+              >
+                <span class="material-symbols-outlined">photo_camera</span>
+              </button>
+              <input
+                #avatarInput
+                type="file"
+                accept="image/*"
+                hidden
+                (change)="onAvatarFileSelected($event)"
+              />
+            </div>
+
+            <div class="profile-card__info">
+              <h2 class="profile-card__name">{{ userService.name() }}</h2>
+              <p class="profile-card__email">{{ userService.email() }}</p>
+            </div>
+
+            <button class="profile-card__edit-btn" type="button" (click)="editProfile()">
+              Редактировать профиль
+            </button>
+          </div>
+        </div>
+
+        <button class="logout-btn" type="button" (click)="logout()">
+          <span class="material-symbols-outlined">logout</span>
+          <span>Выйти</span>
+        </button>
+      </div>
+
+      <!-- Right column: preferences -->
+      <div class="page__right">
+        <div class="preferences">
+          <!-- Notifications -->
+          <div class="preferences__section">
+            <h2 class="preferences__heading">
+              <span class="material-symbols-outlined preferences__heading-icon">notifications_active</span>
+              Уведомления
+            </h2>
+
+            <div class="toggle-row">
+              <div class="toggle-row__text">
+                <p class="toggle-row__title">Push-уведомления</p>
+                <p class="toggle-row__desc">Получать оповещения о задачах и сроках</p>
+              </div>
+              <label class="toggle">
+                <input
+                  type="checkbox"
+                  class="toggle__input"
+                  [checked]="pushNotifications()"
+                  (change)="togglePushNotifications()"
+                />
+                <span class="toggle__slider"></span>
+              </label>
+            </div>
+
+            <div class="test-notification-row">
+              <div class="toggle-row__text">
+                <p class="toggle-row__title">Тестовое уведомление</p>
+                <p class="toggle-row__desc">Отправить себе тестовое уведомление</p>
+              </div>
+              <button class="test-notification-btn" type="button" (click)="sendTestNotification()">
+                <span class="material-symbols-outlined">send</span>
+                Отправить
+              </button>
+            </div>
+          </div>
+
+          <!-- Google Calendar Integration -->
+          <div class="preferences__section">
+            <h2 class="preferences__heading">
+              <span class="material-symbols-outlined preferences__heading-icon">calendar_month</span>
+              Интеграции
+            </h2>
+
+            <div class="integration-row">
+              <div class="integration-row__icon-wrapper">
+                <span class="material-symbols-outlined integration-row__icon">event</span>
+              </div>
+              <div class="integration-row__text">
+                <p class="toggle-row__title">Google Calendar</p>
+                <p class="toggle-row__desc">
+                  @if (calendarService.googleConnected()) {
+                    Календарь подключён — события синхронизируются
+                  } @else {
+                    Синхронизируйте события из Google Календаря
+                  }
+                </p>
+              </div>
+              <button
+                class="integration-row__btn"
+                [class.integration-row__btn--connected]="calendarService.googleConnected()"
+                type="button"
+                (click)="toggleGoogleCalendar()"
+              >
+                <span class="material-symbols-outlined">
+                  {{ calendarService.googleConnected() ? 'link_off' : 'add_link' }}
+                </span>
+                {{ calendarService.googleConnected() ? 'Отключить' : 'Подключить' }}
+              </button>
+            </div>
+          </div>
+
+          <!-- Security -->
+          <div class="preferences__section preferences__section--last">
+            <h2 class="preferences__heading">
+              <span class="material-symbols-outlined preferences__heading-icon">security</span>
+              Безопасность
+            </h2>
+
+            <div class="security-row">
+              <div class="security-row__text">
+                <p class="security-row__title">Управление паролем</p>
+                <p class="security-row__desc">Последнее изменение 3 месяца назад</p>
+              </div>
+              <button class="security-row__btn" type="button" (click)="changePassword()">
+                Сменить пароль
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- App status -->
+        <div class="app-status">
+          <p class="app-status__text">
+            Orbita v2.4.0 • Все системы работают
+            <span class="app-status__dot"></span>
+          </p>
+        </div>
+      </div>
+    </div>
+  </main>
+</app-app-shell>
+
+<!-- Edit Profile Dialog -->
+@if (showEditDialog()) {
+  <div class="overlay" (click)="onEditDialogBackdropClick()">
+    <div class="edit-dialog" (click)="onEditDialogClick($event)">
+      <div class="edit-dialog__icon">
+        <span class="material-symbols-outlined">person</span>
+      </div>
+
+      <h3 class="edit-dialog__title">Редактировать профиль</h3>
+      <p class="edit-dialog__desc">Измените имя или адрес электронной почты</p>
+
+      <div class="edit-dialog__fields">
+        <div class="edit-field">
+          <label class="edit-field__label" for="editName">Имя</label>
+          <input
+            id="editName"
+            class="edit-field__input"
+            type="text"
+            [(ngModel)]="editName"
+            placeholder="Введите имя"
+          />
+        </div>
+
+        <div class="edit-field">
+          <label class="edit-field__label" for="editEmail">Email</label>
+          <input
+            id="editEmail"
+            class="edit-field__input"
+            type="email"
+            [(ngModel)]="editEmail"
+            placeholder="Введите email"
+          />
+        </div>
+      </div>
+
+      <div class="edit-dialog__actions">
+        <button class="edit-dialog__btn edit-dialog__btn--secondary" type="button" (click)="cancelEdit()">
+          Отмена
+        </button>
+        <button class="edit-dialog__btn edit-dialog__btn--primary" type="button" (click)="saveEdit()">
+          Сохранить
+        </button>
+      </div>
+    </div>
+  </div>
+}

@@ -1,5 +1,6 @@
 import { Component, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { DatePickerComponent } from '../../../../shared/ui/date-picker/date-picker.component';
 import {
   AssigneeOption,
   TaskCreatePayload,
@@ -9,7 +10,7 @@ import {
 @Component({
   selector: 'app-task-create-panel',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, DatePickerComponent],
   templateUrl: './task-create-panel.component.html',
   styleUrl: './task-create-panel.component.scss',
 })

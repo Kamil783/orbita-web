@@ -1,0 +1,57 @@
+<div class="dp">
+  <!-- Input trigger -->
+  <div class="dp__input" [class.dp__input--open]="isOpen()" [class.dp__input--filled]="selectedDate()" (click)="toggle()">
+    <span class="material-symbols-outlined dp__icon">calendar_today</span>
+    @if (displayValue()) {
+      <span class="dp__value">{{ displayValue() }}</span>
+    } @else {
+      <span class="dp__placeholder">{{ placeholder() }}</span>
+    }
+    @if (selectedDate()) {
+      <button class="dp__clear" type="button" (click)="clear($event)" aria-label="Очистить">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    } @else {
+      <span class="material-symbols-outlined dp__chevron">expand_more</span>
+    }
+  </div>
+
+  <!-- Calendar dropdown -->
+  @if (isOpen()) {
+    <div class="dp__dropdown">
+      <!-- Month/year nav -->
+      <div class="dp__nav">
+        <button class="dp__nav-btn" type="button" (click)="prevMonth()">
+          <span class="material-symbols-outlined">chevron_left</span>
+        </button>
+        <span class="dp__nav-label">{{ viewMonthLabel() }}</span>
+        <button class="dp__nav-btn" type="button" (click)="nextMonth()">
+          <span class="material-symbols-outlined">chevron_right</span>
+        </button>
+      </div>
+
+      <!-- Day names header -->
+      <div class="dp__weekdays">
+        @for (d of dayNames; track d) {
+          <span class="dp__weekday">{{ d }}</span>
+        }
+      </div>
+
+      <!-- Calendar grid -->
+      <div class="dp__grid">
+        @for (day of calendarDays(); track day.iso) {
+          <button
+            class="dp__day"
+            [class.dp__day--other]="!day.isCurrentMonth"
+            [class.dp__day--today]="day.isToday"
+            [class.dp__day--selected]="day.isSelected"
+            type="button"
+            (click)="selectDay(day)"
+          >
+            {{ day.date }}
+          </button>
+        }
+      </div>
+    </div>
+  }
+</div>
