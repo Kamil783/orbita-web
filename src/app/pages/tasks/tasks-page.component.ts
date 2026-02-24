@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { AppShellComponent } from '../../shared/ui/app-shell/app-shell.component';
 import { KanbanBoardComponent } from '../../features/tasks/ui/kanban-board/kanban-board.component';
 import { TopbarComponent } from '../../shared/ui/topbar/topbar.component';
@@ -25,11 +25,16 @@ import {
   templateUrl: './tasks-page.component.html',
   styleUrl: './tasks-page.component.scss',
 })
-export class TasksPageComponent {
+export class TasksPageComponent implements OnInit {
   private readonly tasksService = inject(TasksService);
 
   readonly title = 'Задачи';
   readonly activeTab = signal<TasksTab>('board');
+
+  ngOnInit(): void {
+    this.tasksService.loadWeeklyBoard();
+    this.tasksService.loadBacklog();
+  }
 
   readonly filterItems: TasksFilterItemVm[] = [
     { id: 'all', name: 'Все', isAll: true },

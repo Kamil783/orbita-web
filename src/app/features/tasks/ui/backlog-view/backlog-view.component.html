@@ -29,6 +29,31 @@
           {{ f.label }}
         </button>
       }
+
+      <!-- Assignee filter separator -->
+      <span class="backlog__filter-sep"></span>
+
+      <button
+        class="filter-chip"
+        [class.filter-chip--active]="assigneeFilter() === 'all'"
+        type="button"
+        (click)="setAssigneeFilter('all')"
+      >
+        Все
+      </button>
+      @for (a of assigneeOptions(); track a.id) {
+        <button
+          class="filter-chip filter-chip--avatar"
+          [class.filter-chip--active]="assigneeFilter() === a.id"
+          type="button"
+          (click)="setAssigneeFilter(a.id)"
+        >
+          @if (a.avatarUrl) {
+            <img class="filter-chip__avatar" [src]="a.avatarUrl" [alt]="a.name" />
+          }
+          {{ a.name }}
+        </button>
+      }
     </div>
     <div class="backlog__search">
       <span class="material-symbols-outlined backlog__search-icon">search</span>
@@ -67,15 +92,31 @@
             </button>
           }
         </div>
-        <input
-          class="add-form__date"
-          type="date"
-          [(ngModel)]="newDueDate"
-        />
-        <div class="add-form__actions">
-          <button class="add-form__save" type="button" (click)="onSaveNewTask()">Добавить</button>
-          <button class="add-form__cancel" type="button" (click)="onCancelAdd()">Отмена</button>
+        <app-date-picker [(ngModel)]="newDueDate" placeholder="Срок" />
+        <div class="add-form__field-small">
+          <span class="material-symbols-outlined add-form__field-icon">person</span>
+          <select class="add-form__select" [(ngModel)]="newAssigneeId">
+            <option value="">Исполнитель</option>
+            @for (a of assigneeOptions(); track a.id) {
+              <option [value]="a.id">{{ a.name }}</option>
+            }
+          </select>
         </div>
+        <div class="add-form__field-small">
+          <span class="material-symbols-outlined add-form__field-icon">timer</span>
+          <input
+            class="add-form__estimate"
+            type="number"
+            placeholder="мин"
+            min="0"
+            step="15"
+            [(ngModel)]="newEstimate"
+          />
+        </div>
+      </div>
+      <div class="add-form__row add-form__row--actions">
+        <button class="add-form__save" type="button" (click)="onSaveNewTask()">Добавить</button>
+        <button class="add-form__cancel" type="button" (click)="onCancelAdd()">Отмена</button>
       </div>
     </div>
   }
@@ -89,6 +130,12 @@
           <span class="task-row__title">{{ task.title }}</span>
         </div>
         <div class="task-row__right">
+          @if (task.estimateMinutes) {
+            <span class="task-row__estimate">
+              <span class="material-symbols-outlined">timer</span>
+              {{ formatEstimate(task.estimateMinutes) }}
+            </span>
+          }
           @if (task.dueDate) {
             <span class="task-row__date">
               <span class="material-symbols-outlined">calendar_today</span>

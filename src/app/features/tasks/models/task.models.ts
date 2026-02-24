@@ -35,6 +35,7 @@ export interface BacklogTask {
   title: string;
   priority: TaskPriority;
   dueDate?: string;
+  estimateMinutes?: number;
   assignees?: TaskAssignee[];
   description?: string;
   inWeek: boolean;

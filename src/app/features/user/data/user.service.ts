@@ -41,9 +41,28 @@ export class UserService {
     );
   }
 
-  updateLocal(name: string, email: string): void {
+  /**
+   * PUT /api/User/profile  Body: { name, email }  → UserProfile
+   */
+  updateProfile(name: string, email: string): void {
     if (name) this._name.set(name);
     if (email) this._email.set(email);
+
+    this.http.put<UserProfile>(`${this.apiUrl}/api/User/profile`, { name, email }).pipe(
+      tap(profile => {
+        this._name.set(profile.name);
+        this._email.set(profile.email);
+      }),
+      catchError(err => {
+        console.error('Failed to update profile', err);
+        return of(null);
+      }),
+    ).subscribe();
+  }
+
+  /** @deprecated Use updateProfile() instead */
+  updateLocal(name: string, email: string): void {
+    this.updateProfile(name, email);
   }
 
   clear(): void {

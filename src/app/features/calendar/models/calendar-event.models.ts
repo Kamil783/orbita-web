@@ -6,7 +6,8 @@ export interface CalendarEvent {
   id: string;
   title: string;
   type: CalendarEventType;
-  date: string;          // ISO date string 'YYYY-MM-DD'
+  date: string;          // ISO date string 'YYYY-MM-DD' (start date)
+  endDate?: string;      // ISO date string 'YYYY-MM-DD' (end date, if multi-day)
   startTime: string;     // 'HH:mm'
   endTime: string;       // 'HH:mm'
   location?: string;
@@ -44,6 +45,7 @@ export interface EventCreatePayload {
   type: CalendarEventType;
   color: CalendarEventColor;
   date: string;
+  endDate?: string;
   startTime: string;
   endTime: string;
   location: string;

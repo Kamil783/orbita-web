@@ -54,14 +54,20 @@
         </div>
       </div>
 
-      <div class="field">
-        <label class="field__label">Дата</label>
-        <div class="field__icon-wrap">
-          <span class="material-symbols-outlined field__icon">calendar_today</span>
-          <input
-            class="field__input field__input--icon"
-            type="date"
-            [(ngModel)]="date"
+      <div class="field-row">
+        <div class="field">
+          <label class="field__label">Дата начала</label>
+          <app-date-picker
+            [ngModel]="startDate"
+            (ngModelChange)="onStartDateChange($event)"
+            placeholder="Начало"
+          />
+        </div>
+        <div class="field">
+          <label class="field__label">Дата окончания</label>
+          <app-date-picker
+            [(ngModel)]="endDate"
+            placeholder="Окончание"
           />
         </div>
       </div>

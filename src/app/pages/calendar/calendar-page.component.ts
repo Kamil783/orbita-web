@@ -1,4 +1,4 @@
-import { Component, inject, computed, signal } from '@angular/core';
+import { Component, OnInit, inject, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AppShellComponent } from '../../shared/ui/app-shell/app-shell.component';
 import { TopbarComponent } from '../../shared/ui/topbar/topbar.component';
@@ -23,7 +23,7 @@ const EVENT_TYPE_LABELS: Record<string, string> = {
   templateUrl: './calendar-page.component.html',
   styleUrl: './calendar-page.component.scss',
 })
-export class CalendarPageComponent {
+export class CalendarPageComponent implements OnInit {
   protected readonly calendarService = inject(CalendarService);
 
   readonly title = 'Расписание';
@@ -32,6 +32,11 @@ export class CalendarPageComponent {
 
   readonly selectedEvent = signal<CalendarEvent | null>(null);
   readonly showCreatePanel = signal(false);
+
+  ngOnInit(): void {
+    this.calendarService.loadEvents();
+    this.calendarService.loadGoogleStatus();
+  }
 
   // Laid-out events for the day view
   readonly dayLayouts = computed<EventLayout[]>(() => {
@@ -155,12 +160,11 @@ export class CalendarPageComponent {
   }
 
   onSaveEvent(payload: EventCreatePayload): void {
-    const id = 'ev-' + Date.now();
     this.calendarService.addEvent({
-      id,
       title: payload.title,
       type: payload.type,
       date: payload.date,
+      endDate: payload.endDate,
       startTime: payload.startTime,
       endTime: payload.endTime,
       location: payload.location || undefined,

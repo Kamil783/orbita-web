@@ -73,11 +73,21 @@
   justify-content: space-between;
   gap: 16px;
   margin-bottom: 16px;
+  flex-wrap: wrap;
 }
 
 .backlog__filters {
   display: flex;
   gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.backlog__filter-sep {
+  width: 1px;
+  height: 20px;
+  background: #e5e7eb;
+  margin: 0 4px;
 }
 
 .filter-chip {
@@ -102,9 +112,23 @@
   border-color: var(--color-primary);
 }
 
+.filter-chip--avatar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-left: 6px;
+}
+
+.filter-chip__avatar {
+  width: 20px;
+  height: 20px;
+  border-radius: 9999px;
+}
+
 .backlog__search {
   position: relative;
   width: 240px;
+  flex-shrink: 0;
 }
 
 .backlog__search-icon {
@@ -140,6 +164,9 @@
   padding: 14px 16px;
   margin-bottom: 16px;
   animation: formIn 0.15s ease-out;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 @keyframes formIn {
@@ -150,12 +177,16 @@
 .add-form__row {
   display: flex;
   gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
 }
 
 .add-form__row--secondary {
-  margin-top: 10px;
   align-items: center;
-  flex-wrap: wrap;
+}
+
+.add-form__row--actions {
+  justify-content: flex-end;
 }
 
 .add-form__input {
@@ -201,8 +232,22 @@
   color: #fff;
 }
 
-.add-form__date {
-  padding: 6px 10px;
+.add-form__field-small {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.add-form__field-icon {
+  position: absolute;
+  left: 8px;
+  font-size: 16px;
+  color: #9ca3af;
+  pointer-events: none;
+}
+
+.add-form__select {
+  padding: 6px 10px 6px 30px;
   font-size: 13px;
   border: 1px solid #e5e7eb;
   border-radius: 8px;
@@ -210,14 +255,26 @@
   color: #111418;
   font-family: inherit;
   outline: none;
+  appearance: none;
+  cursor: pointer;
+  min-width: 130px;
 
   &:focus { border-color: var(--color-primary); }
 }
 
-.add-form__actions {
-  display: flex;
-  gap: 8px;
-  margin-left: auto;
+.add-form__estimate {
+  padding: 6px 10px 6px 30px;
+  font-size: 13px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #fff;
+  color: #111418;
+  font-family: inherit;
+  outline: none;
+  width: 80px;
+
+  &::placeholder { color: #9ca3af; }
+  &:focus { border-color: var(--color-primary); }
 }
 
 .add-form__save {
@@ -310,6 +367,16 @@
   align-items: center;
   gap: 14px;
   flex-shrink: 0;
+}
+
+.task-row__estimate {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: #8b5cf6;
+
+  .material-symbols-outlined { font-size: 14px; }
 }
 
 .task-row__date {

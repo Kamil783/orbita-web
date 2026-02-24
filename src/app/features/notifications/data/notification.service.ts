@@ -2,34 +2,19 @@ import { Injectable, computed, signal, inject, OnDestroy } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import * as signalR from '@microsoft/signalr';
 import { environment } from '../../../../environments/environment';
-import { AppNotification, NotificationType } from '../models/notification.models';
+import { AppNotification } from '../models/notification.models';
 
-const MOCK_NOTIFICATIONS: AppNotification[] = [
-  {
-    id: '1',
-    type: 'task',
-    title: 'Новая задача: Q4 Strategy Deck',
-    message: 'Вам назначена задача "Q4 Strategy Deck" от Marcus Doe.',
-    read: false,
-    createdAt: new Date(Date.now() - 5 * 60_000),
-  },
-  {
-    id: '2',
-    type: 'meeting',
-    title: 'Синхронизация с Product Team',
-    message: 'Встреча Product Sync начнётся через 5 минут.',
-    read: false,
-    createdAt: new Date(Date.now() - 15 * 60_000),
-  },
-  {
-    id: '3',
-    type: 'finance',
-    title: 'Финансовый отчёт за октябрь готов',
-    message: 'Отчёт доступен для просмотра в разделе "Финансы".',
-    read: true,
-    createdAt: new Date(Date.now() - 2 * 3600_000),
-  },
-];
+/**
+ * API endpoints:
+ *
+ * GET    /api/Notifications                → AppNotification[]  Load all notifications for the current user
+ * POST   /api/Notifications/test           → AppNotification    Send a test notification to the current user
+ * PATCH  /api/Notifications/:id/read       → void               Mark a single notification as read
+ * POST   /api/Notifications/read-all       → void               Mark all notifications as read
+ *
+ * SignalR hub: /hubs/notifications
+ *   Server → Client: ReceiveNotification(AppNotification)
+ */
 
 @Injectable({ providedIn: 'root' })
 export class NotificationService implements OnDestroy {
@@ -48,12 +33,10 @@ export class NotificationService implements OnDestroy {
     this._notifications().filter(n => !n.read).length,
   );
 
-  /** Load initial notifications (called on app start if logged in) */
+  /** Load initial notifications from API */
   loadNotifications(): void {
-    // TODO: replace mock with real API call:
-    // this.http.get<AppNotification[]>(`${this.apiUrl}/api/Notifications`)
-    //   .subscribe(list => this._notifications.set(list));
-    this._notifications.set([...MOCK_NOTIFICATIONS]);
+    this.http.get<AppNotification[]>(`${this.apiUrl}/api/Notifications`)
+      .subscribe(list => this._notifications.set(list));
   }
 
   /** Start SignalR connection */
@@ -82,15 +65,12 @@ export class NotificationService implements OnDestroy {
     this.hubConnection = null;
   }
 
-  /** Push a notification (used by SignalR callback and test button) */
+  /** Push a notification (used by SignalR callback) */
   handleIncoming(notification: AppNotification): void {
-    // Add to notification list
     this._notifications.update(list => [notification, ...list]);
 
-    // Show toast
     this._toasts.update(list => [...list, notification]);
 
-    // Auto-remove toast after 5s
     setTimeout(() => {
       this.dismissToast(notification.id);
     }, 5000);
@@ -104,39 +84,19 @@ export class NotificationService implements OnDestroy {
     this._notifications.update(list =>
       list.map(n => (n.id === id ? { ...n, read: true } : n)),
     );
+    this.http.patch(`${this.apiUrl}/api/Notifications/${id}/read`, {}).subscribe();
   }
 
   markAllAsRead(): void {
     this._notifications.update(list => list.map(n => ({ ...n, read: true })));
+    this.http.post(`${this.apiUrl}/api/Notifications/read-all`, {}).subscribe();
   }
 
-  /** Fire a test notification (for the profile page button) */
+  /** Send a test notification via the API */
   sendTestNotification(): void {
-    const types: NotificationType[] = ['task', 'meeting', 'finance', 'alert'];
-    const titles: Record<NotificationType, string> = {
-      task: 'Назначена новая задача',
-      meeting: 'Встреча начинается',
-      finance: 'Бюджетное уведомление',
-      alert: 'Превышен лимит бюджета',
-    };
-    const messages: Record<NotificationType, string> = {
-      task: 'Вам назначена задача "API Integration v2" от Marcus Doe.',
-      meeting: 'Product Sync начнётся через 5 минут. Присоединяйтесь.',
-      finance: 'Месячный отчёт о расходах готов к просмотру.',
-      alert: 'Месячный бюджет на развлечения достиг порога 90%.',
-    };
-
-    const type = types[Math.floor(Math.random() * types.length)];
-    const notification: AppNotification = {
-      id: crypto.randomUUID(),
-      type,
-      title: titles[type],
-      message: messages[type],
-      read: false,
-      createdAt: new Date(),
-    };
-
-    this.handleIncoming(notification);
+    this.http.post<AppNotification>(`${this.apiUrl}/api/Notifications/test`, {}).subscribe(notification => {
+      this.handleIncoming(notification);
+    });
   }
 
   ngOnDestroy(): void {

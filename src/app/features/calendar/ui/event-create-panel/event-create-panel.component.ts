@@ -1,5 +1,6 @@
 import { Component, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { DatePickerComponent } from '../../../../shared/ui/date-picker/date-picker.component';
 import {
   CalendarEventType,
   CalendarEventColor,
@@ -9,7 +10,7 @@ import {
 @Component({
   selector: 'app-event-create-panel',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, DatePickerComponent],
   templateUrl: './event-create-panel.component.html',
   styleUrl: './event-create-panel.component.scss',
 })
@@ -20,7 +21,8 @@ export class EventCreatePanelComponent {
   title = '';
   eventType = signal<CalendarEventType>('personal');
   color = signal<CalendarEventColor>('blue');
-  date = '';
+  startDate = '';
+  endDate = '';
   startTime = '';
   endTime = '';
   location = '';
@@ -46,15 +48,23 @@ export class EventCreatePanelComponent {
     this.color.set(value);
   }
 
+  onStartDateChange(date: string): void {
+    this.startDate = date;
+    if (!this.endDate || this.endDate < date) {
+      this.endDate = date;
+    }
+  }
+
   onSave(): void {
     if (!this.title.trim()) return;
-    if (!this.date || !this.startTime || !this.endTime) return;
+    if (!this.startDate || !this.startTime || !this.endTime) return;
 
     this.save.emit({
       title: this.title.trim(),
       type: this.eventType(),
       color: this.color(),
-      date: this.date,
+      date: this.startDate,
+      endDate: this.endDate || this.startDate,
       startTime: this.startTime,
       endTime: this.endTime,
       location: this.location.trim(),

@@ -39,7 +39,7 @@
     }
 
     @if (activeTab() === 'backlog') {
-      <app-backlog-view />
+      <app-backlog-view [assigneeOptions]="assigneeOptions" />
     }
   </main>
 </app-app-shell>
