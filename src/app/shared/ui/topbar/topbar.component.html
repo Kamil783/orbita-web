@@ -15,16 +15,24 @@
       <span class="material-symbols-outlined">dark_mode</span>
     </button>
 
-    <button class="iconbtn iconbtn--notify" type="button" (click)="openNotifications()" aria-label="Уведомления">
-      <span class="material-symbols-outlined">notifications</span>
-      <span class="dot" aria-hidden="true"></span>
-    </button>
+    <div class="notify-wrapper">
+      <button class="iconbtn iconbtn--notify" type="button" (click)="toggleNotifications()" aria-label="Уведомления">
+        <span class="material-symbols-outlined">notifications</span>
+        @if (notificationService.unreadCount() > 0) {
+          <span class="badge" aria-hidden="true">{{ notificationService.unreadCount() }}</span>
+        }
+      </button>
+
+      @if (showNotifications()) {
+        <app-notification-dropdown></app-notification-dropdown>
+      }
+    </div>
 
     <div class="divider"></div>
 
-    <button class="profile" type="button" aria-label="Профиль">
-      <span class="profile__avatar" aria-hidden="true">И</span>
-      <span class="profile__name">Иван Петров</span>
-    </button>
+    <a class="profile" routerLink="/profile" aria-label="Профиль">
+      <span class="profile__avatar" aria-hidden="true">{{ userService.initial() }}</span>
+      <span class="profile__name">{{ userService.name() }}</span>
+    </a>
   </div>
 </header>

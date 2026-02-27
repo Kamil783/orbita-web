@@ -1,0 +1,40 @@
+<div class="overlay" (click)="onBackdropClick()">
+  <div class="dialog" (click)="onDialogClick($event)">
+    <header class="dialog__header">
+      <h3 class="dialog__title">Добавить из бэклога</h3>
+      <button class="dialog__close" type="button" (click)="close.emit()">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </header>
+
+    <div class="dialog__search">
+      <span class="material-symbols-outlined dialog__search-icon">search</span>
+      <input
+        class="dialog__search-input"
+        type="text"
+        placeholder="Поиск задач..."
+        [value]="searchQuery()"
+        (input)="onSearch($event)"
+      />
+    </div>
+
+    <div class="dialog__list">
+      @for (task of tasks(); track task.id) {
+        <div class="pick-row">
+          <div class="pick-row__left">
+            <span class="pick-row__priority" [class]="priorityClass(task.priority)"></span>
+            <span class="pick-row__title">{{ task.title }}</span>
+          </div>
+          <button class="pick-row__add" type="button" (click)="addTask(task)">
+            <span class="material-symbols-outlined">add</span>
+          </button>
+        </div>
+      } @empty {
+        <div class="dialog__empty">
+          <span class="material-symbols-outlined">inbox</span>
+          <p>Нет доступных задач</p>
+        </div>
+      }
+    </div>
+  </div>
+</div>

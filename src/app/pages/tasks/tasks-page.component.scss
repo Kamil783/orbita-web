@@ -6,6 +6,38 @@
   position: relative;
 }
 
+/* ── Tab toggle ── */
+.tab-toggle {
+  display: flex;
+  background: #f5f7f8;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 3px;
+  gap: 2px;
+}
+
+.tab-toggle__btn {
+  padding: 6px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #60758a;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover:not(.tab-toggle__btn--active) {
+    background: #ffffff;
+  }
+}
+
+.tab-toggle__btn--active {
+  background: var(--color-primary);
+  color: #ffffff;
+}
+
+/* ── FAB ── */
 .fab {
   position: fixed;
   right: 32px;

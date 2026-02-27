@@ -1,0 +1,197 @@
+:host {
+  display: block;
+  position: relative;
+}
+
+.dp__input {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 14px;
+  background: #f5f7f8;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  box-sizing: border-box;
+
+  &:hover {
+    border-color: #d1d5db;
+  }
+
+  &--open {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(37, 140, 244, 0.15);
+  }
+}
+
+.dp__icon {
+  font-size: 18px;
+  color: #9ca3af;
+  flex-shrink: 0;
+}
+
+.dp__value {
+  flex: 1;
+  font-size: 14px;
+  color: #111418;
+  font-family: inherit;
+}
+
+.dp__placeholder {
+  flex: 1;
+  font-size: 14px;
+  color: #9ca3af;
+}
+
+.dp__clear {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border: 0;
+  background: transparent;
+  color: #9ca3af;
+  cursor: pointer;
+  padding: 0;
+  border-radius: 4px;
+  flex-shrink: 0;
+
+  &:hover { color: #4b5563; }
+
+  .material-symbols-outlined { font-size: 16px; }
+}
+
+.dp__chevron {
+  font-size: 18px;
+  color: #9ca3af;
+  flex-shrink: 0;
+  transition: transform 0.15s ease;
+
+  .dp__input--open & {
+    transform: rotate(180deg);
+  }
+}
+
+/* ── Dropdown ── */
+.dp__dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 200;
+  width: 280px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.12);
+  padding: 12px;
+  animation: dpIn 0.15s ease-out;
+}
+
+@keyframes dpIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Navigation ── */
+.dp__nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.dp__nav-label {
+  font-size: 14px;
+  font-weight: 700;
+  color: #111418;
+}
+
+.dp__nav-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  background: transparent;
+  border-radius: 6px;
+  color: #60758a;
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease;
+
+  &:hover {
+    background: #f5f7f8;
+    color: #111418;
+  }
+
+  .material-symbols-outlined { font-size: 20px; }
+}
+
+/* ── Weekday header ── */
+.dp__weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0;
+  margin-bottom: 4px;
+}
+
+.dp__weekday {
+  text-align: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 4px 0;
+}
+
+/* ── Calendar grid ── */
+.dp__grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+.dp__day {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  margin: 0 auto;
+  font-size: 13px;
+  font-weight: 500;
+  color: #111418;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease;
+
+  &:hover:not(.dp__day--selected) {
+    background: #f5f7f8;
+  }
+
+  &--other {
+    color: #c9cdd3;
+  }
+
+  &--today {
+    font-weight: 700;
+    color: var(--color-primary);
+    background: rgba(37, 140, 244, 0.06);
+  }
+
+  &--selected {
+    background: var(--color-primary);
+    color: #ffffff;
+    font-weight: 700;
+
+    &:hover {
+      background: #1d7ad8;
+    }
+  }
+}

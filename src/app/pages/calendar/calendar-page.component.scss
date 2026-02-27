@@ -1,0 +1,625 @@
+.page {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+// --- View toggle (in topbar) - matches Tasks page tab-toggle ---
+.view-toggle {
+  display: flex;
+  background: #f5f7f8;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 3px;
+  gap: 2px;
+}
+
+.view-toggle__btn {
+  padding: 6px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #60758a;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover:not(.view-toggle__btn--active) {
+    background: #ffffff;
+  }
+
+  &--active {
+    background: var(--color-primary);
+    color: #ffffff;
+  }
+}
+
+// --- Calendar header ---
+.cal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 32px;
+  background: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.cal-header__left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.cal-header__icon-wrapper {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: rgba(37, 140, 244, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-primary);
+
+  .material-symbols-outlined {
+    font-size: 20px;
+  }
+}
+
+.cal-header__title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-900);
+}
+
+.cal-header__subtitle {
+  margin: 2px 0 0;
+  font-size: 13px;
+  color: var(--text-500);
+  text-transform: capitalize;
+}
+
+.cal-header__nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cal-nav-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  background: #f0f2f5;
+  border-radius: 8px;
+  color: var(--text-900);
+  cursor: pointer;
+  transition: background 0.15s ease;
+  height: 36px;
+  min-width: 36px;
+
+  &:hover {
+    background: #e2e5e9;
+  }
+
+  .material-symbols-outlined {
+    font-size: 20px;
+  }
+
+  &--today {
+    padding: 0 16px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+}
+
+// ========================================
+// DAY VIEW
+// ========================================
+.day-grid-wrapper {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 32px 32px;
+  background: var(--bg-light);
+}
+
+.day-grid {
+  position: relative;
+  display: grid;
+  grid-template-columns: 80px 1fr;
+  background: #ffffff;
+  border-radius: var(--radius-md);
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  margin-top: 24px;
+}
+
+.day-grid__time {
+  display: flex;
+  justify-content: center;
+  padding-top: 12px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-500);
+  border-right: 1px solid #f0f2f5;
+  height: 64px;
+  box-sizing: border-box;
+}
+
+.day-grid__cell {
+  height: 64px;
+  border-bottom: 1px solid #f0f2f5;
+  box-sizing: border-box;
+}
+
+.day-grid__events {
+  position: absolute;
+  top: 0;
+  left: 80px;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+}
+
+// --- Day event card ---
+.cal-event {
+  position: absolute;
+  // left & width set via inline style (overlap layout)
+  border-left: 4px solid;
+  border-radius: 8px;
+  padding: 8px 12px;
+  pointer-events: auto;
+  cursor: pointer;
+  overflow: hidden;
+  transition: filter 0.15s ease, box-shadow 0.15s ease;
+
+  &:hover {
+    filter: brightness(0.97);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  // Compact layout for short events (< ~45min)
+  &--short {
+    padding: 4px 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  &--short &__title {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex-shrink: 1;
+    min-width: 0;
+  }
+
+  &--short &__time {
+    margin: 0;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  &--short &__badge {
+    margin: 0;
+    flex-shrink: 0;
+  }
+}
+
+.cal-event__title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.cal-event__time {
+  margin: 2px 0 0;
+  font-size: 11px;
+  color: var(--text-500);
+}
+
+.cal-event__badge {
+  display: inline-block;
+  margin-top: 4px;
+  padding: 1px 8px;
+  font-size: 10px;
+  font-weight: 700;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+
+  &--google {
+    background: rgba(66, 133, 244, 0.15);
+    color: #4285f4;
+  }
+
+  &--task {
+    background: rgba(37, 140, 244, 0.15);
+    color: var(--color-primary);
+  }
+}
+
+// ========================================
+// WEEK VIEW
+// ========================================
+.week-grid-wrapper {
+  flex: 1;
+  overflow: auto;
+  background: var(--bg-light);
+}
+
+.week-header {
+  display: grid;
+  grid-template-columns: 80px repeat(7, 1fr);
+  background: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.week-header__spacer {
+  border-right: 1px solid #f0f2f5;
+}
+
+.week-header__day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 0;
+  border-right: 1px solid #f0f2f5;
+
+  &--today {
+    background: rgba(37, 140, 244, 0.05);
+  }
+
+  &--weekend {
+    background: rgba(0, 0, 0, 0.015);
+  }
+
+  &:last-child {
+    border-right: 0;
+  }
+}
+
+.week-header__dayname {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--text-500);
+  letter-spacing: 0.05em;
+
+  .week-header__day--today & {
+    color: var(--color-primary);
+  }
+}
+
+.week-header__daynumber {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-900);
+
+  .week-header__day--today & {
+    color: var(--color-primary);
+  }
+}
+
+.week-body {
+  display: grid;
+  grid-template-columns: 80px repeat(7, 1fr);
+  background: #ffffff;
+  min-width: 900px;
+}
+
+.week-body__times {
+  border-right: 1px solid #f0f2f5;
+}
+
+.week-body__time-cell {
+  height: 64px;
+  display: flex;
+  justify-content: center;
+  padding-top: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-500);
+  border-bottom: 1px solid #f0f2f5;
+  box-sizing: border-box;
+}
+
+.week-body__col {
+  position: relative;
+  border-right: 1px solid #f0f2f5;
+
+  &:last-child {
+    border-right: 0;
+  }
+
+  &--today {
+    background: rgba(37, 140, 244, 0.03);
+  }
+
+  &--weekend {
+    background: rgba(0, 0, 0, 0.01);
+  }
+}
+
+.week-body__cell {
+  height: 64px;
+  border-bottom: 1px solid #f0f2f5;
+  box-sizing: border-box;
+}
+
+// --- Week event card ---
+.week-event {
+  position: absolute;
+  // left & width set via inline style (overlap layout)
+  border-left: 4px solid;
+  border-radius: 6px;
+  padding: 4px 8px;
+  overflow: hidden;
+  cursor: pointer;
+  z-index: 5;
+  transition: filter 0.15s ease, box-shadow 0.15s ease;
+
+  &:hover {
+    filter: brightness(0.95);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  }
+
+  // Compact: single-line for short events
+  &--short {
+    padding: 2px 6px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  &--short &__title {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+  }
+
+  &--short &__time {
+    display: none;
+  }
+}
+
+.week-event__title {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.week-event__time {
+  margin: 1px 0 0;
+  font-size: 9px;
+  color: var(--text-500);
+}
+
+// --- Current time indicator ---
+.current-time {
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 15;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+}
+
+.current-time__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ef4444;
+  margin-left: -4px;
+  flex-shrink: 0;
+}
+
+.current-time__line {
+  flex: 1;
+  height: 2px;
+  background: #ef4444;
+}
+
+// --- FAB - matches Tasks page ---
+.fab {
+  position: fixed;
+  right: 32px;
+  bottom: 32px;
+  z-index: 20;
+  width: 56px;
+  height: 56px;
+  border-radius: 9999px;
+  border: 0;
+  cursor: pointer;
+  background: var(--color-primary);
+  color: #fff;
+  box-shadow: 0 14px 30px rgba(17, 24, 39, 0.18);
+  display: grid;
+  place-items: center;
+  transition: transform .15s ease;
+
+  &:hover { transform: scale(1.05); }
+  &:active { transform: scale(0.95); }
+
+  .material-symbols-outlined { font-size: 28px; }
+}
+
+// ========================================
+// EVENT DETAIL POPUP
+// ========================================
+.detail-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(4px);
+  animation: detailOverlayIn 0.15s ease-out;
+}
+
+@keyframes detailOverlayIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes detailCardIn {
+  from { opacity: 0; transform: scale(0.95) translateY(8px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.detail-card {
+  width: 100%;
+  max-width: 420px;
+  background: #ffffff;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.16);
+  border: 1px solid #e5e7eb;
+  animation: detailCardIn 0.2s ease-out;
+}
+
+.detail-card__accent {
+  height: 4px;
+  width: 100%;
+}
+
+.detail-card__body {
+  padding: 24px;
+}
+
+.detail-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.detail-card__header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.detail-card__title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-900);
+  line-height: 1.3;
+}
+
+.detail-card__type-badge {
+  display: inline-flex;
+  align-self: flex-start;
+  padding: 3px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.detail-card__close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 8px;
+  background: #f0f2f5;
+  color: var(--text-500);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s ease, color 0.15s ease;
+
+  &:hover {
+    background: #e2e5e9;
+    color: var(--text-900);
+  }
+
+  .material-symbols-outlined {
+    font-size: 18px;
+  }
+}
+
+.detail-card__rows {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.detail-card__row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.detail-card__row-icon {
+  font-size: 20px;
+  color: var(--text-400);
+  margin-top: 1px;
+  flex-shrink: 0;
+}
+
+.detail-card__row-primary {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-900);
+}
+
+.detail-card__row-secondary {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: var(--text-500);
+}
+
+.detail-card__actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid #f0f2f5;
+}
+
+.detail-card__action-btn {
+  padding: 10px 24px;
+  font-size: 13px;
+  font-weight: 600;
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+
+  &--secondary {
+    background: #f0f2f5;
+    color: var(--text-900);
+
+    &:hover {
+      background: #e2e5e9;
+    }
+  }
+}
