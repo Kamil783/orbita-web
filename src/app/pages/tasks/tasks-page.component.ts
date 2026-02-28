@@ -9,6 +9,7 @@ import { TaskCreatePanelComponent } from '../../features/tasks/ui/task-create-pa
 import { BacklogViewComponent } from '../../features/tasks/ui/backlog-view/backlog-view.component';
 import { BacklogPickerDialogComponent } from '../../features/tasks/ui/backlog-picker-dialog/backlog-picker-dialog.component';
 import { CompletedTasksDialogComponent } from '../../features/tasks/ui/completed-tasks-dialog/completed-tasks-dialog.component';
+import { ColumnCreateDialogComponent } from '../../features/tasks/ui/column-create-dialog/column-create-dialog.component';
 import {
   ColumnHeaderAction, TaskCreatePayload,
   TaskDropEvent, TasksTab, TaskMenuAction, TaskStatus,
@@ -21,6 +22,7 @@ import {
     AppShellComponent, KanbanBoardComponent, TopbarComponent,
     TasksFilterComponent, ConfirmDialogComponent, TaskCreatePanelComponent,
     BacklogViewComponent, BacklogPickerDialogComponent, CompletedTasksDialogComponent,
+    ColumnCreateDialogComponent,
   ],
   templateUrl: './tasks-page.component.html',
   styleUrl: './tasks-page.component.scss',
@@ -64,6 +66,7 @@ export class TasksPageComponent implements OnInit {
   readonly deleteTaskId = signal<string | null>(null);
   readonly pickerTargetStatus = signal<TaskStatus | null>(null);
   readonly showCompletedDialog = signal(false);
+  readonly showColumnCreateDialog = signal(false);
 
   setTab(tab: TasksTab): void {
     this.activeTab.set(tab);
@@ -90,7 +93,7 @@ export class TasksPageComponent implements OnInit {
     if (action.columnId === 'done') {
       this.showCompletedDialog.set(true);
     } else {
-      this.pickerTargetStatus.set(action.columnId);
+      this.pickerTargetStatus.set(action.columnId as TaskStatus);
     }
   }
 
@@ -125,5 +128,18 @@ export class TasksPageComponent implements OnInit {
 
   onCloseCompletedDialog(): void {
     this.showCompletedDialog.set(false);
+  }
+
+  onNewColumn(): void {
+    this.showColumnCreateDialog.set(true);
+  }
+
+  onSaveColumn(title: string): void {
+    this.tasksService.createColumn(title);
+    this.showColumnCreateDialog.set(false);
+  }
+
+  onCancelColumnCreate(): void {
+    this.showColumnCreateDialog.set(false);
   }
 }

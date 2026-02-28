@@ -1,7 +1,7 @@
 import { Component, input, output } from '@angular/core';
 import { CdkDropList, CdkDrag, CdkDragDrop, CdkDragPlaceholder } from '@angular/cdk/drag-drop';
 import { TaskCardComponent } from '../task-card/task-card.component';
-import { ColumnHeaderAction, KanbanColumnVm, TaskDropEvent, TaskMenuAction, TaskStatus } from '../../models/task.models';
+import { ColumnHeaderAction, KanbanColumnVm, TaskDropEvent, TaskMenuAction } from '../../models/task.models';
 
 @Component({
   selector: 'app-kanban-column',
@@ -20,7 +20,7 @@ export class KanbanColumnComponent {
   readonly taskDrop = output<TaskDropEvent>();
   readonly headerAction = output<ColumnHeaderAction>();
 
-  onDrop(event: CdkDragDrop<TaskStatus>): void {
+  onDrop(event: CdkDragDrop<string>): void {
     this.taskDrop.emit({
       fromColumnId: event.previousContainer.data,
       toColumnId: event.container.data,
