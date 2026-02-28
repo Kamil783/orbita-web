@@ -78,8 +78,8 @@
 
     @if (task().assignees?.length) {
       <div class="avatars">
-        @for (a of task().assignees; track a.avatarUrl) {
-          <span class="avatar" [style.backgroundImage]="'url(' + a.avatarUrl + ')'"></span>
+        @for (a of task().assignees; track a.id) {
+          <span class="avatar" [style.backgroundImage]="'url(' + (a.avatar | avatar) + ')'"></span>
         }
       </div>
     }

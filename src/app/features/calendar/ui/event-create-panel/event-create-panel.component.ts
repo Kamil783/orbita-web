@@ -1,6 +1,7 @@
 import { Component, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DatePickerComponent } from '../../../../shared/ui/date-picker/date-picker.component';
+import { SelectComponent, SelectOption } from '../../../../shared/ui/select/select.component';
 import {
   CalendarEventType,
   CalendarEventColor,
@@ -10,7 +11,7 @@ import {
 @Component({
   selector: 'app-event-create-panel',
   standalone: true,
-  imports: [FormsModule, DatePickerComponent],
+  imports: [FormsModule, DatePickerComponent, SelectComponent],
   templateUrl: './event-create-panel.component.html',
   styleUrl: './event-create-panel.component.scss',
 })
@@ -39,6 +40,17 @@ export class EventCreatePanelComponent {
     { value: 'purple', label: 'Фиолетовый', hex: '#8b5cf6' },
     { value: 'rose', label: 'Розовый', hex: '#f43f5e' },
   ];
+
+  readonly timeOptions: SelectOption[] = (() => {
+    const opts: SelectOption[] = [];
+    for (let h = 0; h < 24; h++) {
+      for (const m of [0, 30]) {
+        const val = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+        opts.push({ value: val, label: val });
+      }
+    }
+    return opts;
+  })();
 
   selectType(value: CalendarEventType): void {
     this.eventType.set(value);

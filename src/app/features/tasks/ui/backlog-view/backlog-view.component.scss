@@ -113,10 +113,10 @@
 }
 
 .filter-chip--avatar {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding-left: 6px;
+  padding: 4px 12px 4px 4px;
 }
 
 .filter-chip__avatar {
@@ -209,8 +209,11 @@
   gap: 4px;
   background: #fff;
   border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  padding: 3px;
+  border-radius: 10px;
+  padding: 4px;
+  height: 42px;
+  box-sizing: border-box;
+  align-items: center;
 }
 
 .seg-btn {
@@ -218,7 +221,7 @@
   font-size: 12px;
   font-weight: 600;
   border: 0;
-  border-radius: 6px;
+  border-radius: 8px;
   background: transparent;
   color: #6b7280;
   cursor: pointer;
@@ -232,49 +235,10 @@
   color: #fff;
 }
 
-.add-form__field-small {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.add-form__field-icon {
-  position: absolute;
-  left: 8px;
-  font-size: 16px;
-  color: #9ca3af;
-  pointer-events: none;
-}
-
-.add-form__select {
-  padding: 6px 10px 6px 30px;
-  font-size: 13px;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  background: #fff;
-  color: #111418;
-  font-family: inherit;
-  outline: none;
-  appearance: none;
-  cursor: pointer;
+/* Ensure app-select and app-date-picker size consistently in the form row */
+app-select,
+app-date-picker {
   min-width: 130px;
-
-  &:focus { border-color: var(--color-primary); }
-}
-
-.add-form__estimate {
-  padding: 6px 10px 6px 30px;
-  font-size: 13px;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  background: #fff;
-  color: #111418;
-  font-family: inherit;
-  outline: none;
-  width: 80px;
-
-  &::placeholder { color: #9ca3af; }
-  &:focus { border-color: var(--color-primary); }
 }
 
 .add-form__save {

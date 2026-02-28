@@ -17,7 +17,7 @@
         } @else {
           <span
             class="chip__avatar"
-            [style.backgroundImage]="i.avatarUrl ? 'url(' + i.avatarUrl + ')' : null"
+            [style.backgroundImage]="i.avatar ? 'url(' + (i.avatar | avatar) + ')' : null"
             aria-hidden="true"
           ></span>
           <span class="chip__tooltip" aria-hidden="true">{{ i.name }}</span>

@@ -48,8 +48,8 @@
           type="button"
           (click)="setAssigneeFilter(a.id)"
         >
-          @if (a.avatarUrl) {
-            <img class="filter-chip__avatar" [src]="a.avatarUrl" [alt]="a.name" />
+          @if (a.avatar) {
+            <img class="filter-chip__avatar" [src]="a.avatar | avatar" [alt]="a.name" />
           }
           {{ a.name }}
         </button>
@@ -93,26 +93,18 @@
           }
         </div>
         <app-date-picker [(ngModel)]="newDueDate" placeholder="Срок" />
-        <div class="add-form__field-small">
-          <span class="material-symbols-outlined add-form__field-icon">person</span>
-          <select class="add-form__select" [(ngModel)]="newAssigneeId">
-            <option value="">Исполнитель</option>
-            @for (a of assigneeOptions(); track a.id) {
-              <option [value]="a.id">{{ a.name }}</option>
-            }
-          </select>
-        </div>
-        <div class="add-form__field-small">
-          <span class="material-symbols-outlined add-form__field-icon">timer</span>
-          <input
-            class="add-form__estimate"
-            type="number"
-            placeholder="мин"
-            min="0"
-            step="15"
-            [(ngModel)]="newEstimate"
-          />
-        </div>
+        <app-select
+          [(ngModel)]="newAssigneeId"
+          [options]="assigneeSelectOptions()"
+          placeholder="Исполнитель"
+          icon="person"
+        />
+        <app-select
+          [(ngModel)]="newEstimate"
+          [options]="estimateOptions"
+          placeholder="Время"
+          icon="timer"
+        />
       </div>
       <div class="add-form__row add-form__row--actions">
         <button class="add-form__save" type="button" (click)="onSaveNewTask()">Добавить</button>
@@ -145,7 +137,7 @@
           @if (task.assignees?.length) {
             <div class="task-row__avatars">
               @for (a of task.assignees; track a.id) {
-                <img class="task-row__avatar" [src]="a.avatarUrl" [alt]="a.name ?? ''" />
+                <img class="task-row__avatar" [src]="a.avatar | avatar" [alt]="a.name ?? ''" />
               }
             </div>
           }

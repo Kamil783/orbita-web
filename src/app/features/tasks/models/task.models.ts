@@ -4,7 +4,7 @@ export type TasksTab = 'board' | 'backlog';
 
 export interface TaskAssignee {
   id: string;
-  avatarUrl: string;
+  avatar: string;
   name?: string;
 }
 
@@ -21,7 +21,7 @@ export interface TaskCardVm {
 }
 
 export interface KanbanColumnVm {
-  id: TaskStatus;
+  id: string;
   title: string;
   /** Общее число задач на сервере (может не совпадать с cards.length при пагинации) */
   totalCount: number;
@@ -45,7 +45,7 @@ export interface BacklogTask {
 export interface TasksFilterItemVm {
   id: string;
   name: string;
-  avatarUrl?: string;
+  avatar?: string;
   isAll?: boolean;
 }
 
@@ -54,7 +54,7 @@ export type TaskMenuAction =
   | { type: 'moveTo'; taskId: string; targetStatus: TaskStatus }
   | { type: 'delete'; taskId: string };
 
-export type ColumnHeaderAction = { columnId: TaskStatus; icon: string };
+export type ColumnHeaderAction = { columnId: string; icon: string };
 
 export interface TaskCreatePayload {
   title: string;
@@ -67,12 +67,12 @@ export interface TaskCreatePayload {
 export interface AssigneeOption {
   id: string;
   name: string;
-  avatarUrl?: string;
+  avatar?: string;
 }
 
 export interface TaskDropEvent {
-  fromColumnId: TaskStatus;
-  toColumnId: TaskStatus;
+  fromColumnId: string;
+  toColumnId: string;
   fromIndex: number;
   toIndex: number;
 }

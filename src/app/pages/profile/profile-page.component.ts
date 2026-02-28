@@ -4,7 +4,6 @@ import { AppShellComponent } from '../../shared/ui/app-shell/app-shell.component
 import { TopbarComponent } from '../../shared/ui/topbar/topbar.component';
 import { UserService } from '../../features/user/data/user.service';
 import { AuthService } from '../../features/auth/data/auth.service';
-import { NotificationService } from '../../features/notifications/data/notification.service';
 import { CalendarService } from '../../features/calendar/data/calendar.service';
 
 @Component({
@@ -19,10 +18,8 @@ export class ProfilePageComponent {
 
   protected readonly userService = inject(UserService);
   private readonly authService = inject(AuthService);
-  protected readonly notificationService = inject(NotificationService);
   protected readonly calendarService = inject(CalendarService);
 
-  readonly avatarUrl = signal<string | null>(null);
   readonly pushNotifications = signal(true);
 
   // Edit profile dialog
@@ -67,17 +64,8 @@ export class ProfilePageComponent {
     const file = input.files?.[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      this.avatarUrl.set(reader.result as string);
-    };
-    reader.readAsDataURL(file);
-
+    this.userService.uploadAvatar(file);
     input.value = '';
-  }
-
-  sendTestNotification(): void {
-    this.notificationService.sendTestNotification();
   }
 
   toggleGoogleCalendar(): void {

@@ -3,7 +3,7 @@
   position: relative;
 }
 
-.dp__input {
+.sel__input {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -27,26 +27,29 @@
   }
 }
 
-.dp__icon {
+.sel__icon {
   font-size: 18px;
   color: #9ca3af;
   flex-shrink: 0;
 }
 
-.dp__value {
+.sel__value {
   flex: 1;
   font-size: 14px;
   color: #111418;
   font-family: inherit;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.dp__placeholder {
+.sel__placeholder {
   flex: 1;
   font-size: 14px;
   color: #9ca3af;
 }
 
-.dp__clear {
+.sel__clear {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -65,130 +68,56 @@
   .material-symbols-outlined { font-size: 16px; }
 }
 
-.dp__chevron {
+.sel__chevron {
   font-size: 18px;
   color: #9ca3af;
   flex-shrink: 0;
   transition: transform 0.15s ease;
 
-  .dp__input--open & {
+  .sel__input--open & {
     transform: rotate(180deg);
   }
 }
 
 /* ── Dropdown ── */
-.dp__dropdown {
+.sel__dropdown {
   position: absolute;
   top: calc(100% + 6px);
   left: 0;
   z-index: 200;
-  width: 280px;
+  width: 100%;
+  min-width: 180px;
+  max-height: 220px;
+  overflow-y: auto;
   background: #ffffff;
   border: 1px solid #e5e7eb;
   border-radius: 12px;
   box-shadow: 0 12px 36px rgba(0, 0, 0, 0.12);
-  padding: 12px;
-  animation: dpIn 0.15s ease-out;
-
-  &--right {
-    left: auto;
-    right: 0;
-  }
+  padding: 6px;
+  animation: selIn 0.15s ease-out;
 }
 
-@keyframes dpIn {
+@keyframes selIn {
   from { opacity: 0; transform: translateY(-4px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
-/* ── Navigation ── */
-.dp__nav {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 12px;
-}
-
-.dp__nav-label {
+.sel__option {
+  display: block;
+  width: 100%;
+  padding: 9px 12px;
   font-size: 14px;
-  font-weight: 700;
-  color: #111418;
-}
-
-.dp__nav-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border: 0;
-  background: transparent;
-  border-radius: 6px;
-  color: #60758a;
-  cursor: pointer;
-  transition: background 0.12s ease, color 0.12s ease;
-
-  &:hover {
-    background: #f5f7f8;
-    color: #111418;
-  }
-
-  .material-symbols-outlined { font-size: 20px; }
-}
-
-/* ── Weekday header ── */
-.dp__weekdays {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 0;
-  margin-bottom: 4px;
-}
-
-.dp__weekday {
-  text-align: center;
-  font-size: 11px;
-  font-weight: 700;
-  color: #9ca3af;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  padding: 4px 0;
-}
-
-/* ── Calendar grid ── */
-.dp__grid {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 2px;
-}
-
-.dp__day {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 34px;
-  height: 34px;
-  margin: 0 auto;
-  font-size: 13px;
   font-weight: 500;
   color: #111418;
   border: 0;
   border-radius: 8px;
   background: transparent;
   cursor: pointer;
+  text-align: left;
   transition: background 0.12s ease, color 0.12s ease;
 
-  &:hover:not(.dp__day--selected) {
+  &:hover:not(.sel__option--selected) {
     background: #f5f7f8;
-  }
-
-  &--other {
-    color: #c9cdd3;
-  }
-
-  &--today {
-    font-weight: 700;
-    color: var(--color-primary);
-    background: rgba(37, 140, 244, 0.06);
   }
 
   &--selected {

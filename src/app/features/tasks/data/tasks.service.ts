@@ -1,7 +1,10 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
-import { BacklogTask, KanbanColumnVm, TaskCardVm, TaskStatus } from '../models/task.models';
+import {
+  AssigneeOption, BacklogTask, KanbanColumnVm, TaskCardVm,
+  TasksFilterItemVm, TaskStatus,
+} from '../models/task.models';
 
 /**
  * API endpoints:
@@ -16,12 +19,23 @@ import { BacklogTask, KanbanColumnVm, TaskCardVm, TaskStatus } from '../models/t
  * POST   /api/Backlog/:id/to-week  → { kanbanCard }          Add backlog task to weekly board. Body: { targetStatus }
  * POST   /api/Backlog/:id/from-week→ void                    Remove backlog task from weekly board
  * PATCH  /api/Backlog/:id/done     → void                    Body: { done: boolean }
+ *
+ * GET    /api/Team/members         → AssigneeOption[]        Load team members (id, name, avatar?)
+ *
+ * POST   /api/Columns              → { id }                 Create a new board column. Body: { title }
  */
 
 @Injectable({ providedIn: 'root' })
 export class TasksService {
   private readonly apiUrl = environment.apiUrl;
   private readonly http = inject(HttpClient);
+
+  readonly members = signal<AssigneeOption[]>([]);
+
+  readonly filterItems = computed<TasksFilterItemVm[]>(() => [
+    { id: 'all', name: 'Все', isAll: true },
+    ...this.members().map(m => ({ id: m.id, name: m.name, avatar: m.avatar })),
+  ]);
 
   readonly columns = signal<KanbanColumnVm[]>([
     { id: 'todo', title: 'К выполнению', totalCount: 0, headerActionIcon: 'add_circle', cards: [] },
@@ -54,9 +68,15 @@ export class TasksService {
     });
   }
 
+  loadMembers(): void {
+    this.http.get<AssigneeOption[]>(`${this.apiUrl}/api/Team/members`).subscribe(members => {
+      this.members.set(members);
+    });
+  }
+
   // ── Kanban operations ──
 
-  moveTask(fromColumnId: TaskStatus, toColumnId: TaskStatus, fromIndex: number, toIndex: number): void {
+  moveTask(fromColumnId: string, toColumnId: string, fromIndex: number, toIndex: number): void {
     // Optimistic update
     this.columns.update(cols => {
       const result = cols.map(col => ({ ...col, cards: [...col.cards] }));
@@ -64,7 +84,7 @@ export class TasksService {
       const toCol = result.find(c => c.id === toColumnId)!;
 
       const [card] = fromCol.cards.splice(fromIndex, 1);
-      card.status = toColumnId;
+      card.status = toColumnId as TaskStatus;
       toCol.cards.splice(toIndex, 0, card);
 
       fromCol.totalCount = fromCol.cards.length;
@@ -189,6 +209,34 @@ export class TasksService {
   addBacklogTask(task: Omit<BacklogTask, 'id' | 'inWeek' | 'done'>): void {
     this.http.post<BacklogTask>(`${this.apiUrl}/api/Backlog`, task).subscribe(created => {
       this.backlog.update(list => [...list, created]);
+    });
+  }
+
+  // ── Column operations ──
+
+  createColumn(title: string): void {
+    const tempId = `temp-${Date.now()}`;
+    const newColumn: KanbanColumnVm = {
+      id: tempId,
+      title,
+      totalCount: 0,
+      headerActionIcon: 'add_circle',
+      cards: [],
+    };
+
+    // Optimistic update
+    this.columns.update(cols => [...cols, newColumn]);
+
+    this.http.post<{ id: string }>(`${this.apiUrl}/api/Columns`, { title }).subscribe({
+      next: (res) => {
+        this.columns.update(cols =>
+          cols.map(col => col.id === tempId ? { ...col, id: res.id } : col),
+        );
+      },
+      error: () => {
+        // Rollback on failure
+        this.columns.update(cols => cols.filter(col => col.id !== tempId));
+      },
     });
   }
 }

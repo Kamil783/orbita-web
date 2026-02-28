@@ -19,7 +19,7 @@
     </div>
 
     @if (activeTab() === 'board') {
-      <app-tasks-filter topbar-left-extra [items]="filterItems" [(selectedId)]="selectedFilterId">
+      <app-tasks-filter topbar-left-extra [items]="filterItems()" [(selectedId)]="selectedFilterId">
       </app-tasks-filter>
     }
   </app-topbar>
@@ -31,6 +31,7 @@
         (menuAction)="onMenuAction($event)"
         (taskDrop)="onTaskDrop($event)"
         (headerAction)="onHeaderAction($event)"
+        (newColumn)="onNewColumn()"
       ></app-kanban-board>
 
       <button class="fab" type="button" (click)="onQuickAdd()" aria-label="Добавить задачу">
@@ -39,14 +40,14 @@
     }
 
     @if (activeTab() === 'backlog') {
-      <app-backlog-view [assigneeOptions]="assigneeOptions" />
+      <app-backlog-view [assigneeOptions]="assigneeOptions()" />
     }
   </main>
 </app-app-shell>
 
 @if (showCreatePanel()) {
   <app-task-create-panel
-    [assignees]="assigneeOptions"
+    [assignees]="assigneeOptions()"
     (save)="onSaveTask($event)"
     (cancel)="onCancelCreate()"
   />
@@ -73,5 +74,12 @@
 @if (showCompletedDialog()) {
   <app-completed-tasks-dialog
     (close)="onCloseCompletedDialog()"
+  />
+}
+
+@if (showColumnCreateDialog()) {
+  <app-column-create-dialog
+    (save)="onSaveColumn($event)"
+    (cancel)="onCancelColumnCreate()"
   />
 }
