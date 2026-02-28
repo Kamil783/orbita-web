@@ -121,41 +121,6 @@
   }
 }
 
-.field__input--icon {
-  padding-left: 38px;
-}
-
-.field__icon-wrap {
-  position: relative;
-}
-
-.field__icon {
-  position: absolute;
-  left: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 18px;
-  color: #9ca3af;
-  pointer-events: none;
-}
-
-.field__chevron {
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 20px;
-  color: #9ca3af;
-  pointer-events: none;
-}
-
-.field__select {
-  appearance: none;
-  height: 42px;
-  padding-right: 36px;
-  cursor: pointer;
-}
-
 .field__textarea {
   resize: none;
   line-height: 1.5;

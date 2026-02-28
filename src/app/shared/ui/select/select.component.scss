@@ -1,0 +1,132 @@
+:host {
+  display: block;
+  position: relative;
+}
+
+.sel__input {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  height: 42px;
+  padding: 10px 14px;
+  background: #f5f7f8;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  box-sizing: border-box;
+
+  &:hover {
+    border-color: #d1d5db;
+  }
+
+  &--open {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(37, 140, 244, 0.15);
+  }
+}
+
+.sel__icon {
+  font-size: 18px;
+  color: #9ca3af;
+  flex-shrink: 0;
+}
+
+.sel__value {
+  flex: 1;
+  font-size: 14px;
+  color: #111418;
+  font-family: inherit;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sel__placeholder {
+  flex: 1;
+  font-size: 14px;
+  color: #9ca3af;
+}
+
+.sel__clear {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border: 0;
+  background: transparent;
+  color: #9ca3af;
+  cursor: pointer;
+  padding: 0;
+  border-radius: 4px;
+  flex-shrink: 0;
+
+  &:hover { color: #4b5563; }
+
+  .material-symbols-outlined { font-size: 16px; }
+}
+
+.sel__chevron {
+  font-size: 18px;
+  color: #9ca3af;
+  flex-shrink: 0;
+  transition: transform 0.15s ease;
+
+  .sel__input--open & {
+    transform: rotate(180deg);
+  }
+}
+
+/* ── Dropdown ── */
+.sel__dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 200;
+  width: 100%;
+  min-width: 180px;
+  max-height: 220px;
+  overflow-y: auto;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.12);
+  padding: 6px;
+  animation: selIn 0.15s ease-out;
+}
+
+@keyframes selIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.sel__option {
+  display: block;
+  width: 100%;
+  padding: 9px 12px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #111418;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.12s ease, color 0.12s ease;
+
+  &:hover:not(.sel__option--selected) {
+    background: #f5f7f8;
+  }
+
+  &--selected {
+    background: var(--color-primary);
+    color: #ffffff;
+    font-weight: 700;
+
+    &:hover {
+      background: #1d7ad8;
+    }
+  }
+}

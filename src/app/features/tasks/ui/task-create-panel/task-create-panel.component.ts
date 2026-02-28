@@ -1,6 +1,7 @@
-import { Component, input, output, signal } from '@angular/core';
+import { Component, computed, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DatePickerComponent } from '../../../../shared/ui/date-picker/date-picker.component';
+import { SelectComponent } from '../../../../shared/ui/select/select.component';
 import {
   AssigneeOption,
   TaskCreatePayload,
@@ -10,12 +11,16 @@ import {
 @Component({
   selector: 'app-task-create-panel',
   standalone: true,
-  imports: [FormsModule, DatePickerComponent],
+  imports: [FormsModule, DatePickerComponent, SelectComponent],
   templateUrl: './task-create-panel.component.html',
   styleUrl: './task-create-panel.component.scss',
 })
 export class TaskCreatePanelComponent {
   readonly assignees = input<AssigneeOption[]>([]);
+
+  readonly assigneeOptions = computed(() =>
+    this.assignees().map(a => ({ value: a.id, label: a.name })),
+  );
 
   readonly save = output<TaskCreatePayload>();
   readonly cancel = output<void>();
