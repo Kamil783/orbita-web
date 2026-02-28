@@ -1,6 +1,6 @@
 import {
   Component, ElementRef, HostListener, computed, effect,
-  forwardRef, input, signal, viewChild,
+  forwardRef, inject, input, signal, viewChild,
 } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
@@ -36,6 +36,8 @@ export interface CalendarDay {
 })
 export class DatePickerComponent implements ControlValueAccessor {
   readonly placeholder = input('Выберите дату');
+
+  private readonly elementRef = inject(ElementRef);
 
   readonly isOpen = signal(false);
   readonly viewYear = signal(new Date().getFullYear());
@@ -104,9 +106,8 @@ export class DatePickerComponent implements ControlValueAccessor {
 
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
-    // Close dropdown when clicking outside
-    const el = (event.target as HTMLElement).closest('app-date-picker');
-    if (!el) {
+    // Close dropdown when clicking outside this specific date picker instance
+    if (!this.elementRef.nativeElement.contains(event.target as Node)) {
       this.isOpen.set(false);
     }
   }

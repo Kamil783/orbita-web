@@ -120,6 +120,10 @@
   display: grid;
   place-items: center;
   flex-shrink: 0;
+
+  &--img {
+    object-fit: cover;
+  }
 }
 
 .profile__name {

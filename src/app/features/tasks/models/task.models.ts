@@ -4,7 +4,7 @@ export type TasksTab = 'board' | 'backlog';
 
 export interface TaskAssignee {
   id: string;
-  avatarUrl: string;
+  avatar: string;
   name?: string;
 }
 
@@ -45,7 +45,7 @@ export interface BacklogTask {
 export interface TasksFilterItemVm {
   id: string;
   name: string;
-  avatarUrl?: string;
+  avatar?: string;
   isAll?: boolean;
 }
 
@@ -67,7 +67,7 @@ export interface TaskCreatePayload {
 export interface AssigneeOption {
   id: string;
   name: string;
-  avatarUrl?: string;
+  avatar?: string;
 }
 
 export interface TaskDropEvent {

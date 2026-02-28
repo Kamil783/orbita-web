@@ -1,6 +1,7 @@
 import { Component, computed, inject, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DatePickerComponent } from '../../../../shared/ui/date-picker/date-picker.component';
+import { AvatarPipe } from '../../../../shared/ui/avatar-pipe/avatar.pipe';
 import { TasksService } from '../../data/tasks.service';
 import { AssigneeOption, BacklogTask, TaskPriority, PRIORITY_LABELS } from '../../models/task.models';
 
@@ -9,7 +10,7 @@ type BacklogFilter = 'all' | 'week' | 'available';
 @Component({
   selector: 'app-backlog-view',
   standalone: true,
-  imports: [FormsModule, DatePickerComponent],
+  imports: [FormsModule, DatePickerComponent, AvatarPipe],
   templateUrl: './backlog-view.component.html',
   styleUrl: './backlog-view.component.scss',
 })
@@ -123,7 +124,7 @@ export class BacklogViewComponent {
       dueDate: this.newDueDate || undefined,
       estimateMinutes: estimateMin && !isNaN(estimateMin) ? estimateMin : undefined,
       assignees: assignee
-        ? [{ id: assignee.id, avatarUrl: assignee.avatarUrl ?? '', name: assignee.name }]
+        ? [{ id: assignee.id, avatar: assignee.avatar ?? '', name: assignee.name }]
         : undefined,
     });
     this.resetForm();

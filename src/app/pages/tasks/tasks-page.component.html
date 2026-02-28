@@ -19,7 +19,7 @@
     </div>
 
     @if (activeTab() === 'board') {
-      <app-tasks-filter topbar-left-extra [items]="filterItems" [(selectedId)]="selectedFilterId">
+      <app-tasks-filter topbar-left-extra [items]="filterItems()" [(selectedId)]="selectedFilterId">
       </app-tasks-filter>
     }
   </app-topbar>
@@ -39,14 +39,14 @@
     }
 
     @if (activeTab() === 'backlog') {
-      <app-backlog-view [assigneeOptions]="assigneeOptions" />
+      <app-backlog-view [assigneeOptions]="assigneeOptions()" />
     }
   </main>
 </app-app-shell>
 
 @if (showCreatePanel()) {
   <app-task-create-panel
-    [assignees]="assigneeOptions"
+    [assignees]="assigneeOptions()"
     (save)="onSaveTask($event)"
     (cancel)="onCancelCreate()"
   />

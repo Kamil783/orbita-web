@@ -6,6 +6,7 @@ import { environment } from '../../../../environments/environment';
 export interface UserProfile {
   name: string;
   email: string;
+  avatar?: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -14,11 +15,18 @@ export class UserService {
 
   private readonly _name = signal('');
   private readonly _email = signal('');
+  private readonly _avatar = signal<string | null>(null);
   private readonly _loaded = signal(false);
 
   readonly name = this._name.asReadonly();
   readonly email = this._email.asReadonly();
+  readonly avatar = this._avatar.asReadonly();
   readonly loaded = this._loaded.asReadonly();
+
+  readonly avatarUrl = computed(() => {
+    const bytes = this._avatar();
+    return bytes ? `data:image/png;base64,${bytes}` : null;
+  });
 
   readonly initial = computed(() => {
     const n = this._name();
@@ -32,6 +40,7 @@ export class UserService {
       tap(profile => {
         this._name.set(profile.name);
         this._email.set(profile.email);
+        this._avatar.set(profile.avatar ?? null);
         this._loaded.set(true);
       }),
       catchError(err => {
@@ -60,6 +69,24 @@ export class UserService {
     ).subscribe();
   }
 
+  /**
+   * PUT /api/User/avatar  Body: multipart FormData (file)  → { avatar: string }
+   */
+  uploadAvatar(file: File): void {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    this.http.put<{ avatar: string }>(`${this.apiUrl}/api/User/avatar`, formData).pipe(
+      tap(res => {
+        this._avatar.set(res.avatar);
+      }),
+      catchError(err => {
+        console.error('Failed to upload avatar', err);
+        return of(null);
+      }),
+    ).subscribe();
+  }
+
   /** @deprecated Use updateProfile() instead */
   updateLocal(name: string, email: string): void {
     this.updateProfile(name, email);
@@ -68,6 +95,7 @@ export class UserService {
   clear(): void {
     this._name.set('');
     this._email.set('');
+    this._avatar.set(null);
     this._loaded.set(false);
   }
 }
