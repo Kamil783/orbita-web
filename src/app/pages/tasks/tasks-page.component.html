@@ -31,6 +31,7 @@
         (menuAction)="onMenuAction($event)"
         (taskDrop)="onTaskDrop($event)"
         (headerAction)="onHeaderAction($event)"
+        (newColumn)="onNewColumn()"
       ></app-kanban-board>
 
       <button class="fab" type="button" (click)="onQuickAdd()" aria-label="Добавить задачу">
@@ -73,5 +74,12 @@
 @if (showCompletedDialog()) {
   <app-completed-tasks-dialog
     (close)="onCloseCompletedDialog()"
+  />
+}
+
+@if (showColumnCreateDialog()) {
+  <app-column-create-dialog
+    (save)="onSaveColumn($event)"
+    (cancel)="onCancelColumnCreate()"
   />
 }

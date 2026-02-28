@@ -15,4 +15,5 @@ export class KanbanBoardComponent {
   readonly menuAction = output<TaskMenuAction>();
   readonly taskDrop = output<TaskDropEvent>();
   readonly headerAction = output<ColumnHeaderAction>();
+  readonly newColumn = output<void>();
 }

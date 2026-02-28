@@ -1,0 +1,33 @@
+<div class="overlay" (click)="onBackdropClick()">
+  <div class="dialog" (click)="onDialogClick($event)">
+    <div class="dialog__icon">
+      <span class="material-symbols-outlined">view_column</span>
+    </div>
+
+    <h3 class="dialog__title">Новая колонка</h3>
+    <p class="dialog__message">Введите название для новой колонки на доске</p>
+
+    <input
+      class="dialog__input"
+      type="text"
+      placeholder="Например: В ревью"
+      [ngModel]="columnName()"
+      (ngModelChange)="columnName.set($event)"
+      (keydown.enter)="onSave()"
+    />
+
+    <div class="dialog__actions">
+      <button class="btn btn--secondary" type="button" (click)="onCancel()">
+        Отмена
+      </button>
+      <button
+        class="btn btn--primary"
+        type="button"
+        [disabled]="!columnName().trim()"
+        (click)="onSave()"
+      >
+        Сохранить
+      </button>
+    </div>
+  </div>
+</div>

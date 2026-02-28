@@ -93,26 +93,18 @@
           }
         </div>
         <app-date-picker [(ngModel)]="newDueDate" placeholder="Срок" />
-        <div class="add-form__field-small">
-          <span class="material-symbols-outlined add-form__field-icon">person</span>
-          <select class="add-form__select" [(ngModel)]="newAssigneeId">
-            <option value="">Исполнитель</option>
-            @for (a of assigneeOptions(); track a.id) {
-              <option [value]="a.id">{{ a.name }}</option>
-            }
-          </select>
-        </div>
-        <div class="add-form__field-small">
-          <span class="material-symbols-outlined add-form__field-icon">timer</span>
-          <input
-            class="add-form__estimate"
-            type="number"
-            placeholder="мин"
-            min="0"
-            step="15"
-            [(ngModel)]="newEstimate"
-          />
-        </div>
+        <app-select
+          [(ngModel)]="newAssigneeId"
+          [options]="assigneeSelectOptions()"
+          placeholder="Исполнитель"
+          icon="person"
+        />
+        <app-select
+          [(ngModel)]="newEstimate"
+          [options]="estimateOptions"
+          placeholder="Время"
+          icon="timer"
+        />
       </div>
       <div class="add-form__row add-form__row--actions">
         <button class="add-form__save" type="button" (click)="onSaveNewTask()">Добавить</button>
