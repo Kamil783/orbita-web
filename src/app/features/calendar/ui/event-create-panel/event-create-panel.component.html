@@ -76,26 +76,21 @@
       <div class="field-row">
         <div class="field">
           <label class="field__label">Начало</label>
-          <div class="field__icon-wrap">
-            <span class="material-symbols-outlined field__icon">schedule</span>
-            <input
-              class="field__input field__input--icon"
-              type="time"
-              [(ngModel)]="startTime"
-            />
-          </div>
+          <app-select
+            [(ngModel)]="startTime"
+            [options]="timeOptions"
+            placeholder="Время"
+            icon="schedule"
+          />
         </div>
-
         <div class="field">
           <label class="field__label">Конец</label>
-          <div class="field__icon-wrap">
-            <span class="material-symbols-outlined field__icon">schedule</span>
-            <input
-              class="field__input field__input--icon"
-              type="time"
-              [(ngModel)]="endTime"
-            />
-          </div>
+          <app-select
+            [(ngModel)]="endTime"
+            [options]="timeOptions"
+            placeholder="Время"
+            icon="schedule"
+          />
         </div>
       </div>
 
