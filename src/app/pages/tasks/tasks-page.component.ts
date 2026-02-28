@@ -10,8 +10,8 @@ import { BacklogViewComponent } from '../../features/tasks/ui/backlog-view/backl
 import { BacklogPickerDialogComponent } from '../../features/tasks/ui/backlog-picker-dialog/backlog-picker-dialog.component';
 import { CompletedTasksDialogComponent } from '../../features/tasks/ui/completed-tasks-dialog/completed-tasks-dialog.component';
 import {
-  AssigneeOption, ColumnHeaderAction, TaskCreatePayload,
-  TaskDropEvent, TasksFilterItemVm, TasksTab, TaskMenuAction, TaskStatus,
+  ColumnHeaderAction, TaskCreatePayload,
+  TaskDropEvent, TasksTab, TaskMenuAction, TaskStatus,
 } from '../../features/tasks/models/task.models';
 
 @Component({
@@ -31,24 +31,14 @@ export class TasksPageComponent implements OnInit {
   readonly title = 'Задачи';
   readonly activeTab = signal<TasksTab>('board');
 
+  readonly filterItems = this.tasksService.filterItems;
+  readonly assigneeOptions = this.tasksService.members;
+
   ngOnInit(): void {
     this.tasksService.loadWeeklyBoard();
     this.tasksService.loadBacklog();
+    this.tasksService.loadMembers();
   }
-
-  readonly filterItems: TasksFilterItemVm[] = [
-    { id: 'all', name: 'Все', isAll: true },
-    {
-      id: 'alex',
-      name: 'Alex Rivera',
-      avatarUrl: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Crect width='40' height='40' rx='20' fill='%234f86c6'/%3E%3Ctext x='50%25' y='54%25' dominant-baseline='middle' text-anchor='middle' fill='white' font-size='18' font-family='sans-serif'%3EА%3C/text%3E%3C/svg%3E`,
-    },
-    {
-      id: 'sarah',
-      name: 'Sarah Chen',
-      avatarUrl: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Crect width='40' height='40' rx='20' fill='%23e67e50'/%3E%3Ctext x='50%25' y='54%25' dominant-baseline='middle' text-anchor='middle' fill='white' font-size='18' font-family='sans-serif'%3EС%3C/text%3E%3C/svg%3E`,
-    },
-  ];
 
   readonly selectedFilterId = signal('all');
 
@@ -74,11 +64,6 @@ export class TasksPageComponent implements OnInit {
   readonly deleteTaskId = signal<string | null>(null);
   readonly pickerTargetStatus = signal<TaskStatus | null>(null);
   readonly showCompletedDialog = signal(false);
-
-  readonly assigneeOptions: AssigneeOption[] = [
-    { id: 'alex', name: 'Alex Rivera' },
-    { id: 'sarah', name: 'Sarah Chen' },
-  ];
 
   setTab(tab: TasksTab): void {
     this.activeTab.set(tab);

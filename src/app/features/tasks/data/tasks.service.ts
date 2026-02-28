@@ -1,7 +1,10 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
-import { BacklogTask, KanbanColumnVm, TaskCardVm, TaskStatus } from '../models/task.models';
+import {
+  AssigneeOption, BacklogTask, KanbanColumnVm, TaskCardVm,
+  TasksFilterItemVm, TaskStatus,
+} from '../models/task.models';
 
 /**
  * API endpoints:
@@ -16,12 +19,21 @@ import { BacklogTask, KanbanColumnVm, TaskCardVm, TaskStatus } from '../models/t
  * POST   /api/Backlog/:id/to-week  → { kanbanCard }          Add backlog task to weekly board. Body: { targetStatus }
  * POST   /api/Backlog/:id/from-week→ void                    Remove backlog task from weekly board
  * PATCH  /api/Backlog/:id/done     → void                    Body: { done: boolean }
+ *
+ * GET    /api/Team/members         → AssigneeOption[]        Load team members (id, name, avatarUrl?)
  */
 
 @Injectable({ providedIn: 'root' })
 export class TasksService {
   private readonly apiUrl = environment.apiUrl;
   private readonly http = inject(HttpClient);
+
+  readonly members = signal<AssigneeOption[]>([]);
+
+  readonly filterItems = computed<TasksFilterItemVm[]>(() => [
+    { id: 'all', name: 'Все', isAll: true },
+    ...this.members().map(m => ({ id: m.id, name: m.name, avatarUrl: m.avatarUrl })),
+  ]);
 
   readonly columns = signal<KanbanColumnVm[]>([
     { id: 'todo', title: 'К выполнению', totalCount: 0, headerActionIcon: 'add_circle', cards: [] },
@@ -51,6 +63,12 @@ export class TasksService {
   loadBacklog(): void {
     this.http.get<BacklogTask[]>(`${this.apiUrl}/api/Backlog`).subscribe(tasks => {
       this.backlog.set(tasks);
+    });
+  }
+
+  loadMembers(): void {
+    this.http.get<AssigneeOption[]>(`${this.apiUrl}/api/Team/members`).subscribe(members => {
+      this.members.set(members);
     });
   }
 
