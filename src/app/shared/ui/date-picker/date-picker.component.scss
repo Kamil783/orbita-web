@@ -89,6 +89,11 @@
   box-shadow: 0 12px 36px rgba(0, 0, 0, 0.12);
   padding: 12px;
   animation: dpIn 0.15s ease-out;
+
+  &--right {
+    left: auto;
+    right: 0;
+  }
 }
 
 @keyframes dpIn {

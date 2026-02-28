@@ -36,6 +36,9 @@ export interface CalendarDay {
 })
 export class DatePickerComponent implements ControlValueAccessor {
   readonly placeholder = input('Выберите дату');
+  readonly dropdownAlign = input<'left' | 'right'>('left');
+
+  private static openInstance: DatePickerComponent | null = null;
 
   private readonly elementRef = inject(ElementRef);
 
@@ -108,12 +111,23 @@ export class DatePickerComponent implements ControlValueAccessor {
   onDocumentClick(event: MouseEvent): void {
     // Close dropdown when clicking outside this specific date picker instance
     if (!this.elementRef.nativeElement.contains(event.target as Node)) {
-      this.isOpen.set(false);
+      if (this.isOpen()) {
+        this.isOpen.set(false);
+        if (DatePickerComponent.openInstance === this) {
+          DatePickerComponent.openInstance = null;
+        }
+      }
     }
   }
 
   toggle(): void {
+    // Close any other open date picker before toggling
+    if (DatePickerComponent.openInstance && DatePickerComponent.openInstance !== this) {
+      DatePickerComponent.openInstance.isOpen.set(false);
+    }
+
     this.isOpen.update(v => !v);
+    DatePickerComponent.openInstance = this.isOpen() ? this : null;
     this.onTouched();
 
     // If opening and we have a selected date, navigate to its month
@@ -149,6 +163,7 @@ export class DatePickerComponent implements ControlValueAccessor {
     this.selectedDate.set(day.iso);
     this.onChange(day.iso);
     this.isOpen.set(false);
+    DatePickerComponent.openInstance = null;
   }
 
   clear(event: MouseEvent): void {
