@@ -31,7 +31,11 @@
     <div class="divider"></div>
 
     <a class="profile" routerLink="/profile" aria-label="Профиль">
-      <span class="profile__avatar" aria-hidden="true">{{ userService.initial() }}</span>
+      @if (userService.avatarUrl()) {
+        <img class="profile__avatar profile__avatar--img" [src]="userService.avatarUrl()" alt="Аватар" />
+      } @else {
+        <span class="profile__avatar" aria-hidden="true">{{ userService.initial() }}</span>
+      }
       <span class="profile__name">{{ userService.name() }}</span>
     </a>
   </div>

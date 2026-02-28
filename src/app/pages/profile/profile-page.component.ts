@@ -20,7 +20,6 @@ export class ProfilePageComponent {
   private readonly authService = inject(AuthService);
   protected readonly calendarService = inject(CalendarService);
 
-  readonly avatarUrl = signal<string | null>(null);
   readonly pushNotifications = signal(true);
 
   // Edit profile dialog
@@ -65,12 +64,7 @@ export class ProfilePageComponent {
     const file = input.files?.[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      this.avatarUrl.set(reader.result as string);
-    };
-    reader.readAsDataURL(file);
-
+    this.userService.uploadAvatar(file);
     input.value = '';
   }
 
