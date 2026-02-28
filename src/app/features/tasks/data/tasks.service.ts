@@ -20,7 +20,7 @@ import {
  * POST   /api/Backlog/:id/from-week→ void                    Remove backlog task from weekly board
  * PATCH  /api/Backlog/:id/done     → void                    Body: { done: boolean }
  *
- * GET    /api/Team/members         → AssigneeOption[]        Load team members (id, name, avatarUrl?)
+ * GET    /api/Team/members         → AssigneeOption[]        Load team members (id, name, avatar?)
  */
 
 @Injectable({ providedIn: 'root' })
@@ -32,7 +32,7 @@ export class TasksService {
 
   readonly filterItems = computed<TasksFilterItemVm[]>(() => [
     { id: 'all', name: 'Все', isAll: true },
-    ...this.members().map(m => ({ id: m.id, name: m.name, avatarUrl: m.avatarUrl })),
+    ...this.members().map(m => ({ id: m.id, name: m.name, avatar: m.avatar })),
   ]);
 
   readonly columns = signal<KanbanColumnVm[]>([

@@ -48,8 +48,8 @@
           type="button"
           (click)="setAssigneeFilter(a.id)"
         >
-          @if (a.avatarUrl) {
-            <img class="filter-chip__avatar" [src]="a.avatarUrl" [alt]="a.name" />
+          @if (a.avatar) {
+            <img class="filter-chip__avatar" [src]="a.avatar | avatar" [alt]="a.name" />
           }
           {{ a.name }}
         </button>
@@ -145,7 +145,7 @@
           @if (task.assignees?.length) {
             <div class="task-row__avatars">
               @for (a of task.assignees; track a.id) {
-                <img class="task-row__avatar" [src]="a.avatarUrl" [alt]="a.name ?? ''" />
+                <img class="task-row__avatar" [src]="a.avatar | avatar" [alt]="a.name ?? ''" />
               }
             </div>
           }

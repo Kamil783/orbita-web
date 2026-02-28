@@ -1,5 +1,6 @@
 import { Component, ElementRef, HostListener, input, output, signal } from '@angular/core';
 import { NgClass } from '@angular/common';
+import { AvatarPipe } from '../../../../shared/ui/avatar-pipe/avatar.pipe';
 import {
   TaskCardVm,
   TaskMenuAction,
@@ -10,7 +11,7 @@ import {
 @Component({
   selector: 'app-task-card',
   standalone: true,
-  imports: [NgClass],
+  imports: [NgClass, AvatarPipe],
   templateUrl: './task-card.component.html',
   styleUrl: './task-card.component.scss',
 })
