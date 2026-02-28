@@ -1,6 +1,7 @@
 import { Component, computed, inject, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DatePickerComponent } from '../../../../shared/ui/date-picker/date-picker.component';
+import { SelectComponent, SelectOption } from '../../../../shared/ui/select/select.component';
 import { AvatarPipe } from '../../../../shared/ui/avatar-pipe/avatar.pipe';
 import { TasksService } from '../../data/tasks.service';
 import { AssigneeOption, BacklogTask, TaskPriority, PRIORITY_LABELS } from '../../models/task.models';
@@ -10,7 +11,7 @@ type BacklogFilter = 'all' | 'week' | 'available';
 @Component({
   selector: 'app-backlog-view',
   standalone: true,
-  imports: [FormsModule, DatePickerComponent, AvatarPipe],
+  imports: [FormsModule, DatePickerComponent, SelectComponent, AvatarPipe],
   templateUrl: './backlog-view.component.html',
   styleUrl: './backlog-view.component.scss',
 })
@@ -33,6 +34,21 @@ export class BacklogViewComponent {
   newEstimate = '';
 
   readonly priorityLabels = PRIORITY_LABELS;
+
+  readonly assigneeSelectOptions = computed<SelectOption[]>(() =>
+    this.assigneeOptions().map(a => ({ value: a.id, label: a.name })),
+  );
+
+  readonly estimateOptions: SelectOption[] = [
+    { value: '15', label: '15 мин' },
+    { value: '30', label: '30 мин' },
+    { value: '45', label: '45 мин' },
+    { value: '60', label: '1 час' },
+    { value: '90', label: '1.5 часа' },
+    { value: '120', label: '2 часа' },
+    { value: '180', label: '3 часа' },
+    { value: '240', label: '4 часа' },
+  ];
 
   readonly filters: { value: BacklogFilter; label: string }[] = [
     { value: 'all', label: 'Все' },
