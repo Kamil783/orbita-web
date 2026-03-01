@@ -26,6 +26,9 @@
     <div class="top-grid">
       <!-- Left: stat cards -->
       <div class="top-grid__stats">
+        <div class="section-header">
+          <h3 class="section-header__title">Сводка</h3>
+        </div>
         <div class="stat-card">
           <p class="stat-card__label">Общий баланс</p>
           <p class="stat-card__value">{{ formatRub(balance()) }}</p>
@@ -95,6 +98,8 @@
       </div>
     </div>
 
+    <hr class="divider" />
+
     <!-- ═══ Middle zone: period toggle + categories + chart ═══ -->
     <div class="middle-zone">
       <div class="middle-zone__header">
@@ -157,6 +162,7 @@
 
     <!-- ═══ Bottom zone: savings goals ═══ -->
     @if (savingsGoals().length > 0) {
+      <hr class="divider" />
       <div class="goals-section">
         <div class="section-header">
           <h3 class="section-header__title">Цели накоплений</h3>

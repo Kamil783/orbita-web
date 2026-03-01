@@ -67,14 +67,20 @@ $finance-accent-border: rgba(250, 204, 21, 0.30);
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 32px;
-  margin-bottom: 40px;
   align-items: start;
 }
 
 .top-grid__stats {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 16px;
+}
+
+// ─── Section divider ───
+.divider {
+  border: 0;
+  border-top: 1px solid #e5e7eb;
+  margin: 28px 0;
 }
 
 .stat-card {
@@ -227,9 +233,7 @@ $finance-accent-border: rgba(250, 204, 21, 0.30);
 // ─── Middle zone: Analytics ───
 // ═══════════════════════════════════════
 
-.middle-zone {
-  margin-bottom: 40px;
-}
+.middle-zone {}
 
 .middle-zone__header {
   display: flex;
