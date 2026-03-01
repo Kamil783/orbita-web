@@ -2,82 +2,27 @@ import {
   Component,
   AfterViewInit,
   OnDestroy,
+  OnInit,
   ViewChild,
   ElementRef,
   signal,
   computed,
+  inject,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { AppShellComponent } from '../../shared/ui/app-shell/app-shell.component';
 import { TopbarComponent } from '../../shared/ui/topbar/topbar.component';
 import { Chart, registerables } from 'chart.js';
+import { FinanceService } from '../../features/finance/data/finance.service';
+import {
+  Category,
+  SavingsGoal,
+  Transaction,
+  ICON_OPTIONS,
+  COLOR_OPTIONS,
+} from '../../features/finance/models/finance.models';
 
 Chart.register(...registerables);
-
-// ─── Models ───
-
-export interface Category {
-  id: string;
-  name: string;
-  icon: string;
-  bg: string;
-  color: string;
-  weeklyLimit?: number;  // kopecks, 0 or undefined = not set
-  monthlyLimit?: number; // kopecks, 0 or undefined = not set
-}
-
-export interface Transaction {
-  id: string;
-  categoryId: string;
-  title: string;
-  date: string;
-  amount: number;
-  timestamp: number; // ms since epoch
-}
-
-export interface SavingsGoal {
-  id: string;
-  name: string;
-  target: number;
-  current: number;
-}
-
-// ─── Predefined icon palette for category picker ───
-
-export const ICON_OPTIONS: { icon: string; label: string }[] = [
-  { icon: 'restaurant', label: 'Еда' },
-  { icon: 'shopping_bag', label: 'Покупки' },
-  { icon: 'directions_car', label: 'Транспорт' },
-  { icon: 'home', label: 'Жильё' },
-  { icon: 'local_hospital', label: 'Здоровье' },
-  { icon: 'school', label: 'Образование' },
-  { icon: 'sports_esports', label: 'Развлечения' },
-  { icon: 'checkroom', label: 'Одежда' },
-  { icon: 'pets', label: 'Питомцы' },
-  { icon: 'flight', label: 'Путешествия' },
-  { icon: 'payments', label: 'Зарплата' },
-  { icon: 'savings', label: 'Накопления' },
-  { icon: 'subscriptions', label: 'Подписки' },
-  { icon: 'fitness_center', label: 'Спорт' },
-  { icon: 'coffee', label: 'Кофе' },
-  { icon: 'redeem', label: 'Подарки' },
-];
-
-const COLOR_OPTIONS: { bg: string; color: string }[] = [
-  { bg: '#fff7ed', color: '#ea580c' },
-  { bg: '#eff6ff', color: '#2563eb' },
-  { bg: '#f0fdf4', color: '#16a34a' },
-  { bg: '#faf5ff', color: '#9333ea' },
-  { bg: '#fefce8', color: '#a16207' },
-  { bg: '#fef2f2', color: '#dc2626' },
-  { bg: '#f0f9ff', color: '#0891b2' },
-  { bg: '#fdf2f8', color: '#db2777' },
-];
-
-let nextId = 1;
-function uid(): string {
-  return 'fin_' + nextId++;
-}
 
 @Component({
   selector: 'app-finance-page',
@@ -86,7 +31,9 @@ function uid(): string {
   templateUrl: './finance-page.component.html',
   styleUrl: './finance-page.component.scss',
 })
-export class FinancePageComponent implements AfterViewInit, OnDestroy {
+export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
+  private readonly financeService = inject(FinanceService);
+
   readonly title = 'Финансы';
   readonly iconOptions = ICON_OPTIONS;
   readonly colorOptions = COLOR_OPTIONS;
@@ -96,33 +43,17 @@ export class FinancePageComponent implements AfterViewInit, OnDestroy {
 
   readonly activeChartTab = signal<'weekly' | 'monthly'>('weekly');
 
-  // ─── State ───
+  // ─── State (delegated to service) ───
 
-  readonly balance = signal(1245000); // in kopecks
-  readonly categories = signal<Category[]>([
-    { id: 'cat_food', name: 'Еда', icon: 'restaurant', bg: '#fff7ed', color: '#ea580c' },
-    { id: 'cat_transport', name: 'Транспорт', icon: 'directions_car', bg: '#eff6ff', color: '#2563eb' },
-    { id: 'cat_income', name: 'Доход', icon: 'payments', bg: '#f0fdf4', color: '#16a34a' },
-    { id: 'cat_shopping', name: 'Покупки', icon: 'shopping_bag', bg: '#faf5ff', color: '#9333ea' },
-    { id: 'cat_housing', name: 'Жильё', icon: 'home', bg: '#fefce8', color: '#a16207' },
-  ]);
+  readonly balance = this.financeService.balance;
+  readonly categories = this.financeService.categories;
+  readonly transactions = this.financeService.transactions;
+  readonly savingsGoals = this.financeService.savingsGoals;
 
-  readonly transactions = signal<Transaction[]>([
-    { id: uid(), categoryId: 'cat_food', title: 'Кофейня Starbucks', date: 'Сегодня \u2022 9:45', amount: -540, timestamp: Date.now() },
-    { id: uid(), categoryId: 'cat_transport', title: 'Поездка Uber', date: 'Вчера \u2022 18:12', amount: -2410, timestamp: Date.now() - 86400000 },
-    { id: uid(), categoryId: 'cat_income', title: 'Оплата от клиента', date: '24 янв \u2022 11:30', amount: 120000, timestamp: Date.now() - 5 * 86400000 },
-    { id: uid(), categoryId: 'cat_shopping', title: 'Apple Store', date: '22 янв \u2022 14:20', amount: -15900, timestamp: Date.now() - 7 * 86400000 },
-    { id: uid(), categoryId: 'cat_housing', title: 'Аренда квартиры', date: '18 янв \u2022 10:00', amount: -185000, timestamp: Date.now() - 11 * 86400000 },
-  ]);
+  // ─── Limits (delegated to service) ───
 
-  readonly savingsGoals = signal<SavingsGoal[]>([
-    { id: uid(), name: 'Фонд отпуска', target: 500000, current: 325000 },
-  ]);
-
-  // ─── Limits ───
-
-  readonly monthlyLimit = signal(0); // overall monthly limit (kopecks, 0 = not set)
-  readonly weeklyLimit = signal(0);  // overall weekly limit (kopecks, 0 = not set)
+  readonly monthlyLimit = computed(() => this.financeService.limits().monthlyLimit);
+  readonly weeklyLimit = computed(() => this.financeService.limits().weeklyLimit);
 
   // ─── View state ───
 
@@ -354,6 +285,15 @@ export class FinancePageComponent implements AfterViewInit, OnDestroy {
 
   // ─── Lifecycle ───
 
+  ngOnInit(): void {
+    this.financeService.loadBalance();
+    this.financeService.loadCategories();
+    this.financeService.loadTransactions();
+    this.financeService.loadSavingsGoals();
+    this.financeService.loadLimits();
+    this.financeService.loadChartData(this.activeChartTab());
+  }
+
   ngAfterViewInit(): void {
     this.createChart();
   }
@@ -372,6 +312,7 @@ export class FinancePageComponent implements AfterViewInit, OnDestroy {
 
   setChartTab(tab: 'weekly' | 'monthly'): void {
     this.activeChartTab.set(tab);
+    this.financeService.loadChartData(tab);
     this.chart?.destroy();
     this.createChart();
   }
@@ -405,7 +346,7 @@ export class FinancePageComponent implements AfterViewInit, OnDestroy {
   saveBalance(): void {
     const val = parseFloat(this.balanceAmount.replace(',', '.'));
     if (isNaN(val) || val === 0) return;
-    this.balance.update((b) => b + Math.round(val * 100));
+    this.financeService.adjustBalance(Math.round(val * 100));
     this.showBalanceDialog.set(false);
   }
 
@@ -426,16 +367,14 @@ export class FinancePageComponent implements AfterViewInit, OnDestroy {
     const c = this.colorOptions[this.categorySelectedColorIdx];
     const wl = parseFloat(this.categoryWeeklyLimit.replace(',', '.'));
     const ml = parseFloat(this.categoryMonthlyLimit.replace(',', '.'));
-    const cat: Category = {
-      id: uid(),
+    this.financeService.createCategory({
       name,
       icon: this.categorySelectedIcon,
       bg: c.bg,
       color: c.color,
       weeklyLimit: !isNaN(wl) && wl > 0 ? Math.round(wl * 100) : undefined,
       monthlyLimit: !isNaN(ml) && ml > 0 ? Math.round(ml * 100) : undefined,
-    };
-    this.categories.update((list) => [...list, cat]);
+    });
     this.showCategoryDialog.set(false);
   }
 
@@ -451,13 +390,10 @@ export class FinancePageComponent implements AfterViewInit, OnDestroy {
     const name = this.goalName.trim();
     const target = parseFloat(this.goalTarget.replace(',', '.'));
     if (!name || isNaN(target) || target <= 0) return;
-    const goal: SavingsGoal = {
-      id: uid(),
+    this.financeService.createSavingsGoal({
       name,
       target: Math.round(target * 100),
-      current: 0,
-    };
-    this.savingsGoals.update((list) => [...list, goal]);
+    });
     this.showGoalDialog.set(false);
   }
 
@@ -479,14 +415,11 @@ export class FinancePageComponent implements AfterViewInit, OnDestroy {
     const kopecks = Math.round(val * 100);
     const amount = this.txType === 'expense' ? -kopecks : kopecks;
 
-    const now = new Date();
-    const hours = now.getHours().toString().padStart(2, '0');
-    const mins = now.getMinutes().toString().padStart(2, '0');
-    const dateStr = `Сегодня \u2022 ${hours}:${mins}`;
-
-    const tx: Transaction = { id: uid(), categoryId: this.txCategoryId, title, date: dateStr, amount, timestamp: Date.now() };
-    this.transactions.update((list) => [tx, ...list]);
-    this.balance.update((b) => b + amount);
+    this.financeService.createTransaction({
+      categoryId: this.txCategoryId,
+      title,
+      amount,
+    });
     this.showTransactionDialog.set(false);
   }
 
@@ -503,8 +436,10 @@ export class FinancePageComponent implements AfterViewInit, OnDestroy {
   saveLimits(): void {
     const ml = parseFloat(this.limitMonthly.replace(',', '.'));
     const wl = parseFloat(this.limitWeekly.replace(',', '.'));
-    this.monthlyLimit.set(!isNaN(ml) && ml > 0 ? Math.round(ml * 100) : 0);
-    this.weeklyLimit.set(!isNaN(wl) && wl > 0 ? Math.round(wl * 100) : 0);
+    this.financeService.updateLimits({
+      monthlyLimit: !isNaN(ml) && ml > 0 ? Math.round(ml * 100) : 0,
+      weeklyLimit: !isNaN(wl) && wl > 0 ? Math.round(wl * 100) : 0,
+    });
     this.showLimitDialog.set(false);
     this.chart?.destroy();
     this.createChart();
@@ -576,12 +511,10 @@ export class FinancePageComponent implements AfterViewInit, OnDestroy {
     if (!canvas) return;
 
     const isWeekly = this.activeChartTab() === 'weekly';
+    const chartData = this.financeService.chartData();
 
-    const labels = isWeekly
-      ? ['Неделя 1', 'Неделя 2', 'Неделя 3', 'Неделя 4']
-      : ['Сен', 'Окт', 'Ноя', 'Дек', 'Янв', 'Фев'];
-
-    const data = isWeekly ? [480, 620, 350, 655] : [1800, 2200, 1950, 2400, 2100, 2105];
+    const labels = chartData.map(p => p.label);
+    const data = chartData.map(p => p.value);
 
     const datasets: any[] = [
       {
