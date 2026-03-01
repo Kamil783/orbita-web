@@ -16,6 +16,7 @@
       type="button"
       (click)="toggleTheme()"
       [attr.aria-label]="themeService.isDarkTheme ? 'Светлая тема' : 'Темная тема'"
+      disabled
     >
       <span class="material-symbols-outlined">{{ themeService.isDarkTheme ? 'light_mode' : 'dark_mode' }}</span>
     </button>
