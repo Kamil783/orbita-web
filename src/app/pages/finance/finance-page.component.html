@@ -2,11 +2,31 @@
   <app-topbar [title]="title" placeholder="Поиск транзакций..."></app-topbar>
 
   <main class="page">
+    <!-- Action buttons bar -->
+    <div class="actions-bar">
+      <button class="action-btn" type="button" (click)="openBalanceDialog()">
+        <span class="material-symbols-outlined action-btn__icon">account_balance_wallet</span>
+        <span>Внести на баланс</span>
+      </button>
+      <button class="action-btn" type="button" (click)="openCategoryDialog()">
+        <span class="material-symbols-outlined action-btn__icon">category</span>
+        <span>Добавить категорию</span>
+      </button>
+      <button class="action-btn" type="button" (click)="openGoalDialog()">
+        <span class="material-symbols-outlined action-btn__icon">flag</span>
+        <span>Новая цель</span>
+      </button>
+      <button class="action-btn action-btn--primary" type="button" (click)="openTransactionDialog()">
+        <span class="material-symbols-outlined action-btn__icon">add</span>
+        <span>Внести операцию</span>
+      </button>
+    </div>
+
     <!-- Stats Section -->
     <div class="stats">
       <div class="stat-card">
         <p class="stat-card__label">Общий баланс</p>
-        <p class="stat-card__value">12 450,00 &#8381;</p>
+        <p class="stat-card__value">{{ formatRub(balance()) }}</p>
         <div class="stat-card__trend stat-card__trend--up">
           <span class="material-symbols-outlined">trending_up</span>
           <span>+2,4% за месяц</span>
@@ -15,24 +35,48 @@
 
       <div class="stat-card stat-card--accent">
         <p class="stat-card__label">Расходы за месяц</p>
-        <p class="stat-card__value">2 105,40 &#8381;</p>
+        <p class="stat-card__value">{{ formatRub(monthlySpend()) }}</p>
         <div class="stat-card__trend stat-card__trend--down">
           <span class="material-symbols-outlined">trending_down</span>
           <span>-5,1% от лимита</span>
         </div>
       </div>
 
-      <div class="stat-card">
-        <p class="stat-card__label">Цель накоплений</p>
-        <p class="stat-card__value">5 000,00 &#8381;</p>
-        <div class="stat-card__progress">
-          <div class="stat-card__progress-bar">
-            <div class="stat-card__progress-fill" style="width: 65%"></div>
+      @for (goal of savingsGoals(); track goal.id) {
+        <div class="stat-card">
+          <p class="stat-card__label">Цель накоплений</p>
+          <p class="stat-card__value">{{ formatRub(goal.target) }}</p>
+          <div class="stat-card__progress">
+            <div class="stat-card__progress-bar">
+              <div class="stat-card__progress-fill" [style.width.%]="goalPercent(goal)"></div>
+            </div>
+            <span class="stat-card__progress-text">{{ goalPercent(goal) }}% — {{ goal.name }}</span>
           </div>
-          <span class="stat-card__progress-text">65% — Фонд отпуска</span>
+        </div>
+      }
+    </div>
+
+    <!-- Category spending breakdown -->
+    @if (categorySpending().length > 0) {
+      <div class="categories-section">
+        <div class="section-header">
+          <h3 class="section-header__title">Расходы по категориям</h3>
+        </div>
+        <div class="category-chips">
+          @for (cs of categorySpending(); track cs.id) {
+            <div class="category-chip">
+              <div class="category-chip__icon" [style.background]="cs.bg" [style.color]="cs.color">
+                <span class="material-symbols-outlined">{{ cs.icon }}</span>
+              </div>
+              <div class="category-chip__info">
+                <span class="category-chip__name">{{ cs.name }}</span>
+                <span class="category-chip__total">{{ formatRub(cs.total) }}</span>
+              </div>
+            </div>
+          }
         </div>
       </div>
-    </div>
+    }
 
     <!-- Two-column Layout -->
     <div class="content-grid">
@@ -61,7 +105,7 @@
         <div class="chart-card">
           <div class="chart-card__header">
             <div>
-              <p class="chart-card__amount">2 105,40 &#8381;</p>
+              <p class="chart-card__amount">{{ formatRub(monthlySpend()) }}</p>
               <p class="chart-card__period">Последние 30 дней</p>
             </div>
             <span class="chart-card__badge">В РАМКАХ ПЛАНА</span>
@@ -80,7 +124,7 @@
         </div>
 
         <div class="transactions-card">
-          @for (tx of transactions; track tx.title) {
+          @for (tx of transactionsWithCategory(); track tx.id) {
             <div class="transaction">
               <div
                 class="transaction__icon"
@@ -109,3 +153,247 @@
     </div>
   </main>
 </app-app-shell>
+
+<!-- ═══ Dialog: Внести на баланс ═══ -->
+@if (showBalanceDialog()) {
+  <div class="overlay" (click)="onBackdropClick('balance')">
+    <div class="dialog" (click)="stopPropagation($event)">
+      <div class="dialog__icon-circle dialog__icon-circle--accent">
+        <span class="material-symbols-outlined">account_balance_wallet</span>
+      </div>
+      <h3 class="dialog__title">Внести на баланс</h3>
+      <p class="dialog__desc">Укажите сумму пополнения (в рублях)</p>
+
+      <div class="dialog__fields">
+        <div class="field">
+          <label class="field__label" for="balanceAmt">Сумма</label>
+          <input
+            id="balanceAmt"
+            class="field__input"
+            type="text"
+            inputmode="decimal"
+            [(ngModel)]="balanceAmount"
+            placeholder="0,00"
+          />
+        </div>
+      </div>
+
+      <div class="dialog__actions">
+        <button class="dialog__btn dialog__btn--secondary" type="button" (click)="showBalanceDialog.set(false)">
+          Отмена
+        </button>
+        <button class="dialog__btn dialog__btn--primary" type="button" (click)="saveBalance()">
+          Внести
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ═══ Dialog: Добавить категорию ═══ -->
+@if (showCategoryDialog()) {
+  <div class="overlay" (click)="onBackdropClick('category')">
+    <div class="dialog dialog--wide" (click)="stopPropagation($event)">
+      <div class="dialog__icon-circle dialog__icon-circle--blue">
+        <span class="material-symbols-outlined">category</span>
+      </div>
+      <h3 class="dialog__title">Новая категория</h3>
+      <p class="dialog__desc">Создайте категорию для отслеживания расходов</p>
+
+      <div class="dialog__fields">
+        <div class="field">
+          <label class="field__label" for="catName">Название</label>
+          <input
+            id="catName"
+            class="field__input"
+            type="text"
+            [(ngModel)]="categoryName"
+            placeholder="Например: Рестораны"
+          />
+        </div>
+
+        <div class="field">
+          <label class="field__label">Иконка</label>
+          <div class="icon-grid">
+            @for (opt of iconOptions; track opt.icon) {
+              <button
+                class="icon-grid__item"
+                [class.icon-grid__item--active]="categorySelectedIcon === opt.icon"
+                type="button"
+                (click)="categorySelectedIcon = opt.icon"
+                [title]="opt.label"
+              >
+                <span class="material-symbols-outlined">{{ opt.icon }}</span>
+              </button>
+            }
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="field__label">Цвет</label>
+          <div class="color-grid">
+            @for (c of colorOptions; track c.color; let idx = $index) {
+              <button
+                class="color-grid__item"
+                [class.color-grid__item--active]="categorySelectedColorIdx === idx"
+                [style.background]="c.bg"
+                [style.border-color]="c.color"
+                type="button"
+                (click)="categorySelectedColorIdx = idx"
+              >
+                <span class="color-grid__dot" [style.background]="c.color"></span>
+              </button>
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="dialog__actions">
+        <button class="dialog__btn dialog__btn--secondary" type="button" (click)="showCategoryDialog.set(false)">
+          Отмена
+        </button>
+        <button class="dialog__btn dialog__btn--primary" type="button" (click)="saveCategory()">
+          Создать
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ═══ Dialog: Новая цель накопления ═══ -->
+@if (showGoalDialog()) {
+  <div class="overlay" (click)="onBackdropClick('goal')">
+    <div class="dialog" (click)="stopPropagation($event)">
+      <div class="dialog__icon-circle dialog__icon-circle--green">
+        <span class="material-symbols-outlined">flag</span>
+      </div>
+      <h3 class="dialog__title">Новая цель</h3>
+      <p class="dialog__desc">Установите цель накоплений</p>
+
+      <div class="dialog__fields">
+        <div class="field">
+          <label class="field__label" for="goalName">Название</label>
+          <input
+            id="goalName"
+            class="field__input"
+            type="text"
+            [(ngModel)]="goalName"
+            placeholder="Например: Новый ноутбук"
+          />
+        </div>
+        <div class="field">
+          <label class="field__label" for="goalTarget">Целевая сумма (&#8381;)</label>
+          <input
+            id="goalTarget"
+            class="field__input"
+            type="text"
+            inputmode="decimal"
+            [(ngModel)]="goalTarget"
+            placeholder="0,00"
+          />
+        </div>
+      </div>
+
+      <div class="dialog__actions">
+        <button class="dialog__btn dialog__btn--secondary" type="button" (click)="showGoalDialog.set(false)">
+          Отмена
+        </button>
+        <button class="dialog__btn dialog__btn--primary" type="button" (click)="saveGoal()">
+          Создать
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ═══ Dialog: Внести операцию ═══ -->
+@if (showTransactionDialog()) {
+  <div class="overlay" (click)="onBackdropClick('transaction')">
+    <div class="dialog dialog--wide" (click)="stopPropagation($event)">
+      <div class="dialog__icon-circle dialog__icon-circle--accent">
+        <span class="material-symbols-outlined">receipt_long</span>
+      </div>
+      <h3 class="dialog__title">Новая операция</h3>
+      <p class="dialog__desc">Добавьте расход или доход</p>
+
+      <div class="dialog__fields">
+        <!-- Type toggle -->
+        <div class="field">
+          <label class="field__label">Тип операции</label>
+          <div class="type-toggle">
+            <button
+              class="type-toggle__btn"
+              [class.type-toggle__btn--active-expense]="txType === 'expense'"
+              type="button"
+              (click)="txType = 'expense'"
+            >
+              <span class="material-symbols-outlined">remove</span>
+              Расход
+            </button>
+            <button
+              class="type-toggle__btn"
+              [class.type-toggle__btn--active-income]="txType === 'income'"
+              type="button"
+              (click)="txType = 'income'"
+            >
+              <span class="material-symbols-outlined">add</span>
+              Доход
+            </button>
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="txTitle">Описание</label>
+          <input
+            id="txTitle"
+            class="field__input"
+            type="text"
+            [(ngModel)]="txTitle"
+            placeholder="Например: Обед в кафе"
+          />
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="txAmount">Сумма (&#8381;)</label>
+          <input
+            id="txAmount"
+            class="field__input"
+            type="text"
+            inputmode="decimal"
+            [(ngModel)]="txAmount"
+            placeholder="0,00"
+          />
+        </div>
+
+        <div class="field">
+          <label class="field__label">Категория</label>
+          <div class="category-select">
+            @for (cat of categories(); track cat.id) {
+              <button
+                class="category-select__item"
+                [class.category-select__item--active]="txCategoryId === cat.id"
+                type="button"
+                (click)="txCategoryId = cat.id"
+              >
+                <span
+                  class="material-symbols-outlined category-select__icon"
+                  [style.color]="cat.color"
+                >{{ cat.icon }}</span>
+                <span>{{ cat.name }}</span>
+              </button>
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="dialog__actions">
+        <button class="dialog__btn dialog__btn--secondary" type="button" (click)="showTransactionDialog.set(false)">
+          Отмена
+        </button>
+        <button class="dialog__btn dialog__btn--primary" type="button" (click)="saveTransaction()">
+          Добавить
+        </button>
+      </div>
+    </div>
+  </div>
+}
