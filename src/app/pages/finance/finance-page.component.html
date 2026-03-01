@@ -16,6 +16,14 @@
         <span class="material-symbols-outlined action-btn__icon">flag</span>
         <span>Новая цель</span>
       </button>
+      <button class="action-btn" type="button" (click)="openLimitDialog()">
+        <span class="material-symbols-outlined action-btn__icon">tune</span>
+        <span>Установить лимит</span>
+      </button>
+      <button class="action-btn" type="button" (click)="openHistoryDialog()">
+        <span class="material-symbols-outlined action-btn__icon">calendar_month</span>
+        <span>Детализация</span>
+      </button>
       <button class="action-btn action-btn--primary" type="button" (click)="openTransactionDialog()">
         <span class="material-symbols-outlined action-btn__icon">add</span>
         <span>Внести операцию</span>
@@ -41,10 +49,31 @@
         <div class="stat-card stat-card--accent">
           <p class="stat-card__label">Расходы за месяц</p>
           <p class="stat-card__value">{{ formatRub(monthlySpend()) }}</p>
-          <div class="stat-card__trend stat-card__trend--down">
-            <span class="material-symbols-outlined">trending_down</span>
-            <span>-5,1% от лимита</span>
-          </div>
+          @if (monthlyLimitStatus().hasLimit) {
+            @if (monthlyLimitStatus().isOver) {
+              <div class="stat-card__trend stat-card__trend--down">
+                <span class="material-symbols-outlined">warning</span>
+                <span>Превышен на {{ formatRub(monthlyLimitStatus().diff) }}</span>
+              </div>
+            } @else {
+              <div class="stat-card__trend stat-card__trend--up">
+                <span class="material-symbols-outlined">check_circle</span>
+                <span>Осталось {{ formatRub(monthlyLimitStatus().diff) }}</span>
+              </div>
+            }
+            <div class="stat-card__limit-bar">
+              <div
+                class="stat-card__limit-fill"
+                [class.stat-card__limit-fill--over]="monthlyLimitStatus().isOver"
+                [style.width.%]="monthlyLimitStatus().barPercent"
+              ></div>
+            </div>
+          } @else {
+            <div class="stat-card__trend stat-card__trend--neutral">
+              <span class="material-symbols-outlined">info</span>
+              <span>Лимит не установлен</span>
+            </div>
+          }
         </div>
       </div>
 
@@ -128,13 +157,28 @@
           <p class="categories-section__subtitle">Расходы по категориям</p>
           <div class="category-chips">
             @for (cs of categorySpending(); track cs.id) {
-              <div class="category-chip">
+              <div class="category-chip" [class.category-chip--over]="cs.isOverLimit">
                 <div class="category-chip__icon" [style.background]="cs.bg" [style.color]="cs.color">
                   <span class="material-symbols-outlined">{{ cs.icon }}</span>
                 </div>
                 <div class="category-chip__info">
                   <span class="category-chip__name">{{ cs.name }}</span>
                   <span class="category-chip__total">{{ formatRub(cs.total) }}</span>
+                  @if (cs.limit > 0) {
+                    <div class="category-chip__limit-bar">
+                      <div
+                        class="category-chip__limit-fill"
+                        [class.category-chip__limit-fill--over]="cs.isOverLimit"
+                        [style.width.%]="cs.limitPercent"
+                      ></div>
+                    </div>
+                    <span
+                      class="category-chip__limit-label"
+                      [class.category-chip__limit-label--over]="cs.isOverLimit"
+                    >
+                      {{ cs.isOverLimit ? 'Лимит превышен' : formatRub(cs.limit - cs.total) + ' осталось' }}
+                    </span>
+                  }
                 </div>
               </div>
             }
@@ -152,7 +196,14 @@
               {{ activeChartTab() === 'weekly' ? 'Последние 7 дней' : 'Последние 30 дней' }}
             </p>
           </div>
-          <span class="chart-card__badge">В РАМКАХ ПЛАНА</span>
+          <span
+            class="chart-card__badge"
+            [class.chart-card__badge--ok]="chartBadgeStatus().status === 'ok'"
+            [class.chart-card__badge--over]="chartBadgeStatus().status === 'over'"
+            [class.chart-card__badge--neutral]="chartBadgeStatus().status === 'neutral'"
+          >
+            {{ chartBadgeStatus().text }}
+          </span>
         </div>
         <div class="chart-card__canvas-wrapper">
           <canvas #spendingChart></canvas>
@@ -286,6 +337,30 @@
               </button>
             }
           </div>
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="catWeeklyLimit">Лимит на неделю (&#8381;, необязательно)</label>
+          <input
+            id="catWeeklyLimit"
+            class="field__input"
+            type="text"
+            inputmode="decimal"
+            [(ngModel)]="categoryWeeklyLimit"
+            placeholder="Не установлен"
+          />
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="catMonthlyLimit">Лимит на месяц (&#8381;, необязательно)</label>
+          <input
+            id="catMonthlyLimit"
+            class="field__input"
+            type="text"
+            inputmode="decimal"
+            [(ngModel)]="categoryMonthlyLimit"
+            placeholder="Не установлен"
+          />
         </div>
       </div>
 
@@ -433,6 +508,166 @@
         </button>
         <button class="dialog__btn dialog__btn--primary" type="button" (click)="saveTransaction()">
           Добавить
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ═══ Dialog: Установить лимиты ═══ -->
+@if (showLimitDialog()) {
+  <div class="overlay" (click)="onBackdropClick('limit')">
+    <div class="dialog" (click)="stopPropagation($event)">
+      <div class="dialog__icon-circle dialog__icon-circle--accent">
+        <span class="material-symbols-outlined">tune</span>
+      </div>
+      <h3 class="dialog__title">Установить лимиты</h3>
+      <p class="dialog__desc">Задайте общие лимиты расходов</p>
+
+      <div class="dialog__fields">
+        <div class="field">
+          <label class="field__label" for="limitMonthly">Лимит на месяц (&#8381;)</label>
+          <input
+            id="limitMonthly"
+            class="field__input"
+            type="text"
+            inputmode="decimal"
+            [(ngModel)]="limitMonthly"
+            placeholder="Например: 50000"
+          />
+        </div>
+        <div class="field">
+          <label class="field__label" for="limitWeekly">Лимит на неделю (&#8381;)</label>
+          <input
+            id="limitWeekly"
+            class="field__input"
+            type="text"
+            inputmode="decimal"
+            [(ngModel)]="limitWeekly"
+            placeholder="Например: 12000"
+          />
+        </div>
+      </div>
+
+      <div class="dialog__actions">
+        <button class="dialog__btn dialog__btn--secondary" type="button" (click)="showLimitDialog.set(false)">
+          Отмена
+        </button>
+        <button class="dialog__btn dialog__btn--primary" type="button" (click)="saveLimits()">
+          Сохранить
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ═══ Dialog: Детализация расходов ═══ -->
+@if (showHistoryDialog()) {
+  <div class="overlay" (click)="onBackdropClick('history')">
+    <div class="dialog dialog--history" (click)="stopPropagation($event)">
+      <div class="dialog__icon-circle dialog__icon-circle--blue">
+        <span class="material-symbols-outlined">calendar_month</span>
+      </div>
+      <h3 class="dialog__title">Детализация расходов</h3>
+      <p class="dialog__desc">Подробная статистика по периодам</p>
+
+      <!-- Mode toggle -->
+      <div class="tab-toggle tab-toggle--centered">
+        <button
+          class="tab-toggle__btn"
+          [class.tab-toggle__btn--active]="historyMode() === 'weekly'"
+          type="button"
+          (click)="setHistoryMode('weekly')"
+        >
+          По неделям
+        </button>
+        <button
+          class="tab-toggle__btn"
+          [class.tab-toggle__btn--active]="historyMode() === 'monthly'"
+          type="button"
+          (click)="setHistoryMode('monthly')"
+        >
+          По месяцам
+        </button>
+      </div>
+
+      <div class="history-list">
+        @for (yearGroup of historyData(); track yearGroup.year) {
+          <div class="history-year">
+            <div class="history-year__header">{{ yearGroup.year }}</div>
+            @for (period of yearGroup.periods; track period.key) {
+              <div class="history-period" [class.history-period--over]="period.isOverLimit">
+                <button
+                  class="history-period__row"
+                  type="button"
+                  (click)="togglePeriodDetail(period.key)"
+                >
+                  <div class="history-period__info">
+                    <span class="history-period__label">{{ period.label }}</span>
+                    @if (period.dateRange) {
+                      <span class="history-period__range">{{ period.dateRange }}</span>
+                    }
+                  </div>
+                  <div class="history-period__right">
+                    <span class="history-period__total">{{ formatRub(period.total) }}</span>
+                    @if (period.isOverLimit) {
+                      <span class="history-period__badge history-period__badge--over">Превышен</span>
+                    }
+                    <span
+                      class="material-symbols-outlined history-period__chevron"
+                      [class.history-period__chevron--open]="expandedPeriodKey() === period.key"
+                    >
+                      expand_more
+                    </span>
+                  </div>
+                </button>
+
+                @if (expandedPeriodKey() === period.key) {
+                  <div class="history-period__details">
+                    @for (cat of period.categories; track cat.name) {
+                      <div class="history-cat" [class.history-cat--over]="cat.isOverLimit">
+                        <div class="history-cat__icon" [style.background]="cat.bg" [style.color]="cat.color">
+                          <span class="material-symbols-outlined">{{ cat.icon }}</span>
+                        </div>
+                        <span class="history-cat__name">{{ cat.name }}</span>
+                        <span class="history-cat__total">{{ formatRub(cat.total) }}</span>
+                        @if (cat.isOverLimit) {
+                          <span class="history-cat__over">!</span>
+                        }
+                      </div>
+                    }
+                    @if (period.limit > 0) {
+                      <div class="history-period__limit-info">
+                        Лимит: {{ formatRub(period.limit) }}
+                        &middot;
+                        {{ period.isOverLimit
+                          ? 'Превышен на ' + formatRub(period.total - period.limit)
+                          : 'Осталось ' + formatRub(period.limit - period.total)
+                        }}
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        }
+
+        @if (historyData().length === 0) {
+          <div class="history-empty">
+            <span class="material-symbols-outlined">receipt_long</span>
+            <p>Нет данных о расходах</p>
+          </div>
+        }
+      </div>
+
+      <div class="dialog__actions">
+        <button
+          class="dialog__btn dialog__btn--secondary"
+          type="button"
+          (click)="showHistoryDialog.set(false)"
+        >
+          Закрыть
         </button>
       </div>
     </div>
