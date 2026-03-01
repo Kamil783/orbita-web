@@ -1,7 +1,7 @@
 .topbar {
   height: 64px;
-  background: #ffffff;
-  border-bottom: 1px solid #e5e7eb;
+  background: var(--surface-panel);
+  border-bottom: 1px solid var(--border-color);
   padding: 0 32px;
 
   display: flex;
@@ -31,7 +31,7 @@
   left: 12px;
   top: 50%;
   transform: translateY(-50%);
-  color: #60758a;
+  color: var(--icon-muted);
   font-size: 20px;
 }
 
@@ -41,10 +41,12 @@
   outline: none;
   border-radius: 10px;
   padding: 8px 12px 8px 40px;
-  background: #f5f7f8;
+  background: var(--surface-muted);
   font-size: 13px;
 
-  &::placeholder { color: #60758a; }
+  color: var(--text-main);
+
+  &::placeholder { color: var(--icon-muted); }
 }
 
 .right {
@@ -56,14 +58,14 @@
 .iconbtn {
   position: relative;
   border: 0;
-  background: #f5f7f8;
-  color: #60758a;
+  background: var(--surface-muted);
+  color: var(--icon-muted);
   cursor: pointer;
   padding: 8px;
   border-radius: 10px;
   transition: background .2s ease;
 
-  &:hover { background: #e5e7eb; }
+  &:hover { background: var(--border-color); }
 }
 
 .notify-wrapper {
@@ -85,14 +87,14 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px solid #ffffff;
+  border: 2px solid var(--surface-panel);
   line-height: 1;
 }
 
 .divider {
   width: 1px;
   height: 24px;
-  background: #e5e7eb;
+  background: var(--border-color);
 }
 
 .profile {
@@ -106,7 +108,7 @@
   border-radius: 10px;
   transition: background 0.2s ease;
 
-  &:hover { background: #f5f7f8; }
+  &:hover { background: var(--surface-muted); }
 }
 
 .profile__avatar {
@@ -129,6 +131,6 @@
 .profile__name {
   font-size: 13px;
   font-weight: 600;
-  color: #111418;
+  color: var(--text-main);
   white-space: nowrap;
 }
