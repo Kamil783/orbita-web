@@ -22,109 +22,48 @@
       </button>
     </div>
 
-    <!-- Stats Section -->
-    <div class="stats">
-      <div class="stat-card">
-        <p class="stat-card__label">Общий баланс</p>
-        <p class="stat-card__value">{{ formatRub(balance()) }}</p>
-        <div class="stat-card__trend stat-card__trend--up">
-          <span class="material-symbols-outlined">trending_up</span>
-          <span>+2,4% за месяц</span>
-        </div>
-      </div>
-
-      <div class="stat-card stat-card--accent">
-        <p class="stat-card__label">Расходы за месяц</p>
-        <p class="stat-card__value">{{ formatRub(monthlySpend()) }}</p>
-        <div class="stat-card__trend stat-card__trend--down">
-          <span class="material-symbols-outlined">trending_down</span>
-          <span>-5,1% от лимита</span>
-        </div>
-      </div>
-
-      @for (goal of savingsGoals(); track goal.id) {
+    <!-- ═══ Top zone: Stats + Transactions side by side ═══ -->
+    <div class="top-grid">
+      <!-- Left: stat cards -->
+      <div class="top-grid__stats">
         <div class="stat-card">
-          <p class="stat-card__label">Цель накоплений</p>
-          <p class="stat-card__value">{{ formatRub(goal.target) }}</p>
-          <div class="stat-card__progress">
-            <div class="stat-card__progress-bar">
-              <div class="stat-card__progress-fill" [style.width.%]="goalPercent(goal)"></div>
-            </div>
-            <span class="stat-card__progress-text">{{ goalPercent(goal) }}% — {{ goal.name }}</span>
+          <p class="stat-card__label">Общий баланс</p>
+          <p class="stat-card__value">{{ formatRub(balance()) }}</p>
+          <div class="stat-card__trend stat-card__trend--up">
+            <span class="material-symbols-outlined">trending_up</span>
+            <span>+2,4% за месяц</span>
           </div>
         </div>
-      }
-    </div>
 
-    <!-- Category spending breakdown -->
-    @if (categorySpending().length > 0) {
-      <div class="categories-section">
-        <div class="section-header">
-          <h3 class="section-header__title">Расходы по категориям</h3>
+        <div class="stat-card stat-card--accent">
+          <p class="stat-card__label">Расходы за месяц</p>
+          <p class="stat-card__value">{{ formatRub(monthlySpend()) }}</p>
+          <div class="stat-card__trend stat-card__trend--down">
+            <span class="material-symbols-outlined">trending_down</span>
+            <span>-5,1% от лимита</span>
+          </div>
         </div>
-        <div class="category-chips">
-          @for (cs of categorySpending(); track cs.id) {
-            <div class="category-chip">
-              <div class="category-chip__icon" [style.background]="cs.bg" [style.color]="cs.color">
-                <span class="material-symbols-outlined">{{ cs.icon }}</span>
-              </div>
-              <div class="category-chip__info">
-                <span class="category-chip__name">{{ cs.name }}</span>
-                <span class="category-chip__total">{{ formatRub(cs.total) }}</span>
-              </div>
-            </div>
+      </div>
+
+      <!-- Right: transactions list -->
+      <div class="top-grid__transactions">
+        <div class="section-header">
+          <h3 class="section-header__title">
+            {{ showAllTransactions() ? 'Все операции' : 'Последние операции' }}
+          </h3>
+          @if (hasMoreTransactions()) {
+            <button
+              class="section-header__link"
+              type="button"
+              (click)="toggleAllTransactions()"
+            >
+              {{ showAllTransactions() ? 'Свернуть' : 'Все операции' }}
+            </button>
           }
-        </div>
-      </div>
-    }
-
-    <!-- Two-column Layout -->
-    <div class="content-grid">
-      <!-- Left: Spending Trends -->
-      <div class="chart-section">
-        <div class="section-header">
-          <h3 class="section-header__title">Динамика расходов</h3>
-          <div class="tab-toggle">
-            <button
-              class="tab-toggle__btn"
-              [class.tab-toggle__btn--active]="activeChartTab() === 'weekly'"
-              (click)="setChartTab('weekly')"
-            >
-              По неделям
-            </button>
-            <button
-              class="tab-toggle__btn"
-              [class.tab-toggle__btn--active]="activeChartTab() === 'monthly'"
-              (click)="setChartTab('monthly')"
-            >
-              По месяцам
-            </button>
-          </div>
-        </div>
-
-        <div class="chart-card">
-          <div class="chart-card__header">
-            <div>
-              <p class="chart-card__amount">{{ formatRub(monthlySpend()) }}</p>
-              <p class="chart-card__period">Последние 30 дней</p>
-            </div>
-            <span class="chart-card__badge">В РАМКАХ ПЛАНА</span>
-          </div>
-          <div class="chart-card__canvas-wrapper">
-            <canvas #spendingChart></canvas>
-          </div>
-        </div>
-      </div>
-
-      <!-- Right: Recent Transactions -->
-      <div class="transactions-section">
-        <div class="section-header">
-          <h3 class="section-header__title">Последние операции</h3>
-          <a class="section-header__link" href="javascript:void(0)">Все операции</a>
         </div>
 
         <div class="transactions-card">
-          @for (tx of transactionsWithCategory(); track tx.id) {
+          @for (tx of visibleTransactions(); track tx.id) {
             <div class="transaction">
               <div
                 class="transaction__icon"
@@ -147,10 +86,106 @@
             </div>
           }
 
-          <button class="transactions-card__more" type="button">Загрузить ещё</button>
+          @if (!showAllTransactions() && hasMoreTransactions()) {
+            <button class="transactions-card__more" type="button" (click)="toggleAllTransactions()">
+              Показать все
+            </button>
+          }
         </div>
       </div>
     </div>
+
+    <!-- ═══ Middle zone: period toggle + categories + chart ═══ -->
+    <div class="middle-zone">
+      <div class="middle-zone__header">
+        <h3 class="section-header__title">Аналитика расходов</h3>
+        <div class="tab-toggle">
+          <button
+            class="tab-toggle__btn"
+            [class.tab-toggle__btn--active]="activeChartTab() === 'weekly'"
+            (click)="setChartTab('weekly')"
+          >
+            За неделю
+          </button>
+          <button
+            class="tab-toggle__btn"
+            [class.tab-toggle__btn--active]="activeChartTab() === 'monthly'"
+            (click)="setChartTab('monthly')"
+          >
+            За месяц
+          </button>
+        </div>
+      </div>
+
+      <!-- Category spending -->
+      @if (categorySpending().length > 0) {
+        <div class="categories-section">
+          <p class="categories-section__subtitle">Расходы по категориям</p>
+          <div class="category-chips">
+            @for (cs of categorySpending(); track cs.id) {
+              <div class="category-chip">
+                <div class="category-chip__icon" [style.background]="cs.bg" [style.color]="cs.color">
+                  <span class="material-symbols-outlined">{{ cs.icon }}</span>
+                </div>
+                <div class="category-chip__info">
+                  <span class="category-chip__name">{{ cs.name }}</span>
+                  <span class="category-chip__total">{{ formatRub(cs.total) }}</span>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Spending trends chart -->
+      <div class="chart-card">
+        <div class="chart-card__header">
+          <div>
+            <p class="chart-card__label">Динамика расходов</p>
+            <p class="chart-card__amount">{{ formatRub(periodSpend()) }}</p>
+            <p class="chart-card__period">
+              {{ activeChartTab() === 'weekly' ? 'Последние 7 дней' : 'Последние 30 дней' }}
+            </p>
+          </div>
+          <span class="chart-card__badge">В РАМКАХ ПЛАНА</span>
+        </div>
+        <div class="chart-card__canvas-wrapper">
+          <canvas #spendingChart></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ Bottom zone: savings goals ═══ -->
+    @if (savingsGoals().length > 0) {
+      <div class="goals-section">
+        <div class="section-header">
+          <h3 class="section-header__title">Цели накоплений</h3>
+        </div>
+        <div class="goals-grid">
+          @for (goal of savingsGoals(); track goal.id) {
+            <div class="goal-card">
+              <div class="goal-card__header">
+                <div class="goal-card__icon">
+                  <span class="material-symbols-outlined">flag</span>
+                </div>
+                <div class="goal-card__info">
+                  <p class="goal-card__name">{{ goal.name }}</p>
+                  <p class="goal-card__target">Цель: {{ formatRub(goal.target) }}</p>
+                </div>
+                <p class="goal-card__percent">{{ goalPercent(goal) }}%</p>
+              </div>
+              <div class="goal-card__progress-bar">
+                <div class="goal-card__progress-fill" [style.width.%]="goalPercent(goal)"></div>
+              </div>
+              <div class="goal-card__footer">
+                <span class="goal-card__current">Накоплено: {{ formatRub(goal.current) }}</span>
+                <span class="goal-card__remaining">Осталось: {{ formatRub(goal.target - goal.current) }}</span>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    }
   </main>
 </app-app-shell>
 

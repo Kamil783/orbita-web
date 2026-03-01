@@ -59,12 +59,22 @@ $finance-accent-border: rgba(250, 204, 21, 0.30);
   }
 }
 
-// ─── Stats grid ───
-.stats {
+// ═══════════════════════════════════════
+// ─── Top zone: Stats + Transactions ───
+// ═══════════════════════════════════════
+
+.top-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 24px;
-  margin-bottom: 32px;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  margin-bottom: 40px;
+  align-items: start;
+}
+
+.top-grid__stats {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
 .stat-card {
@@ -117,200 +127,7 @@ $finance-accent-border: rgba(250, 204, 21, 0.30);
   }
 }
 
-.stat-card__progress {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-top: 4px;
-}
-
-.stat-card__progress-bar {
-  width: 100%;
-  height: 8px;
-  background: #f0f2f5;
-  border-radius: 9999px;
-  overflow: hidden;
-}
-
-.stat-card__progress-fill {
-  height: 100%;
-  background: $finance-accent;
-  border-radius: 9999px;
-  transition: width 0.4s ease;
-}
-
-.stat-card__progress-text {
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--text-500);
-}
-
-// ─── Category spending section ───
-.categories-section {
-  margin-bottom: 32px;
-}
-
-.category-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-
-.category-chip {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 20px;
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: var(--radius-md);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-}
-
-.category-chip__icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-
-  .material-symbols-outlined {
-    font-size: 20px;
-  }
-}
-
-.category-chip__info {
-  display: flex;
-  flex-direction: column;
-}
-
-.category-chip__name {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--text-500);
-}
-
-.category-chip__total {
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--text-900);
-}
-
-// ─── Content grid (chart + transactions) ───
-.content-grid {
-  display: grid;
-  grid-template-columns: 1fr 400px;
-  gap: 32px;
-}
-
-// ─── Section headers ───
-.section-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 16px;
-  padding: 0 4px;
-}
-
-.section-header__title {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--text-900);
-}
-
-.section-header__link {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--color-primary);
-  text-decoration: none;
-
-  &:hover {
-    text-decoration: underline;
-  }
-}
-
-// ─── Tab toggle ───
-.tab-toggle {
-  display: flex;
-  background: #f5f7f8;
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
-  padding: 3px;
-  gap: 2px;
-}
-
-.tab-toggle__btn {
-  padding: 6px 14px;
-  font-size: 12px;
-  font-weight: 700;
-  border: 0;
-  border-radius: 8px;
-  background: transparent;
-  color: var(--text-500);
-  cursor: pointer;
-  transition: all 0.15s ease;
-
-  &:hover:not(.tab-toggle__btn--active) {
-    background: #ffffff;
-  }
-
-  &--active {
-    background: $finance-accent;
-    color: #000000;
-  }
-}
-
-// ─── Chart card ───
-.chart-card {
-  padding: 24px;
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: var(--radius-md);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-}
-
-.chart-card__header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  margin-bottom: 24px;
-}
-
-.chart-card__amount {
-  margin: 0;
-  font-size: 28px;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  color: var(--text-900);
-}
-
-.chart-card__period {
-  margin: 4px 0 0;
-  font-size: 13px;
-  color: var(--text-500);
-}
-
-.chart-card__badge {
-  display: inline-block;
-  padding: 4px 12px;
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.05em;
-  color: #a16207;
-  background: $finance-accent-light;
-  border: 1px solid $finance-accent-border;
-  border-radius: 6px;
-}
-
-.chart-card__canvas-wrapper {
-  position: relative;
-  height: 240px;
-}
-
-// ─── Transactions card ───
+// ─── Transactions card (top-right) ───
 .transactions-card {
   background: #ffffff;
   border: 1px solid #e5e7eb;
@@ -403,6 +220,298 @@ $finance-accent-border: rgba(250, 204, 21, 0.30);
 
   &:hover {
     color: var(--color-primary);
+  }
+}
+
+// ═══════════════════════════════════════
+// ─── Middle zone: Analytics ───
+// ═══════════════════════════════════════
+
+.middle-zone {
+  margin-bottom: 40px;
+}
+
+.middle-zone__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  padding: 0 4px;
+}
+
+// ─── Category spending section ───
+.categories-section {
+  margin-bottom: 24px;
+}
+
+.categories-section__subtitle {
+  margin: 0 0 12px 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-500);
+}
+
+.category-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.category-chip {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: var(--radius-md);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.category-chip__icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  .material-symbols-outlined {
+    font-size: 20px;
+  }
+}
+
+.category-chip__info {
+  display: flex;
+  flex-direction: column;
+}
+
+.category-chip__name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-500);
+}
+
+.category-chip__total {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-900);
+}
+
+// ─── Chart card ───
+.chart-card {
+  padding: 24px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: var(--radius-md);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.chart-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.chart-card__label {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-500);
+}
+
+.chart-card__amount {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text-900);
+}
+
+.chart-card__period {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--text-500);
+}
+
+.chart-card__badge {
+  display: inline-block;
+  padding: 4px 12px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: #a16207;
+  background: $finance-accent-light;
+  border: 1px solid $finance-accent-border;
+  border-radius: 6px;
+}
+
+.chart-card__canvas-wrapper {
+  position: relative;
+  height: 240px;
+}
+
+// ═══════════════════════════════════════
+// ─── Bottom zone: Savings goals ───
+// ═══════════════════════════════════════
+
+.goals-section {
+  margin-bottom: 16px;
+}
+
+.goals-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 20px;
+}
+
+.goal-card {
+  padding: 24px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: var(--radius-md);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.goal-card__header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.goal-card__icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  background: $finance-accent-light;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  .material-symbols-outlined {
+    font-size: 22px;
+    color: #a16207;
+  }
+}
+
+.goal-card__info {
+  flex: 1;
+  min-width: 0;
+}
+
+.goal-card__name {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-900);
+}
+
+.goal-card__target {
+  margin: 2px 0 0;
+  font-size: 13px;
+  color: var(--text-500);
+}
+
+.goal-card__percent {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 800;
+  color: $finance-accent;
+}
+
+.goal-card__progress-bar {
+  width: 100%;
+  height: 10px;
+  background: #f0f2f5;
+  border-radius: 9999px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.goal-card__progress-fill {
+  height: 100%;
+  background: $finance-accent;
+  border-radius: 9999px;
+  transition: width 0.4s ease;
+}
+
+.goal-card__footer {
+  display: flex;
+  justify-content: space-between;
+}
+
+.goal-card__current,
+.goal-card__remaining {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-500);
+}
+
+// ═══════════════════════════════════════
+// ─── Section headers ───
+// ═══════════════════════════════════════
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  padding: 0 4px;
+}
+
+.section-header__title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-900);
+}
+
+.section-header__link {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-primary);
+  background: none;
+  border: 0;
+  cursor: pointer;
+  padding: 0;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+// ─── Tab toggle ───
+.tab-toggle {
+  display: flex;
+  background: #f5f7f8;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 3px;
+  gap: 2px;
+}
+
+.tab-toggle__btn {
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-500);
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover:not(.tab-toggle__btn--active) {
+    background: #ffffff;
+  }
+
+  &--active {
+    background: $finance-accent;
+    color: #000000;
   }
 }
 
@@ -707,7 +816,7 @@ $finance-accent-border: rgba(250, 204, 21, 0.30);
 
 // ─── Responsive ───
 @media (max-width: 1024px) {
-  .content-grid {
+  .top-grid {
     grid-template-columns: 1fr;
   }
 }
@@ -717,7 +826,7 @@ $finance-accent-border: rgba(250, 204, 21, 0.30);
     padding: 24px 16px;
   }
 
-  .stats {
+  .goals-grid {
     grid-template-columns: 1fr;
   }
 

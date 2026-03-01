@@ -30,6 +30,7 @@ export interface Transaction {
   title: string;
   date: string;
   amount: number;
+  timestamp: number; // ms since epoch
 }
 
 export interface SavingsGoal {
@@ -105,16 +106,21 @@ export class FinancePageComponent implements AfterViewInit, OnDestroy {
   ]);
 
   readonly transactions = signal<Transaction[]>([
-    { id: uid(), categoryId: 'cat_food', title: 'Кофейня Starbucks', date: 'Сегодня \u2022 9:45', amount: -540 },
-    { id: uid(), categoryId: 'cat_transport', title: 'Поездка Uber', date: 'Вчера \u2022 18:12', amount: -2410 },
-    { id: uid(), categoryId: 'cat_income', title: 'Оплата от клиента', date: '24 янв \u2022 11:30', amount: 120000 },
-    { id: uid(), categoryId: 'cat_shopping', title: 'Apple Store', date: '22 янв \u2022 14:20', amount: -15900 },
-    { id: uid(), categoryId: 'cat_housing', title: 'Аренда квартиры', date: '18 янв \u2022 10:00', amount: -185000 },
+    { id: uid(), categoryId: 'cat_food', title: 'Кофейня Starbucks', date: 'Сегодня \u2022 9:45', amount: -540, timestamp: Date.now() },
+    { id: uid(), categoryId: 'cat_transport', title: 'Поездка Uber', date: 'Вчера \u2022 18:12', amount: -2410, timestamp: Date.now() - 86400000 },
+    { id: uid(), categoryId: 'cat_income', title: 'Оплата от клиента', date: '24 янв \u2022 11:30', amount: 120000, timestamp: Date.now() - 5 * 86400000 },
+    { id: uid(), categoryId: 'cat_shopping', title: 'Apple Store', date: '22 янв \u2022 14:20', amount: -15900, timestamp: Date.now() - 7 * 86400000 },
+    { id: uid(), categoryId: 'cat_housing', title: 'Аренда квартиры', date: '18 янв \u2022 10:00', amount: -185000, timestamp: Date.now() - 11 * 86400000 },
   ]);
 
   readonly savingsGoals = signal<SavingsGoal[]>([
     { id: uid(), name: 'Фонд отпуска', target: 500000, current: 325000 },
   ]);
+
+  // ─── View state ───
+
+  readonly showAllTransactions = signal(false);
+  readonly RECENT_LIMIT = 5;
 
   // ─── Computed ───
 
@@ -124,9 +130,23 @@ export class FinancePageComponent implements AfterViewInit, OnDestroy {
       .reduce((sum, t) => sum + Math.abs(t.amount), 0);
   });
 
+  /** Transactions filtered by active period (weekly / monthly) */
+  private readonly periodTransactions = computed(() => {
+    const tab = this.activeChartTab();
+    const now = Date.now();
+    const cutoff = tab === 'weekly' ? now - 7 * 86400000 : now - 30 * 86400000;
+    return this.transactions().filter((t) => t.timestamp >= cutoff);
+  });
+
+  readonly periodSpend = computed(() => {
+    return this.periodTransactions()
+      .filter((t) => t.amount < 0)
+      .reduce((sum, t) => sum + Math.abs(t.amount), 0);
+  });
+
   readonly categorySpending = computed(() => {
     const cats = this.categories();
-    const txs = this.transactions();
+    const txs = this.periodTransactions();
     return cats
       .map((cat) => {
         const total = txs
@@ -150,6 +170,15 @@ export class FinancePageComponent implements AfterViewInit, OnDestroy {
         categoryName: cat?.name ?? 'Без категории',
       };
     });
+  });
+
+  readonly visibleTransactions = computed(() => {
+    const all = this.transactionsWithCategory();
+    return this.showAllTransactions() ? all : all.slice(0, this.RECENT_LIMIT);
+  });
+
+  readonly hasMoreTransactions = computed(() => {
+    return this.transactionsWithCategory().length > this.RECENT_LIMIT;
   });
 
   // ─── Dialogs ───
@@ -185,6 +214,12 @@ export class FinancePageComponent implements AfterViewInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.chart?.destroy();
+  }
+
+  // ─── Transactions view ───
+
+  toggleAllTransactions(): void {
+    this.showAllTransactions.update((v) => !v);
   }
 
   // ─── Chart ───
@@ -297,7 +332,7 @@ export class FinancePageComponent implements AfterViewInit, OnDestroy {
     const mins = now.getMinutes().toString().padStart(2, '0');
     const dateStr = `Сегодня \u2022 ${hours}:${mins}`;
 
-    const tx: Transaction = { id: uid(), categoryId: this.txCategoryId, title, date: dateStr, amount };
+    const tx: Transaction = { id: uid(), categoryId: this.txCategoryId, title, date: dateStr, amount, timestamp: Date.now() };
     this.transactions.update((list) => [tx, ...list]);
     this.balance.update((b) => b + amount);
     this.showTransactionDialog.set(false);
