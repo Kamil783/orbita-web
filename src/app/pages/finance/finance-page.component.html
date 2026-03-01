@@ -1,0 +1,675 @@
+<app-app-shell>
+  <app-topbar [title]="title" placeholder="Поиск транзакций..."></app-topbar>
+
+  <main class="page">
+    <!-- Action buttons bar -->
+    <div class="actions-bar">
+      <button class="action-btn" type="button" (click)="openBalanceDialog()">
+        <span class="material-symbols-outlined action-btn__icon">account_balance_wallet</span>
+        <span>Внести на баланс</span>
+      </button>
+      <button class="action-btn" type="button" (click)="openCategoryDialog()">
+        <span class="material-symbols-outlined action-btn__icon">category</span>
+        <span>Добавить категорию</span>
+      </button>
+      <button class="action-btn" type="button" (click)="openGoalDialog()">
+        <span class="material-symbols-outlined action-btn__icon">flag</span>
+        <span>Новая цель</span>
+      </button>
+      <button class="action-btn" type="button" (click)="openLimitDialog()">
+        <span class="material-symbols-outlined action-btn__icon">tune</span>
+        <span>Установить лимит</span>
+      </button>
+      <button class="action-btn" type="button" (click)="openHistoryDialog()">
+        <span class="material-symbols-outlined action-btn__icon">calendar_month</span>
+        <span>Детализация</span>
+      </button>
+      <button class="action-btn action-btn--primary" type="button" (click)="openTransactionDialog()">
+        <span class="material-symbols-outlined action-btn__icon">add</span>
+        <span>Внести операцию</span>
+      </button>
+    </div>
+
+    <!-- ═══ Top zone: Stats + Transactions side by side ═══ -->
+    <div class="top-grid">
+      <!-- Left: stat cards -->
+      <div class="top-grid__stats">
+        <div class="section-header">
+          <h3 class="section-header__title">Сводка</h3>
+        </div>
+        <div class="stat-card">
+          <p class="stat-card__label">Общий баланс</p>
+          <p class="stat-card__value">{{ formatRub(balance()) }}</p>
+          <div class="stat-card__trend stat-card__trend--up">
+            <span class="material-symbols-outlined">trending_up</span>
+            <span>+2,4% за месяц</span>
+          </div>
+        </div>
+
+        <div class="stat-card stat-card--accent">
+          <p class="stat-card__label">Расходы за месяц</p>
+          <p class="stat-card__value">{{ formatRub(monthlySpend()) }}</p>
+          @if (monthlyLimitStatus().hasLimit) {
+            @if (monthlyLimitStatus().isOver) {
+              <div class="stat-card__trend stat-card__trend--down">
+                <span class="material-symbols-outlined">warning</span>
+                <span>Превышен на {{ formatRub(monthlyLimitStatus().diff) }}</span>
+              </div>
+            } @else {
+              <div class="stat-card__trend stat-card__trend--up">
+                <span class="material-symbols-outlined">check_circle</span>
+                <span>Осталось {{ formatRub(monthlyLimitStatus().diff) }}</span>
+              </div>
+            }
+            <div class="stat-card__limit-bar">
+              <div
+                class="stat-card__limit-fill"
+                [class.stat-card__limit-fill--over]="monthlyLimitStatus().isOver"
+                [style.width.%]="monthlyLimitStatus().barPercent"
+              ></div>
+            </div>
+          } @else {
+            <div class="stat-card__trend stat-card__trend--neutral">
+              <span class="material-symbols-outlined">info</span>
+              <span>Лимит не установлен</span>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Right: transactions list -->
+      <div class="top-grid__transactions">
+        <div class="section-header">
+          <h3 class="section-header__title">
+            {{ showAllTransactions() ? 'Все операции' : 'Последние операции' }}
+          </h3>
+          @if (hasMoreTransactions()) {
+            <button
+              class="section-header__link"
+              type="button"
+              (click)="toggleAllTransactions()"
+            >
+              {{ showAllTransactions() ? 'Свернуть' : 'Все операции' }}
+            </button>
+          }
+        </div>
+
+        <div class="transactions-card">
+          @for (tx of visibleTransactions(); track tx.id) {
+            <div class="transaction">
+              <div
+                class="transaction__icon"
+                [style.background]="tx.iconBg"
+                [style.color]="tx.iconColor"
+              >
+                <span class="material-symbols-outlined">{{ tx.icon }}</span>
+              </div>
+              <div class="transaction__info">
+                <p class="transaction__title">{{ tx.title }}</p>
+                <p class="transaction__date">{{ tx.date }}</p>
+              </div>
+              <p
+                class="transaction__amount"
+                [class.transaction__amount--negative]="tx.amount < 0"
+                [class.transaction__amount--positive]="tx.amount > 0"
+              >
+                {{ formatAmount(tx.amount) }}
+              </p>
+            </div>
+          }
+
+          @if (!showAllTransactions() && hasMoreTransactions()) {
+            <button class="transactions-card__more" type="button" (click)="toggleAllTransactions()">
+              Показать все
+            </button>
+          }
+        </div>
+      </div>
+    </div>
+
+    <hr class="divider" />
+
+    <!-- ═══ Middle zone: period toggle + categories + chart ═══ -->
+    <div class="middle-zone">
+      <div class="middle-zone__header">
+        <h3 class="section-header__title">Аналитика расходов</h3>
+        <div class="tab-toggle">
+          <button
+            class="tab-toggle__btn"
+            [class.tab-toggle__btn--active]="activeChartTab() === 'weekly'"
+            (click)="setChartTab('weekly')"
+          >
+            За неделю
+          </button>
+          <button
+            class="tab-toggle__btn"
+            [class.tab-toggle__btn--active]="activeChartTab() === 'monthly'"
+            (click)="setChartTab('monthly')"
+          >
+            За месяц
+          </button>
+        </div>
+      </div>
+
+      <!-- Category spending -->
+      @if (categorySpending().length > 0) {
+        <div class="categories-section">
+          <p class="categories-section__subtitle">Расходы по категориям</p>
+          <div class="category-chips">
+            @for (cs of categorySpending(); track cs.id) {
+              <div class="category-chip" [class.category-chip--over]="cs.isOverLimit">
+                <div class="category-chip__icon" [style.background]="cs.bg" [style.color]="cs.color">
+                  <span class="material-symbols-outlined">{{ cs.icon }}</span>
+                </div>
+                <div class="category-chip__info">
+                  <span class="category-chip__name">{{ cs.name }}</span>
+                  <span class="category-chip__total">{{ formatRub(cs.total) }}</span>
+                  @if (cs.limit > 0) {
+                    <div class="category-chip__limit-bar">
+                      <div
+                        class="category-chip__limit-fill"
+                        [class.category-chip__limit-fill--over]="cs.isOverLimit"
+                        [style.width.%]="cs.limitPercent"
+                      ></div>
+                    </div>
+                    <span
+                      class="category-chip__limit-label"
+                      [class.category-chip__limit-label--over]="cs.isOverLimit"
+                    >
+                      {{ cs.isOverLimit ? 'Лимит превышен' : formatRub(cs.limit - cs.total) + ' осталось' }}
+                    </span>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Spending trends chart -->
+      <div class="chart-card">
+        <div class="chart-card__header">
+          <div>
+            <p class="chart-card__label">Динамика расходов</p>
+            <p class="chart-card__amount">{{ formatRub(periodSpend()) }}</p>
+            <p class="chart-card__period">
+              {{ activeChartTab() === 'weekly' ? 'Последние 7 дней' : 'Последние 30 дней' }}
+            </p>
+          </div>
+          <span
+            class="chart-card__badge"
+            [class.chart-card__badge--ok]="chartBadgeStatus().status === 'ok'"
+            [class.chart-card__badge--over]="chartBadgeStatus().status === 'over'"
+            [class.chart-card__badge--neutral]="chartBadgeStatus().status === 'neutral'"
+          >
+            {{ chartBadgeStatus().text }}
+          </span>
+        </div>
+        <div class="chart-card__canvas-wrapper">
+          <canvas #spendingChart></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ Bottom zone: savings goals ═══ -->
+    @if (savingsGoals().length > 0) {
+      <hr class="divider" />
+      <div class="goals-section">
+        <div class="section-header">
+          <h3 class="section-header__title">Цели накоплений</h3>
+        </div>
+        <div class="goals-grid">
+          @for (goal of savingsGoals(); track goal.id) {
+            <div class="goal-card">
+              <div class="goal-card__header">
+                <div class="goal-card__icon">
+                  <span class="material-symbols-outlined">flag</span>
+                </div>
+                <div class="goal-card__info">
+                  <p class="goal-card__name">{{ goal.name }}</p>
+                  <p class="goal-card__target">Цель: {{ formatRub(goal.target) }}</p>
+                </div>
+                <p class="goal-card__percent">{{ goalPercent(goal) }}%</p>
+              </div>
+              <div class="goal-card__progress-bar">
+                <div class="goal-card__progress-fill" [style.width.%]="goalPercent(goal)"></div>
+              </div>
+              <div class="goal-card__footer">
+                <span class="goal-card__current">Накоплено: {{ formatRub(goal.current) }}</span>
+                <span class="goal-card__remaining">Осталось: {{ formatRub(goal.target - goal.current) }}</span>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    }
+  </main>
+</app-app-shell>
+
+<!-- ═══ Dialog: Внести на баланс ═══ -->
+@if (showBalanceDialog()) {
+  <div class="overlay" (click)="onBackdropClick('balance')">
+    <div class="dialog" (click)="stopPropagation($event)">
+      <div class="dialog__icon-circle dialog__icon-circle--accent">
+        <span class="material-symbols-outlined">account_balance_wallet</span>
+      </div>
+      <h3 class="dialog__title">Внести на баланс</h3>
+      <p class="dialog__desc">Укажите сумму пополнения (в рублях)</p>
+
+      <div class="dialog__fields">
+        <div class="field">
+          <label class="field__label" for="balanceAmt">Сумма</label>
+          <input
+            id="balanceAmt"
+            class="field__input"
+            type="text"
+            inputmode="decimal"
+            [(ngModel)]="balanceAmount"
+            placeholder="0,00"
+          />
+        </div>
+      </div>
+
+      <div class="dialog__actions">
+        <button class="dialog__btn dialog__btn--secondary" type="button" (click)="showBalanceDialog.set(false)">
+          Отмена
+        </button>
+        <button class="dialog__btn dialog__btn--primary" type="button" (click)="saveBalance()">
+          Внести
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ═══ Dialog: Добавить категорию ═══ -->
+@if (showCategoryDialog()) {
+  <div class="overlay" (click)="onBackdropClick('category')">
+    <div class="dialog dialog--wide" (click)="stopPropagation($event)">
+      <div class="dialog__icon-circle dialog__icon-circle--blue">
+        <span class="material-symbols-outlined">category</span>
+      </div>
+      <h3 class="dialog__title">Новая категория</h3>
+      <p class="dialog__desc">Создайте категорию для отслеживания расходов</p>
+
+      <div class="dialog__fields">
+        <div class="field">
+          <label class="field__label" for="catName">Название</label>
+          <input
+            id="catName"
+            class="field__input"
+            type="text"
+            [(ngModel)]="categoryName"
+            placeholder="Например: Рестораны"
+          />
+        </div>
+
+        <div class="field">
+          <label class="field__label">Иконка</label>
+          <div class="icon-grid">
+            @for (opt of iconOptions; track opt.icon) {
+              <button
+                class="icon-grid__item"
+                [class.icon-grid__item--active]="categorySelectedIcon === opt.icon"
+                type="button"
+                (click)="categorySelectedIcon = opt.icon"
+                [title]="opt.label"
+              >
+                <span class="material-symbols-outlined">{{ opt.icon }}</span>
+              </button>
+            }
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="field__label">Цвет</label>
+          <div class="color-grid">
+            @for (c of colorOptions; track c.color; let idx = $index) {
+              <button
+                class="color-grid__item"
+                [class.color-grid__item--active]="categorySelectedColorIdx === idx"
+                [style.background]="c.bg"
+                [style.border-color]="c.color"
+                type="button"
+                (click)="categorySelectedColorIdx = idx"
+              >
+                <span class="color-grid__dot" [style.background]="c.color"></span>
+              </button>
+            }
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="catWeeklyLimit">Лимит на неделю (&#8381;, необязательно)</label>
+          <input
+            id="catWeeklyLimit"
+            class="field__input"
+            type="text"
+            inputmode="decimal"
+            [(ngModel)]="categoryWeeklyLimit"
+            placeholder="Не установлен"
+          />
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="catMonthlyLimit">Лимит на месяц (&#8381;, необязательно)</label>
+          <input
+            id="catMonthlyLimit"
+            class="field__input"
+            type="text"
+            inputmode="decimal"
+            [(ngModel)]="categoryMonthlyLimit"
+            placeholder="Не установлен"
+          />
+        </div>
+      </div>
+
+      <div class="dialog__actions">
+        <button class="dialog__btn dialog__btn--secondary" type="button" (click)="showCategoryDialog.set(false)">
+          Отмена
+        </button>
+        <button class="dialog__btn dialog__btn--primary" type="button" (click)="saveCategory()">
+          Создать
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ═══ Dialog: Новая цель накопления ═══ -->
+@if (showGoalDialog()) {
+  <div class="overlay" (click)="onBackdropClick('goal')">
+    <div class="dialog" (click)="stopPropagation($event)">
+      <div class="dialog__icon-circle dialog__icon-circle--green">
+        <span class="material-symbols-outlined">flag</span>
+      </div>
+      <h3 class="dialog__title">Новая цель</h3>
+      <p class="dialog__desc">Установите цель накоплений</p>
+
+      <div class="dialog__fields">
+        <div class="field">
+          <label class="field__label" for="goalName">Название</label>
+          <input
+            id="goalName"
+            class="field__input"
+            type="text"
+            [(ngModel)]="goalName"
+            placeholder="Например: Новый ноутбук"
+          />
+        </div>
+        <div class="field">
+          <label class="field__label" for="goalTarget">Целевая сумма (&#8381;)</label>
+          <input
+            id="goalTarget"
+            class="field__input"
+            type="text"
+            inputmode="decimal"
+            [(ngModel)]="goalTarget"
+            placeholder="0,00"
+          />
+        </div>
+      </div>
+
+      <div class="dialog__actions">
+        <button class="dialog__btn dialog__btn--secondary" type="button" (click)="showGoalDialog.set(false)">
+          Отмена
+        </button>
+        <button class="dialog__btn dialog__btn--primary" type="button" (click)="saveGoal()">
+          Создать
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ═══ Dialog: Внести операцию ═══ -->
+@if (showTransactionDialog()) {
+  <div class="overlay" (click)="onBackdropClick('transaction')">
+    <div class="dialog dialog--wide" (click)="stopPropagation($event)">
+      <div class="dialog__icon-circle dialog__icon-circle--accent">
+        <span class="material-symbols-outlined">receipt_long</span>
+      </div>
+      <h3 class="dialog__title">Новая операция</h3>
+      <p class="dialog__desc">Добавьте расход или доход</p>
+
+      <div class="dialog__fields">
+        <!-- Type toggle -->
+        <div class="field">
+          <label class="field__label">Тип операции</label>
+          <div class="type-toggle">
+            <button
+              class="type-toggle__btn"
+              [class.type-toggle__btn--active-expense]="txType === 'expense'"
+              type="button"
+              (click)="txType = 'expense'"
+            >
+              <span class="material-symbols-outlined">remove</span>
+              Расход
+            </button>
+            <button
+              class="type-toggle__btn"
+              [class.type-toggle__btn--active-income]="txType === 'income'"
+              type="button"
+              (click)="txType = 'income'"
+            >
+              <span class="material-symbols-outlined">add</span>
+              Доход
+            </button>
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="txTitle">Описание</label>
+          <input
+            id="txTitle"
+            class="field__input"
+            type="text"
+            [(ngModel)]="txTitle"
+            placeholder="Например: Обед в кафе"
+          />
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="txAmount">Сумма (&#8381;)</label>
+          <input
+            id="txAmount"
+            class="field__input"
+            type="text"
+            inputmode="decimal"
+            [(ngModel)]="txAmount"
+            placeholder="0,00"
+          />
+        </div>
+
+        <div class="field">
+          <label class="field__label">Категория</label>
+          <div class="category-select">
+            @for (cat of categories(); track cat.id) {
+              <button
+                class="category-select__item"
+                [class.category-select__item--active]="txCategoryId === cat.id"
+                type="button"
+                (click)="txCategoryId = cat.id"
+              >
+                <span
+                  class="material-symbols-outlined category-select__icon"
+                  [style.color]="cat.color"
+                >{{ cat.icon }}</span>
+                <span>{{ cat.name }}</span>
+              </button>
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="dialog__actions">
+        <button class="dialog__btn dialog__btn--secondary" type="button" (click)="showTransactionDialog.set(false)">
+          Отмена
+        </button>
+        <button class="dialog__btn dialog__btn--primary" type="button" (click)="saveTransaction()">
+          Добавить
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ═══ Dialog: Установить лимиты ═══ -->
+@if (showLimitDialog()) {
+  <div class="overlay" (click)="onBackdropClick('limit')">
+    <div class="dialog" (click)="stopPropagation($event)">
+      <div class="dialog__icon-circle dialog__icon-circle--accent">
+        <span class="material-symbols-outlined">tune</span>
+      </div>
+      <h3 class="dialog__title">Установить лимиты</h3>
+      <p class="dialog__desc">Задайте общие лимиты расходов</p>
+
+      <div class="dialog__fields">
+        <div class="field">
+          <label class="field__label" for="limitMonthly">Лимит на месяц (&#8381;)</label>
+          <input
+            id="limitMonthly"
+            class="field__input"
+            type="text"
+            inputmode="decimal"
+            [(ngModel)]="limitMonthly"
+            placeholder="Например: 50000"
+          />
+        </div>
+        <div class="field">
+          <label class="field__label" for="limitWeekly">Лимит на неделю (&#8381;)</label>
+          <input
+            id="limitWeekly"
+            class="field__input"
+            type="text"
+            inputmode="decimal"
+            [(ngModel)]="limitWeekly"
+            placeholder="Например: 12000"
+          />
+        </div>
+      </div>
+
+      <div class="dialog__actions">
+        <button class="dialog__btn dialog__btn--secondary" type="button" (click)="showLimitDialog.set(false)">
+          Отмена
+        </button>
+        <button class="dialog__btn dialog__btn--primary" type="button" (click)="saveLimits()">
+          Сохранить
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ═══ Dialog: Детализация расходов ═══ -->
+@if (showHistoryDialog()) {
+  <div class="overlay" (click)="onBackdropClick('history')">
+    <div class="dialog dialog--history" (click)="stopPropagation($event)">
+      <div class="dialog__icon-circle dialog__icon-circle--blue">
+        <span class="material-symbols-outlined">calendar_month</span>
+      </div>
+      <h3 class="dialog__title">Детализация расходов</h3>
+      <p class="dialog__desc">Подробная статистика по периодам</p>
+
+      <!-- Mode toggle -->
+      <div class="tab-toggle tab-toggle--centered">
+        <button
+          class="tab-toggle__btn"
+          [class.tab-toggle__btn--active]="historyMode() === 'weekly'"
+          type="button"
+          (click)="setHistoryMode('weekly')"
+        >
+          По неделям
+        </button>
+        <button
+          class="tab-toggle__btn"
+          [class.tab-toggle__btn--active]="historyMode() === 'monthly'"
+          type="button"
+          (click)="setHistoryMode('monthly')"
+        >
+          По месяцам
+        </button>
+      </div>
+
+      <div class="history-list">
+        @for (yearGroup of historyData(); track yearGroup.year) {
+          <div class="history-year">
+            <div class="history-year__header">{{ yearGroup.year }}</div>
+            @for (period of yearGroup.periods; track period.key) {
+              <div class="history-period" [class.history-period--over]="period.isOverLimit">
+                <button
+                  class="history-period__row"
+                  type="button"
+                  (click)="togglePeriodDetail(period.key)"
+                >
+                  <div class="history-period__info">
+                    <span class="history-period__label">{{ period.label }}</span>
+                    @if (period.dateRange) {
+                      <span class="history-period__range">{{ period.dateRange }}</span>
+                    }
+                  </div>
+                  <div class="history-period__right">
+                    <span class="history-period__total">{{ formatRub(period.total) }}</span>
+                    @if (period.isOverLimit) {
+                      <span class="history-period__badge history-period__badge--over">Превышен</span>
+                    }
+                    <span
+                      class="material-symbols-outlined history-period__chevron"
+                      [class.history-period__chevron--open]="expandedPeriodKey() === period.key"
+                    >
+                      expand_more
+                    </span>
+                  </div>
+                </button>
+
+                @if (expandedPeriodKey() === period.key) {
+                  <div class="history-period__details">
+                    @for (cat of period.categories; track cat.name) {
+                      <div class="history-cat" [class.history-cat--over]="cat.isOverLimit">
+                        <div class="history-cat__icon" [style.background]="cat.bg" [style.color]="cat.color">
+                          <span class="material-symbols-outlined">{{ cat.icon }}</span>
+                        </div>
+                        <span class="history-cat__name">{{ cat.name }}</span>
+                        <span class="history-cat__total">{{ formatRub(cat.total) }}</span>
+                        @if (cat.isOverLimit) {
+                          <span class="history-cat__over">!</span>
+                        }
+                      </div>
+                    }
+                    @if (period.limit > 0) {
+                      <div class="history-period__limit-info">
+                        Лимит: {{ formatRub(period.limit) }}
+                        &middot;
+                        {{ period.isOverLimit
+                          ? 'Превышен на ' + formatRub(period.total - period.limit)
+                          : 'Осталось ' + formatRub(period.limit - period.total)
+                        }}
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        }
+
+        @if (historyData().length === 0) {
+          <div class="history-empty">
+            <span class="material-symbols-outlined">receipt_long</span>
+            <p>Нет данных о расходах</p>
+          </div>
+        }
+      </div>
+
+      <div class="dialog__actions">
+        <button
+          class="dialog__btn dialog__btn--secondary"
+          type="button"
+          (click)="showHistoryDialog.set(false)"
+        >
+          Закрыть
+        </button>
+      </div>
+    </div>
+  </div>
+}
