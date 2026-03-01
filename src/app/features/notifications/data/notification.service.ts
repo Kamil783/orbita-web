@@ -22,6 +22,7 @@ export class NotificationService implements OnDestroy {
   private readonly http = inject(HttpClient);
 
   private hubConnection: signalR.HubConnection | null = null;
+  private tokenFactory: (() => string | null) | null = null;
 
   private readonly _notifications = signal<AppNotification[]>([]);
   private readonly _toasts = signal<AppNotification[]>([]);
@@ -40,12 +41,14 @@ export class NotificationService implements OnDestroy {
   }
 
   /** Start SignalR connection */
-  startConnection(): void {
+  startConnection(tokenFactory: () => string | null): void {
     if (this.hubConnection) return;
+
+    this.tokenFactory = tokenFactory;
 
     this.hubConnection = new signalR.HubConnectionBuilder()
       .withUrl(`${this.apiUrl}/hubs/notifications`, {
-        accessTokenFactory: () => localStorage.getItem('access_token') ?? '',
+        accessTokenFactory: () => this.tokenFactory?.() ?? '',
       })
       .withAutomaticReconnect()
       .build();
@@ -63,6 +66,7 @@ export class NotificationService implements OnDestroy {
   stopConnection(): void {
     this.hubConnection?.stop();
     this.hubConnection = null;
+    this.tokenFactory = null;
   }
 
   /** Push a notification (used by SignalR callback) */
