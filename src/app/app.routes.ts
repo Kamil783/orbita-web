@@ -1,14 +1,17 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './features/auth/data/auth.guard';
+import { guestGuard } from './features/auth/data/guest.guard';
 
 export const routes: Routes = [
   {
     path: '',
+    canActivate: [guestGuard],
     loadComponent: () =>
       import('./pages/landing/landing-page.component').then(m => m.LandingPageComponent),
   },
   {
     path: 'login',
+    canActivate: [guestGuard],
     loadComponent: () =>
       import('./pages/login/login-page.component').then(m => m.LoginPageComponent),
   },
@@ -23,6 +26,12 @@ export const routes: Routes = [
     canActivate: [authGuard],
     loadComponent: () =>
       import('./pages/calendar/calendar-page.component').then(m => m.CalendarPageComponent),
+  },
+  {
+    path: 'finance',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./pages/finance/finance-page.component').then(m => m.FinancePageComponent),
   },
   {
     path: 'profile',

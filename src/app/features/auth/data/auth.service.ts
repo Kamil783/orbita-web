@@ -16,15 +16,23 @@ export interface LoginRequest {
   password: string;
 }
 
-const ACCESS_TOKEN_KEY = 'access_token';
+interface JwtPayload {
+  exp: number;
+  iss: string;
+  aud: string;
+  [key: string]: unknown;
+}
+
 const REFRESH_TOKEN_KEY = 'refresh_token';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly apiUrl = environment.apiUrl;
-  private readonly _isLoggedIn = signal(this.hasToken());
+  private readonly _isLoggedIn = signal(false);
 
   readonly isLoggedIn = this._isLoggedIn.asReadonly();
+
+  private accessToken: string | null = null;
 
   private readonly injector = inject(Injector);
 
@@ -32,7 +40,9 @@ export class AuthService {
     private readonly http: HttpClient,
     private readonly router: Router,
     private readonly userService: UserService,
-  ) {}
+  ) {
+    localStorage.removeItem('access_token');
+  }
 
   login(credentials: LoginRequest): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.apiUrl}/api/Auth/login`, credentials).pipe(
@@ -41,7 +51,7 @@ export class AuthService {
       tap(() => {
         const ns = this.injector.get(NotificationService);
         ns.loadNotifications();
-        ns.startConnection();
+        ns.startConnection(() => this.getAccessToken());
       }),
       catchError(err => throwError(() => err)),
     );
@@ -54,8 +64,15 @@ export class AuthService {
     );
   }
 
+  tryRestoreSession(): Observable<AuthResponse> {
+    if (!this.getRefreshToken()) {
+      return throwError(() => new Error('No refresh token'));
+    }
+    return this.refresh();
+  }
+
   logout(): void {
-    localStorage.removeItem(ACCESS_TOKEN_KEY);
+    this.accessToken = null;
     localStorage.removeItem(REFRESH_TOKEN_KEY);
     this._isLoggedIn.set(false);
     this.userService.clear();
@@ -64,7 +81,10 @@ export class AuthService {
   }
 
   getAccessToken(): string | null {
-    return localStorage.getItem(ACCESS_TOKEN_KEY);
+    if (this.accessToken && this.isTokenValid(this.accessToken)) {
+      return this.accessToken;
+    }
+    return null;
   }
 
   getRefreshToken(): string | null {
@@ -72,12 +92,42 @@ export class AuthService {
   }
 
   private setTokens(res: AuthResponse): void {
-    localStorage.setItem(ACCESS_TOKEN_KEY, res.accessToken);
+    if (!this.isTokenValid(res.accessToken)) {
+      throw new Error('Received invalid access token');
+    }
+    this.accessToken = res.accessToken;
     localStorage.setItem(REFRESH_TOKEN_KEY, res.refreshToken);
     this._isLoggedIn.set(true);
   }
 
-  private hasToken(): boolean {
-    return !!localStorage.getItem(ACCESS_TOKEN_KEY);
+  private isTokenValid(token: string): boolean {
+    const payload = this.decodeToken(token);
+    if (!payload) return false;
+
+    if (payload.iss !== 'Orbita') return false;
+    if (payload.aud !== 'Orbita.Client') return false;
+
+    const now = Math.floor(Date.now() / 1000);
+    if (!payload.exp || payload.exp <= now) return false;
+
+    return true;
+  }
+
+  private decodeToken(token: string): JwtPayload | null {
+    try {
+      const parts = token.split('.');
+      if (parts.length !== 3) return null;
+
+      const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+      const json = decodeURIComponent(
+        atob(base64)
+          .split('')
+          .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+          .join(''),
+      );
+      return JSON.parse(json) as JwtPayload;
+    } catch {
+      return null;
+    }
   }
 }

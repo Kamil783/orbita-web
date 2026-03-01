@@ -14,6 +14,12 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   }
 
   const token = authService.getAccessToken();
+
+  // Token expired but refresh token exists — proactively refresh
+  if (!token && authService.getRefreshToken()) {
+    return handleRefresh(authService, req, next);
+  }
+
   const authedReq = token ? addToken(req, token) : req;
 
   return next(authedReq).pipe(

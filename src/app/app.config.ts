@@ -1,7 +1,7 @@
 import { ApplicationConfig, provideBrowserGlobalErrorListeners, inject, provideAppInitializer } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, switchMap, tap, of, catchError } from 'rxjs';
 
 import { routes } from './app.routes';
 import { authInterceptor } from './features/auth/data/auth.interceptor';
@@ -19,10 +19,17 @@ export const appConfig: ApplicationConfig = {
       const userService = inject(UserService);
       const notificationService = inject(NotificationService);
 
-      if (authService.isLoggedIn()) {
-        notificationService.loadNotifications();
-        notificationService.startConnection();
-        return firstValueFrom(userService.loadProfile());
+      if (authService.getRefreshToken()) {
+        return firstValueFrom(
+          authService.tryRestoreSession().pipe(
+            switchMap(() => userService.loadProfile()),
+            tap(() => {
+              notificationService.loadNotifications();
+              notificationService.startConnection(() => authService.getAccessToken());
+            }),
+            catchError(() => of(undefined)),
+          ),
+        );
       }
       return;
     }),
