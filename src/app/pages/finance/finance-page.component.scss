@@ -79,10 +79,19 @@ $finance-accent-border: rgba(250, 204, 21, 0.30);
 .top-grid__transactions {
   display: flex;
   flex-direction: column;
+  gap: 16px;
+
+  .section-header {
+    margin-bottom: 0;
+  }
 
   .transactions-card {
     flex: 1;
   }
+}
+
+.top-grid__stats .section-header {
+  margin-bottom: 0;
 }
 
 // ─── Section divider ───
@@ -168,6 +177,8 @@ $finance-accent-border: rgba(250, 204, 21, 0.30);
 
 // ─── Transactions card (top-right) ───
 .transactions-card {
+  display: flex;
+  flex-direction: column;
   background: #ffffff;
   border: 1px solid #e5e7eb;
   border-radius: var(--radius-md);
@@ -263,6 +274,11 @@ $finance-accent-border: rgba(250, 204, 21, 0.30);
 }
 
 .transactions-card__empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   padding: 40px 16px;
   text-align: center;
   color: #9ca3af;
