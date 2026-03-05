@@ -6,7 +6,7 @@
   align-items: center;
   justify-content: center;
   padding: 16px;
-  background: rgba(0, 0, 0, 0.40);
+  background: var(--overlay-bg);
   backdrop-filter: blur(4px);
   animation: overlayIn 0.15s ease-out;
 }
@@ -20,12 +20,12 @@
   position: relative;
   width: 100%;
   max-width: 420px;
-  background: #ffffff;
+  background: var(--surface-panel);
   border-radius: 16px;
   padding: 40px 32px 32px;
   text-align: center;
   box-shadow: 0 24px 48px rgba(0, 0, 0, 0.16);
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border-color);
   animation: dialogIn 0.2s ease-out;
 }
 
@@ -55,24 +55,24 @@
 }
 
 .dialog__icon--danger {
-  background: #fef2f2;
+  background: var(--color-danger-bg);
 
   .material-symbols-outlined {
-    color: #ef4444;
+    color: var(--color-danger);
   }
 }
 
 .dialog__title {
   font-size: 20px;
   font-weight: 700;
-  color: #111418;
+  color: var(--text-main);
   margin: 0 0 8px;
 }
 
 .dialog__message {
   font-size: 14px;
   line-height: 1.5;
-  color: #60758a;
+  color: var(--icon-muted);
   margin: 0 0 32px;
 }
 
@@ -93,21 +93,21 @@
 }
 
 .btn--secondary {
-  background: #f3f4f6;
-  color: #374151;
+  background: var(--btn-secondary-bg);
+  color: var(--btn-secondary-text);
 
   &:hover {
-    background: #e5e7eb;
+    background: var(--btn-secondary-hover);
   }
 }
 
 .btn--danger {
-  background: #ef4444;
+  background: var(--color-danger);
   color: #ffffff;
   box-shadow: 0 8px 16px rgba(239, 68, 68, 0.20);
 
   &:hover {
-    background: #dc2626;
+    background: var(--color-danger-hover);
   }
 }
 
@@ -116,6 +116,6 @@
   color: #ffffff;
 
   &:hover {
-    background: #1d7ad8;
+    background: var(--color-primary-hover);
   }
 }

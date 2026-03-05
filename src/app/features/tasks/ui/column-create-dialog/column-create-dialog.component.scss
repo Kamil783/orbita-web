@@ -6,7 +6,7 @@
   align-items: center;
   justify-content: center;
   padding: 16px;
-  background: rgba(0, 0, 0, 0.40);
+  background: var(--overlay-bg);
   backdrop-filter: blur(4px);
   animation: overlayIn 0.15s ease-out;
 }
@@ -20,12 +20,12 @@
   position: relative;
   width: 100%;
   max-width: 420px;
-  background: #ffffff;
+  background: var(--surface-panel);
   border-radius: 16px;
   padding: 40px 32px 32px;
   text-align: center;
   box-shadow: 0 24px 48px rgba(0, 0, 0, 0.16);
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border-color);
   animation: dialogIn 0.2s ease-out;
 }
 
@@ -48,7 +48,7 @@
   align-items: center;
   justify-content: center;
   margin: 0 auto 24px;
-  background: #eff6ff;
+  background: rgba(37, 140, 244, 0.08);
 
   .material-symbols-outlined {
     font-size: 36px;
@@ -59,25 +59,25 @@
 .dialog__title {
   font-size: 20px;
   font-weight: 700;
-  color: #111418;
+  color: var(--text-main);
   margin: 0 0 8px;
 }
 
 .dialog__message {
   font-size: 14px;
   line-height: 1.5;
-  color: #60758a;
+  color: var(--icon-muted);
   margin: 0 0 24px;
 }
 
 .dialog__input {
   width: 100%;
-  background: #f5f7f8;
-  border: 1px solid #e5e7eb;
+  background: var(--surface-input);
+  border: 1px solid var(--border-color);
   border-radius: 10px;
   font-size: 14px;
   padding: 12px 14px;
-  color: #111418;
+  color: var(--text-main);
   outline: none;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
   font-family: inherit;
@@ -85,7 +85,7 @@
   margin-bottom: 24px;
 
   &::placeholder {
-    color: #9ca3af;
+    color: var(--text-400);
   }
 
   &:focus {
@@ -111,11 +111,11 @@
 }
 
 .btn--secondary {
-  background: #f3f4f6;
-  color: #374151;
+  background: var(--btn-secondary-bg);
+  color: var(--btn-secondary-text);
 
   &:hover {
-    background: #e5e7eb;
+    background: var(--btn-secondary-hover);
   }
 }
 
@@ -125,7 +125,7 @@
   box-shadow: 0 4px 12px rgba(37, 140, 244, 0.20);
 
   &:hover {
-    background: #1d7ad8;
+    background: var(--color-primary-hover);
   }
 
   &:disabled {

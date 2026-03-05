@@ -8,9 +8,9 @@
   padding: 18px 16px 10px;
   border-radius: 12px;
 
-  border: 1px solid #dbe0e6;
-  background: #ffffff;
-  color: #111418;
+  border: 1px solid var(--border-color);
+  background: var(--surface-panel);
+  color: var(--text-main);
 
   outline: none;
   transition: border-color .2s ease, box-shadow .2s ease;
@@ -28,7 +28,7 @@
 
   font-size: 16px;
   font-weight: 600;
-  color: #60758a;
+  color: var(--icon-muted);
 
   pointer-events: none;
   transition: all .2s ease;

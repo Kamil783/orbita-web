@@ -38,13 +38,13 @@
   margin: 0;
   font-size: 18px;
   font-weight: 700;
-  color: #111418;
+  color: var(--text-main);
 }
 
 .backlog__subtitle {
   margin: 2px 0 0;
   font-size: 13px;
-  color: #60758a;
+  color: var(--icon-muted);
 }
 
 .backlog__add-btn {
@@ -61,7 +61,7 @@
   color: #fff;
   transition: background 0.15s ease;
 
-  &:hover { background: #1d7ad8; }
+  &:hover { background: var(--color-primary-hover); }
 
   .material-symbols-outlined { font-size: 18px; }
 }
@@ -86,7 +86,7 @@
 .backlog__filter-sep {
   width: 1px;
   height: 20px;
-  background: #e5e7eb;
+  background: var(--border-color);
   margin: 0 4px;
 }
 
@@ -94,15 +94,15 @@
   padding: 6px 16px;
   font-size: 13px;
   font-weight: 600;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border-color);
   border-radius: 9999px;
-  background: #fff;
-  color: #60758a;
+  background: var(--surface-panel);
+  color: var(--icon-muted);
   cursor: pointer;
   transition: all 0.15s ease;
 
   &:hover:not(.filter-chip--active) {
-    background: #f5f7f8;
+    background: var(--surface-muted);
   }
 }
 
@@ -137,7 +137,7 @@
   top: 50%;
   transform: translateY(-50%);
   font-size: 18px;
-  color: #9ca3af;
+  color: var(--text-400);
   pointer-events: none;
 }
 
@@ -145,21 +145,21 @@
   width: 100%;
   padding: 8px 12px 8px 36px;
   font-size: 13px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border-color);
   border-radius: 10px;
-  background: #f5f7f8;
-  color: #111418;
+  background: var(--surface-input);
+  color: var(--text-main);
   outline: none;
   transition: border-color 0.15s ease;
 
-  &::placeholder { color: #9ca3af; }
+  &::placeholder { color: var(--text-400); }
   &:focus { border-color: var(--color-primary); }
 }
 
 /* ── Add form ── */
 .add-form {
-  background: #f8fafc;
-  border: 1px solid #e5e7eb;
+  background: var(--surface-muted);
+  border: 1px solid var(--border-color);
   border-radius: 12px;
   padding: 14px 16px;
   margin-bottom: 16px;
@@ -193,22 +193,22 @@
   flex: 1;
   padding: 10px 14px;
   font-size: 14px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border-color);
   border-radius: 8px;
-  background: #fff;
-  color: #111418;
+  background: var(--surface-panel);
+  color: var(--text-main);
   outline: none;
   font-family: inherit;
 
-  &::placeholder { color: #9ca3af; }
+  &::placeholder { color: var(--text-400); }
   &:focus { border-color: var(--color-primary); }
 }
 
 .add-form__priority {
   display: flex;
   gap: 4px;
-  background: #fff;
-  border: 1px solid #e5e7eb;
+  background: var(--surface-panel);
+  border: 1px solid var(--border-color);
   border-radius: 10px;
   padding: 4px;
   height: 42px;
@@ -223,11 +223,11 @@
   border: 0;
   border-radius: 8px;
   background: transparent;
-  color: #6b7280;
+  color: var(--text-500);
   cursor: pointer;
   transition: all 0.15s ease;
 
-  &:hover:not(.seg-btn--active) { background: #f5f7f8; }
+  &:hover:not(.seg-btn--active) { background: var(--surface-muted); }
 }
 
 .seg-btn--active {
@@ -252,7 +252,7 @@ app-date-picker {
   color: #fff;
   transition: background 0.15s ease;
 
-  &:hover { background: #1d7ad8; }
+  &:hover { background: var(--color-primary-hover); }
 }
 
 .add-form__cancel {
@@ -262,11 +262,11 @@ app-date-picker {
   border: 0;
   border-radius: 8px;
   cursor: pointer;
-  background: #f3f4f6;
-  color: #4b5563;
+  background: var(--btn-secondary-bg);
+  color: var(--btn-secondary-text);
   transition: background 0.15s ease;
 
-  &:hover { background: #e5e7eb; }
+  &:hover { background: var(--btn-secondary-hover); }
 }
 
 /* ── Task list ── */
@@ -288,7 +288,7 @@ app-date-picker {
   transition: background 0.12s ease;
 
   &:hover {
-    background: #f5f7f8;
+    background: var(--surface-muted);
   }
 }
 
@@ -320,7 +320,7 @@ app-date-picker {
 .task-row__title {
   font-size: 14px;
   font-weight: 500;
-  color: #111418;
+  color: var(--text-main);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -348,7 +348,7 @@ app-date-picker {
   align-items: center;
   gap: 4px;
   font-size: 12px;
-  color: #60758a;
+  color: var(--icon-muted);
 
   .material-symbols-outlined { font-size: 14px; }
 }
@@ -363,7 +363,7 @@ app-date-picker {
   width: 26px;
   height: 26px;
   border-radius: 9999px;
-  border: 2px solid #fff;
+  border: 2px solid var(--surface-panel);
 }
 
 .task-row__week-btn {
@@ -373,10 +373,10 @@ app-date-picker {
   padding: 6px 12px;
   font-size: 12px;
   font-weight: 600;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border-color);
   border-radius: 8px;
-  background: #fff;
-  color: #60758a;
+  background: var(--surface-panel);
+  color: var(--icon-muted);
   cursor: pointer;
   white-space: nowrap;
   transition: all 0.15s ease;
@@ -402,7 +402,7 @@ app-date-picker {
   align-items: center;
   justify-content: center;
   padding: 60px 20px;
-  color: #9ca3af;
+  color: var(--text-400);
   gap: 8px;
 }
 
