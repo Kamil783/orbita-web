@@ -68,6 +68,10 @@ export interface BalanceResponse {
   balance: number;      // kopecks
 }
 
+export interface PreviousMonthBalanceResponse {
+  balance: number;      // kopecks
+}
+
 // ─── UI constants ───
 
 export const ICON_OPTIONS: { icon: string; label: string }[] = [

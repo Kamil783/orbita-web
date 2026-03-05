@@ -120,6 +120,22 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
       : { text: 'В РАМКАХ ПЛАНА', status: 'ok' as const };
   });
 
+  readonly balanceTrend = computed(() => {
+    const currentBalance = this.balance();
+    const previousBalance = this.financeService.previousMonthBalance();
+
+    if (previousBalance === null || previousBalance === 0) {
+      return { hasData: false, percent: 0, formatted: '' };
+    }
+
+    const percent = ((currentBalance - previousBalance) / Math.abs(previousBalance)) * 100;
+    const rounded = Math.round(percent * 10) / 10;
+    const sign = rounded >= 0 ? '+' : '';
+    const formatted = `${sign}${rounded.toLocaleString('ru-RU')}%`;
+
+    return { hasData: true, percent: rounded, formatted };
+  });
+
   readonly monthlyLimitStatus = computed(() => {
     const limit = this.monthlyLimit();
     const spend = this.monthlySpend();
@@ -287,6 +303,7 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnInit(): void {
     this.financeService.loadBalance();
+    this.financeService.loadPreviousMonthBalance();
     this.financeService.loadCategories();
     this.financeService.loadTransactions();
     this.financeService.loadSavingsGoals();
