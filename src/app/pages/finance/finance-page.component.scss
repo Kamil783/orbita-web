@@ -253,6 +253,22 @@ $finance-accent-border: rgba(250, 204, 21, 0.30);
   }
 }
 
+.transactions-card__empty {
+  padding: 40px 16px;
+  text-align: center;
+  color: #9ca3af;
+
+  p {
+    margin: 8px 0 0;
+    font-size: 13px;
+  }
+}
+
+.transactions-card__empty-icon {
+  font-size: 32px;
+  color: #d1d5db;
+}
+
 // ═══════════════════════════════════════
 // ─── Middle zone: Analytics ───
 // ═══════════════════════════════════════

@@ -120,6 +120,31 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
       : { text: 'В РАМКАХ ПЛАНА', status: 'ok' as const };
   });
 
+  readonly balanceTrend = computed(() => {
+    const currentBalance = this.balance();
+    const now = Date.now();
+    const cutoff = now - 30 * 86400000;
+
+    // Sum of all transactions in the past 30 days
+    const monthDelta = this.transactions()
+      .filter(t => t.timestamp >= cutoff)
+      .reduce((sum, t) => sum + t.amount, 0);
+
+    // Balance one month ago = current balance minus net change over the month
+    const previousBalance = currentBalance - monthDelta;
+
+    if (previousBalance === 0) {
+      return { hasData: false, percent: 0, formatted: '' };
+    }
+
+    const percent = ((currentBalance - previousBalance) / Math.abs(previousBalance)) * 100;
+    const rounded = Math.round(percent * 10) / 10;
+    const sign = rounded >= 0 ? '+' : '';
+    const formatted = `${sign}${rounded.toLocaleString('ru-RU')}%`;
+
+    return { hasData: true, percent: rounded, formatted };
+  });
+
   readonly monthlyLimitStatus = computed(() => {
     const limit = this.monthlyLimit();
     const spend = this.monthlySpend();
