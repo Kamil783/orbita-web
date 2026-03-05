@@ -27,8 +27,8 @@ export interface MealCategory {
 }
 
 export const DEFAULT_MEAL_CATEGORIES: MealCategory[] = [
-  { id: 'breakfast', name: 'Завтрак', icon: 'wb_sunny', order: 0 },
-  { id: 'lunch', name: 'Обед', icon: 'light_mode', order: 1 },
+  { id: 'breakfast', name: 'Завтрак', icon: 'breakfast_dining', order: 0 },
+  { id: 'lunch', name: 'Обед', icon: 'lunch_dining', order: 1 },
   { id: 'dinner', name: 'Ужин', icon: 'dark_mode', order: 2 },
 ];
 
@@ -41,12 +41,12 @@ export const DEFAULT_NUTRITION_GOAL: NutritionGoal = {
 };
 
 export const MEAL_ICON_OPTIONS = [
-  { icon: 'wb_sunny', label: 'Утро' },
-  { icon: 'light_mode', label: 'День' },
+  { icon: 'breakfast_dining', label: 'Завтрак' },
+  { icon: 'lunch_dining', label: 'Обед' },
   { icon: 'dark_mode', label: 'Вечер' },
   { icon: 'icecream', label: 'Перекус' },
   { icon: 'local_cafe', label: 'Кафе' },
   { icon: 'restaurant', label: 'Ресторан' },
   { icon: 'bakery_dining', label: 'Выпечка' },
-  { icon: 'lunch_dining', label: 'Фастфуд' },
+  { icon: 'wb_sunny', label: 'Утро' },
 ];
