@@ -122,18 +122,9 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   readonly balanceTrend = computed(() => {
     const currentBalance = this.balance();
-    const now = Date.now();
-    const cutoff = now - 30 * 86400000;
+    const previousBalance = this.financeService.previousMonthBalance();
 
-    // Sum of all transactions in the past 30 days
-    const monthDelta = this.transactions()
-      .filter(t => t.timestamp >= cutoff)
-      .reduce((sum, t) => sum + t.amount, 0);
-
-    // Balance one month ago = current balance minus net change over the month
-    const previousBalance = currentBalance - monthDelta;
-
-    if (previousBalance === 0) {
+    if (previousBalance === null || previousBalance === 0) {
       return { hasData: false, percent: 0, formatted: '' };
     }
 
@@ -312,6 +303,7 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnInit(): void {
     this.financeService.loadBalance();
+    this.financeService.loadPreviousMonthBalance();
     this.financeService.loadCategories();
     this.financeService.loadTransactions();
     this.financeService.loadSavingsGoals();
