@@ -67,13 +67,22 @@ $finance-accent-border: rgba(250, 204, 21, 0.30);
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 32px;
-  align-items: start;
+  align-items: stretch;
 }
 
 .top-grid__stats {
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
+
+.top-grid__transactions {
+  display: flex;
+  flex-direction: column;
+
+  .transactions-card {
+    flex: 1;
+  }
 }
 
 // ─── Section divider ───
