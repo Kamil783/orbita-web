@@ -1,0 +1,503 @@
+<app-app-shell>
+  <app-topbar [title]="title" placeholder="Поиск продуктов...">
+    <div topbar-left-extra class="date-nav">
+      <button class="date-nav__btn" type="button" (click)="prevDay()">
+        <span class="material-symbols-outlined">chevron_left</span>
+      </button>
+      <span class="date-nav__label">{{ formattedDate() }}</span>
+      <button class="date-nav__btn" type="button" (click)="nextDay()">
+        <span class="material-symbols-outlined">chevron_right</span>
+      </button>
+    </div>
+  </app-topbar>
+
+  <main class="page">
+    <!-- Action buttons bar -->
+    <div class="actions-bar">
+      <button class="action-btn action-btn--primary" type="button" (click)="openFoodDialog()">
+        <span class="material-symbols-outlined action-btn__icon">add</span>
+        <span>Добавить еду</span>
+      </button>
+      <button class="action-btn" type="button" (click)="openGoalDialog()">
+        <span class="material-symbols-outlined action-btn__icon">flag</span>
+        <span>Цель питания</span>
+      </button>
+      <button class="action-btn" type="button" (click)="openCategoryDialog()">
+        <span class="material-symbols-outlined action-btn__icon">playlist_add</span>
+        <span>Добавить приём пищи</span>
+      </button>
+      <button class="action-btn action-btn--ai" type="button" (click)="openAiDialog()">
+        <span class="material-symbols-outlined action-btn__icon">auto_awesome</span>
+        <span>ИИ Помощник</span>
+      </button>
+    </div>
+
+    <!-- ═══ Daily Summary ═══ -->
+    <section class="summary-card">
+      <h3 class="summary-card__title">
+        <span class="material-symbols-outlined summary-card__title-icon">analytics</span>
+        Дневная сводка
+      </h3>
+      <div class="rings-grid">
+        <!-- Main Calorie Ring -->
+        <div class="ring-item ring-item--main">
+          <div class="ring-wrapper ring-wrapper--lg">
+            <svg viewBox="0 0 128 128">
+              <circle class="ring-bg" cx="64" cy="64" r="58" fill="transparent" stroke-width="8" />
+              <circle class="ring-fill" cx="64" cy="64" r="58" fill="transparent" stroke-width="8"
+                stroke-dasharray="364.42"
+                [attr.stroke-dashoffset]="calorieRingOffset()"
+                stroke-linecap="round" />
+            </svg>
+            <div class="ring-center">
+              <span class="ring-center__value">{{ caloriesLeft() }}</span>
+              <span class="ring-center__label">ккал ост.</span>
+            </div>
+          </div>
+          <p class="ring-item__name">Калории</p>
+          <p class="ring-item__goal">Цель: {{ goal().calories }} ккал</p>
+        </div>
+
+        <!-- Protein Ring -->
+        <div class="ring-item">
+          <div class="ring-wrapper ring-wrapper--sm">
+            <svg viewBox="0 0 96 96">
+              <circle class="ring-bg" cx="48" cy="48" r="42" fill="transparent" stroke-width="6" />
+              <circle class="ring-fill ring-fill--protein" cx="48" cy="48" r="42" fill="transparent" stroke-width="6"
+                stroke-dasharray="263.89"
+                [attr.stroke-dashoffset]="macroRingOffset(totals().protein, goal().protein)"
+                stroke-linecap="round" />
+            </svg>
+            <div class="ring-center ring-center--sm">
+              <span class="ring-center__value ring-center__value--sm">{{ totals().protein }}г</span>
+              <span class="ring-center__label ring-center__label--sm">Белки</span>
+            </div>
+          </div>
+          <p class="ring-item__goal">Цель: {{ goal().protein }}г</p>
+        </div>
+
+        <!-- Carbs Ring -->
+        <div class="ring-item">
+          <div class="ring-wrapper ring-wrapper--sm">
+            <svg viewBox="0 0 96 96">
+              <circle class="ring-bg" cx="48" cy="48" r="42" fill="transparent" stroke-width="6" />
+              <circle class="ring-fill ring-fill--carbs" cx="48" cy="48" r="42" fill="transparent" stroke-width="6"
+                stroke-dasharray="263.89"
+                [attr.stroke-dashoffset]="macroRingOffset(totals().carbs, goal().carbs)"
+                stroke-linecap="round" />
+            </svg>
+            <div class="ring-center ring-center--sm">
+              <span class="ring-center__value ring-center__value--sm">{{ totals().carbs }}г</span>
+              <span class="ring-center__label ring-center__label--sm">Углеводы</span>
+            </div>
+          </div>
+          <p class="ring-item__goal">Цель: {{ goal().carbs }}г</p>
+        </div>
+
+        <!-- Fat Ring -->
+        <div class="ring-item">
+          <div class="ring-wrapper ring-wrapper--sm">
+            <svg viewBox="0 0 96 96">
+              <circle class="ring-bg" cx="48" cy="48" r="42" fill="transparent" stroke-width="6" />
+              <circle class="ring-fill ring-fill--fat" cx="48" cy="48" r="42" fill="transparent" stroke-width="6"
+                stroke-dasharray="263.89"
+                [attr.stroke-dashoffset]="macroRingOffset(totals().fat, goal().fat)"
+                stroke-linecap="round" />
+            </svg>
+            <div class="ring-center ring-center--sm">
+              <span class="ring-center__value ring-center__value--sm">{{ totals().fat }}г</span>
+              <span class="ring-center__label ring-center__label--sm">Жиры</span>
+            </div>
+          </div>
+          <p class="ring-item__goal">Цель: {{ goal().fat }}г</p>
+        </div>
+
+        <!-- Fiber Ring -->
+        <div class="ring-item">
+          <div class="ring-wrapper ring-wrapper--sm">
+            <svg viewBox="0 0 96 96">
+              <circle class="ring-bg" cx="48" cy="48" r="42" fill="transparent" stroke-width="6" />
+              <circle class="ring-fill ring-fill--fiber" cx="48" cy="48" r="42" fill="transparent" stroke-width="6"
+                stroke-dasharray="263.89"
+                [attr.stroke-dashoffset]="macroRingOffset(totals().fiber, goal().fiber)"
+                stroke-linecap="round" />
+            </svg>
+            <div class="ring-center ring-center--sm">
+              <span class="ring-center__value ring-center__value--sm">{{ totals().fiber }}г</span>
+              <span class="ring-center__label ring-center__label--sm">Клетчатка</span>
+            </div>
+          </div>
+          <p class="ring-item__goal">Цель: {{ goal().fiber }}г</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ Meal Log ═══ -->
+    <section class="meals-section">
+      <div class="section-header">
+        <h3 class="section-header__title">Журнал питания</h3>
+      </div>
+
+      <div class="meals-list">
+        @for (group of mealGroups(); track group.id) {
+          <div class="meal-card">
+            <div class="meal-card__header">
+              <div class="meal-card__header-left">
+                <span class="material-symbols-outlined meal-card__icon">{{ group.icon }}</span>
+                <span class="meal-card__name">{{ group.name }}</span>
+              </div>
+              <div class="meal-card__header-right">
+                <span class="meal-card__kcal">{{ group.totalCalories }} ккал</span>
+                <button class="meal-card__add-btn" type="button" (click)="openFoodDialog(group.id)">
+                  <span class="material-symbols-outlined">add</span>
+                </button>
+                <button class="meal-card__delete-btn" type="button" (click)="confirmDeleteCategory(group)" title="Удалить категорию">
+                  <span class="material-symbols-outlined">close</span>
+                </button>
+              </div>
+            </div>
+
+            @if (group.entries.length > 0) {
+              <div class="meal-card__entries">
+                @for (entry of group.entries; track entry.id) {
+                  <div class="food-row">
+                    <div class="food-row__info">
+                      <p class="food-row__name">{{ entry.name }}</p>
+                      <p class="food-row__portion">{{ entry.portion }}</p>
+                    </div>
+                    <div class="food-row__right">
+                      <span class="food-row__kcal">{{ entry.calories }} ккал</span>
+                      <div class="food-row__actions">
+                        <button class="food-row__action-btn" type="button" (click)="deleteFood(entry.id)">
+                          <span class="material-symbols-outlined">delete</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                }
+              </div>
+            } @else {
+              <div class="meal-card__empty">
+                <p>Нет записей</p>
+                <button class="meal-card__empty-btn" type="button" (click)="openFoodDialog(group.id)">
+                  Добавить
+                </button>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </section>
+  </main>
+</app-app-shell>
+
+<!-- ═══ Dialog: Добавить еду ═══ -->
+@if (showFoodDialog()) {
+  <div class="overlay" (click)="onBackdropClick('food')">
+    <div class="dialog dialog--wide" (click)="stopPropagation($event)">
+      <div class="dialog__scroll">
+        <div class="dialog__icon-circle dialog__icon-circle--green">
+          <span class="material-symbols-outlined">restaurant</span>
+        </div>
+        <h3 class="dialog__title">Добавить еду</h3>
+        <p class="dialog__desc">Введите данные о продукте</p>
+
+        <div class="dialog__fields">
+          <div class="field">
+            <label class="field__label">Приём пищи</label>
+            <div class="category-select">
+              @for (cat of sortedMealCategories(); track cat.id) {
+                <button
+                  class="category-select__item"
+                  [class.category-select__item--active]="foodMealCategoryId === cat.id"
+                  type="button"
+                  (click)="foodMealCategoryId = cat.id"
+                >
+                  <span class="material-symbols-outlined category-select__icon">{{ cat.icon }}</span>
+                  <span>{{ cat.name }}</span>
+                </button>
+              }
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="foodName">Название</label>
+            <input
+              id="foodName"
+              class="field__input"
+              type="text"
+              [(ngModel)]="foodName"
+              placeholder="Например: Овсянка с ягодами"
+            />
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="foodPortion">Порция</label>
+            <input
+              id="foodPortion"
+              class="field__input"
+              type="text"
+              [(ngModel)]="foodPortion"
+              placeholder="Например: 1 тарелка (150г)"
+            />
+          </div>
+
+          <div class="field-row">
+            <div class="field">
+              <label class="field__label" for="foodCal">Калории</label>
+              <input id="foodCal" class="field__input" type="text" inputmode="decimal" [(ngModel)]="foodCalories" placeholder="0" />
+            </div>
+            <div class="field">
+              <label class="field__label" for="foodProt">Белки (г)</label>
+              <input id="foodProt" class="field__input" type="text" inputmode="decimal" [(ngModel)]="foodProtein" placeholder="0" />
+            </div>
+          </div>
+
+          <div class="field-row">
+            <div class="field">
+              <label class="field__label" for="foodCarb">Углеводы (г)</label>
+              <input id="foodCarb" class="field__input" type="text" inputmode="decimal" [(ngModel)]="foodCarbs" placeholder="0" />
+            </div>
+            <div class="field">
+              <label class="field__label" for="foodFat">Жиры (г)</label>
+              <input id="foodFat" class="field__input" type="text" inputmode="decimal" [(ngModel)]="foodFat" placeholder="0" />
+            </div>
+          </div>
+
+          <div class="field-row">
+            <div class="field">
+              <label class="field__label" for="foodFib">Клетчатка (г)</label>
+              <input id="foodFib" class="field__input" type="text" inputmode="decimal" [(ngModel)]="foodFiber" placeholder="0" />
+            </div>
+            <div class="field">&nbsp;</div>
+          </div>
+        </div>
+
+        <div class="dialog__actions">
+          <button class="dialog__btn dialog__btn--secondary" type="button" (click)="showFoodDialog.set(false)">
+            Отмена
+          </button>
+          <button class="dialog__btn dialog__btn--primary" type="button" (click)="saveFood()">
+            Добавить
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ═══ Dialog: Цель питания ═══ -->
+@if (showGoalDialog()) {
+  <div class="overlay" (click)="onBackdropClick('goal')">
+    <div class="dialog dialog--wide" (click)="stopPropagation($event)">
+      <div class="dialog__scroll">
+        <div class="dialog__icon-circle dialog__icon-circle--green">
+          <span class="material-symbols-outlined">flag</span>
+        </div>
+        <h3 class="dialog__title">Суточная цель питания</h3>
+        <p class="dialog__desc">Задайте дневные нормы потребления</p>
+
+        <div class="dialog__fields">
+          <div class="field">
+            <label class="field__label" for="goalCal">Калории (ккал)</label>
+            <input id="goalCal" class="field__input" type="text" inputmode="decimal" [(ngModel)]="goalCalories" placeholder="2200" />
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label class="field__label" for="goalProt">Белки (г)</label>
+              <input id="goalProt" class="field__input" type="text" inputmode="decimal" [(ngModel)]="goalProtein" placeholder="150" />
+            </div>
+            <div class="field">
+              <label class="field__label" for="goalCarb">Углеводы (г)</label>
+              <input id="goalCarb" class="field__input" type="text" inputmode="decimal" [(ngModel)]="goalCarbs" placeholder="250" />
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label class="field__label" for="goalFat">Жиры (г)</label>
+              <input id="goalFat" class="field__input" type="text" inputmode="decimal" [(ngModel)]="goalFat" placeholder="70" />
+            </div>
+            <div class="field">
+              <label class="field__label" for="goalFib">Клетчатка (г)</label>
+              <input id="goalFib" class="field__input" type="text" inputmode="decimal" [(ngModel)]="goalFiber" placeholder="30" />
+            </div>
+          </div>
+        </div>
+
+        <div class="dialog__actions">
+          <button class="dialog__btn dialog__btn--secondary" type="button" (click)="showGoalDialog.set(false)">
+            Отмена
+          </button>
+          <button class="dialog__btn dialog__btn--primary" type="button" (click)="saveGoal()">
+            Сохранить
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ═══ Dialog: Добавить приём пищи ═══ -->
+@if (showCategoryDialog()) {
+  <div class="overlay" (click)="onBackdropClick('category')">
+    <div class="dialog" (click)="stopPropagation($event)">
+      <div class="dialog__scroll">
+        <div class="dialog__icon-circle dialog__icon-circle--blue">
+          <span class="material-symbols-outlined">playlist_add</span>
+        </div>
+        <h3 class="dialog__title">Новый приём пищи</h3>
+        <p class="dialog__desc">Добавьте категорию для группировки еды</p>
+
+        <div class="dialog__fields">
+          <div class="field">
+            <label class="field__label" for="catName">Название</label>
+            <input
+              id="catName"
+              class="field__input"
+              type="text"
+              [(ngModel)]="newCategoryName"
+              placeholder="Например: Перекус"
+            />
+          </div>
+
+          <div class="field">
+            <label class="field__label">Иконка</label>
+            <div class="icon-grid">
+              @for (opt of mealIconOptions; track opt.icon) {
+                <button
+                  class="icon-grid__item"
+                  [class.icon-grid__item--active]="newCategoryIcon === opt.icon"
+                  type="button"
+                  (click)="newCategoryIcon = opt.icon"
+                  [title]="opt.label"
+                >
+                  <span class="material-symbols-outlined">{{ opt.icon }}</span>
+                </button>
+              }
+            </div>
+          </div>
+        </div>
+
+        <div class="dialog__actions">
+          <button class="dialog__btn dialog__btn--secondary" type="button" (click)="showCategoryDialog.set(false)">
+            Отмена
+          </button>
+          <button class="dialog__btn dialog__btn--primary" type="button" (click)="saveCategory()">
+            Создать
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ═══ Dialog: Удалить категорию ═══ -->
+@if (showDeleteCategoryConfirm()) {
+  <div class="overlay" (click)="onBackdropClick('deleteCategory')">
+    <div class="dialog" (click)="stopPropagation($event)">
+      <div class="dialog__scroll">
+        <div class="dialog__icon-circle dialog__icon-circle--danger">
+          <span class="material-symbols-outlined">delete</span>
+        </div>
+        <h3 class="dialog__title">Удалить «{{ deleteCategoryTarget()?.name }}»?</h3>
+        <p class="dialog__desc">Все записи о еде в этой категории также будут удалены.</p>
+
+        <div class="dialog__actions">
+          <button class="dialog__btn dialog__btn--secondary" type="button" (click)="showDeleteCategoryConfirm.set(false)">
+            Отмена
+          </button>
+          <button class="dialog__btn dialog__btn--danger" type="button" (click)="deleteCategory()">
+            Удалить
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ═══ Dialog: ИИ Помощник ═══ -->
+@if (showAiDialog()) {
+  <div class="overlay" (click)="onBackdropClick('ai')">
+    <div class="dialog dialog--wide" (click)="stopPropagation($event)">
+      <div class="dialog__scroll">
+        <div class="dialog__icon-circle dialog__icon-circle--ai">
+          <span class="material-symbols-outlined">auto_awesome</span>
+        </div>
+        <h3 class="dialog__title">ИИ Помощник</h3>
+        <p class="dialog__desc">Опишите, что вы ели, и ИИ оценит питательную ценность</p>
+
+        <div class="dialog__fields">
+          <div class="field">
+            <label class="field__label" for="aiDesc">Описание</label>
+            <textarea
+              id="aiDesc"
+              class="field__textarea"
+              [(ngModel)]="aiDescription"
+              placeholder="Например: На завтрак съел тарелку овсянки с бананом и стакан молока"
+              rows="3"
+            ></textarea>
+          </div>
+
+          <button
+            class="ai-analyze-btn"
+            type="button"
+            (click)="analyzeWithAi()"
+            [disabled]="aiLoading() || !aiDescription.trim()"
+          >
+            <span class="material-symbols-outlined">auto_awesome</span>
+            {{ aiLoading() ? 'Анализирую...' : 'Проанализировать' }}
+          </button>
+
+          @if (aiError()) {
+            <div class="ai-error">
+              <span class="material-symbols-outlined">error</span>
+              {{ aiError() }}
+            </div>
+          }
+
+          @if (aiResult()) {
+            <div class="ai-results">
+              <p class="ai-results__title">Результаты анализа:</p>
+              @for (food of aiResult()!.foods; track food.name) {
+                <div class="ai-food-card">
+                  <div class="ai-food-card__header">
+                    <span class="ai-food-card__name">{{ food.name }}</span>
+                    <span class="ai-food-card__portion">{{ food.portion }}</span>
+                  </div>
+                  <div class="ai-food-card__macros">
+                    <span class="ai-food-card__macro">{{ food.calories }} ккал</span>
+                    <span class="ai-food-card__macro">Б: {{ food.protein }}г</span>
+                    <span class="ai-food-card__macro">У: {{ food.carbs }}г</span>
+                    <span class="ai-food-card__macro">Ж: {{ food.fat }}г</span>
+                    <span class="ai-food-card__macro">Кл: {{ food.fiber }}г</span>
+                  </div>
+                  <div class="ai-food-card__actions">
+                    <label class="field__label" style="margin-bottom: 4px;">Добавить в:</label>
+                    <div class="category-select category-select--compact">
+                      @for (cat of sortedMealCategories(); track cat.id) {
+                        <button
+                          class="category-select__item category-select__item--sm"
+                          type="button"
+                          (click)="addAiFood(food, cat.id)"
+                        >
+                          <span class="material-symbols-outlined category-select__icon">{{ cat.icon }}</span>
+                          {{ cat.name }}
+                        </button>
+                      }
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+
+        <div class="dialog__actions">
+          <button class="dialog__btn dialog__btn--secondary" type="button" (click)="showAiDialog.set(false)">
+            Закрыть
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
