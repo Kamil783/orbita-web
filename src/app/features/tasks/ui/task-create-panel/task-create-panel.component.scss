@@ -6,7 +6,7 @@
   display: flex;
   justify-content: flex-end;
   overflow: hidden;
-  background: rgba(17, 24, 39, 0.40);
+  background: var(--overlay-bg);
   backdrop-filter: blur(4px);
   animation: overlayIn 0.2s ease-out;
 }
@@ -22,8 +22,8 @@
   width: 100%;
   max-width: 420px;
   height: 100%;
-  background: #ffffff;
-  border-left: 1px solid #e5e7eb;
+  background: var(--surface-panel);
+  border-left: 1px solid var(--border-color);
   box-shadow: -8px 0 24px rgba(0, 0, 0, 0.10);
   display: flex;
   flex-direction: column;
@@ -41,26 +41,26 @@
   align-items: center;
   justify-content: space-between;
   padding: 20px 24px;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .panel__title {
   margin: 0;
   font-size: 18px;
   font-weight: 700;
-  color: #111418;
+  color: var(--text-main);
 }
 
 .panel__close {
   border: 0;
   background: transparent;
   cursor: pointer;
-  color: #9ca3af;
+  color: var(--text-400);
   padding: 4px;
   border-radius: 8px;
   transition: color 0.15s ease;
 
-  &:hover { color: #4b5563; }
+  &:hover { color: var(--text-600); }
 
   .material-symbols-outlined {
     font-size: 22px;
@@ -75,7 +75,7 @@
   display: flex;
   flex-direction: column;
 
-  /* чуть плотнее, чтобы не было “воздуха” */
+  /* чуть плотнее, чтобы не было "воздуха" */
   gap: 16px;
 }
 
@@ -84,7 +84,7 @@
   display: flex;
   flex-direction: column;
 
-  /* ВАЖНО: не растягиваем все поля по высоте (это и “разбрасывало” контент) */
+  /* ВАЖНО: не растягиваем все поля по высоте (это и "разбрасывало" контент) */
   flex: 0 0 auto;
 
   min-width: 0;
@@ -96,24 +96,24 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: #60758a;
+  color: var(--icon-muted);
   margin-bottom: 8px;
 }
 
 .field__input {
   width: 100%;
-  background: #f5f7f8;
-  border: 1px solid #e5e7eb;
+  background: var(--surface-input);
+  border: 1px solid var(--border-color);
   border-radius: 10px;
   font-size: 14px;
   padding: 10px 14px;
-  color: #111418;
+  color: var(--text-main);
   outline: none;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
   font-family: inherit;
   box-sizing: border-box;
 
-  &::placeholder { color: #9ca3af; }
+  &::placeholder { color: var(--text-400); }
 
   &:focus {
     border-color: var(--color-primary);
@@ -126,7 +126,7 @@
   line-height: 1.5;
 }
 
-/* ── Делаем “Описание” растягивающимся ── */
+/* ── Делаем "Описание" растягивающимся ── */
 .field--grow {
   flex: 1 1 auto;
   min-height: 0; /* важно, чтобы flex-элемент мог ужиматься и скролл работал корректно */
@@ -148,8 +148,8 @@
 /* ── Segmented priority control ── */
 .segmented {
   display: flex;
-  background: #f5f7f8;
-  border: 1px solid #f3f4f6;
+  background: var(--segmented-bg);
+  border: 1px solid var(--segmented-border);
   border-radius: 10px;
   padding: 4px;
   gap: 4px;
@@ -163,12 +163,12 @@
   border: 1px solid transparent;
   border-radius: 8px;
   background: transparent;
-  color: #6b7280;
+  color: var(--segmented-text);
   cursor: pointer;
   transition: all 0.15s ease;
 
   &:hover:not(.segmented__btn--active) {
-    background: #ffffff;
+    background: var(--surface-panel);
   }
 }
 
@@ -183,7 +183,7 @@
   display: flex;
   gap: 12px;
   padding: 20px 24px;
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid var(--border-color);
 }
 
 .btn {
@@ -202,12 +202,12 @@
   color: #ffffff;
   box-shadow: 0 4px 12px rgba(37, 140, 244, 0.20);
 
-  &:hover { background: #1d7ad8; }
+  &:hover { background: var(--color-primary-hover); }
 }
 
 .btn--secondary {
-  background: #f3f4f6;
-  color: #4b5563;
+  background: var(--btn-secondary-bg);
+  color: var(--btn-secondary-text);
 
-  &:hover { background: #e5e7eb; }
+  &:hover { background: var(--btn-secondary-hover); }
 }

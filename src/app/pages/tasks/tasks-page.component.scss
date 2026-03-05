@@ -9,8 +9,8 @@
 /* ── Tab toggle ── */
 .tab-toggle {
   display: flex;
-  background: #f5f7f8;
-  border: 1px solid #e5e7eb;
+  background: var(--segmented-bg);
+  border: 1px solid var(--segmented-border);
   border-radius: 10px;
   padding: 3px;
   gap: 2px;
@@ -23,12 +23,12 @@
   border: 0;
   border-radius: 8px;
   background: transparent;
-  color: #60758a;
+  color: var(--icon-muted);
   cursor: pointer;
   transition: all 0.15s ease;
 
   &:hover:not(.tab-toggle__btn--active) {
-    background: #ffffff;
+    background: var(--surface-panel);
   }
 }
 

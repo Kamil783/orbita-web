@@ -10,15 +10,15 @@
   width: 100%;
   height: 42px;
   padding: 10px 14px;
-  background: #f5f7f8;
-  border: 1px solid #e5e7eb;
+  background: var(--surface-input);
+  border: 1px solid var(--border-color);
   border-radius: 10px;
   cursor: pointer;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
   box-sizing: border-box;
 
   &:hover {
-    border-color: #d1d5db;
+    border-color: var(--text-400);
   }
 
   &--open {
@@ -29,14 +29,14 @@
 
 .sel__icon {
   font-size: 18px;
-  color: #9ca3af;
+  color: var(--text-400);
   flex-shrink: 0;
 }
 
 .sel__value {
   flex: 1;
   font-size: 14px;
-  color: #111418;
+  color: var(--text-main);
   font-family: inherit;
   white-space: nowrap;
   overflow: hidden;
@@ -46,7 +46,7 @@
 .sel__placeholder {
   flex: 1;
   font-size: 14px;
-  color: #9ca3af;
+  color: var(--text-400);
 }
 
 .sel__clear {
@@ -57,20 +57,20 @@
   height: 20px;
   border: 0;
   background: transparent;
-  color: #9ca3af;
+  color: var(--text-400);
   cursor: pointer;
   padding: 0;
   border-radius: 4px;
   flex-shrink: 0;
 
-  &:hover { color: #4b5563; }
+  &:hover { color: var(--text-600); }
 
   .material-symbols-outlined { font-size: 16px; }
 }
 
 .sel__chevron {
   font-size: 18px;
-  color: #9ca3af;
+  color: var(--text-400);
   flex-shrink: 0;
   transition: transform 0.15s ease;
 
@@ -89,8 +89,8 @@
   min-width: 180px;
   max-height: 220px;
   overflow-y: auto;
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
+  background: var(--surface-panel);
+  border: 1px solid var(--border-color);
   border-radius: 12px;
   box-shadow: 0 12px 36px rgba(0, 0, 0, 0.12);
   padding: 6px;
@@ -108,7 +108,7 @@
   padding: 9px 12px;
   font-size: 14px;
   font-weight: 500;
-  color: #111418;
+  color: var(--text-main);
   border: 0;
   border-radius: 8px;
   background: transparent;
@@ -117,7 +117,7 @@
   transition: background 0.12s ease, color 0.12s ease;
 
   &:hover:not(.sel__option--selected) {
-    background: #f5f7f8;
+    background: var(--surface-muted);
   }
 
   &--selected {
@@ -126,7 +126,7 @@
     font-weight: 700;
 
     &:hover {
-      background: #1d7ad8;
+      background: var(--color-primary-hover);
     }
   }
 }

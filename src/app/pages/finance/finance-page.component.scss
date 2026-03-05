@@ -26,9 +26,9 @@ $finance-accent-border: rgba(250, 204, 21, 0.30);
   gap: 8px;
   height: 40px;
   padding: 0 18px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border-color);
   border-radius: 10px;
-  background: #ffffff;
+  background: var(--surface-panel);
   color: var(--text-900);
   font-size: 13px;
   font-weight: 600;
@@ -51,9 +51,9 @@ $finance-accent-border: rgba(250, 204, 21, 0.30);
     border-color: var(--color-primary);
 
     &:hover {
-      background: #1d7ad8;
+      background: var(--color-primary-hover);
       color: #ffffff;
-      border-color: #1d7ad8;
+      border-color: var(--color-primary-hover);
       box-shadow: 0 4px 12px rgba(37, 140, 244, 0.25);
     }
   }
@@ -97,7 +97,7 @@ $finance-accent-border: rgba(250, 204, 21, 0.30);
 // ─── Section divider ───
 .divider {
   border: 0;
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid var(--border-color);
   margin: 28px 0;
 }
 
@@ -106,8 +106,8 @@ $finance-accent-border: rgba(250, 204, 21, 0.30);
   flex-direction: column;
   gap: 8px;
   padding: 24px;
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
+  background: var(--surface-panel);
+  border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 
@@ -158,7 +158,7 @@ $finance-accent-border: rgba(250, 204, 21, 0.30);
 .stat-card__limit-bar {
   width: 100%;
   height: 6px;
-  background: #f0f2f5;
+  background: var(--surface-hover);
   border-radius: 3px;
   overflow: hidden;
   margin-top: 4px;
@@ -179,8 +179,8 @@ $finance-accent-border: rgba(250, 204, 21, 0.30);
 .transactions-card {
   display: flex;
   flex-direction: column;
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
+  background: var(--surface-panel);
+  border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   overflow: hidden;
@@ -195,11 +195,11 @@ $finance-accent-border: rgba(250, 204, 21, 0.30);
   transition: background 0.15s ease;
 
   &:not(:last-of-type) {
-    border-bottom: 1px solid #f0f2f5;
+    border-bottom: 1px solid var(--border-light);
   }
 
   &:hover {
-    background: #f9fafb;
+    background: var(--surface-hover);
   }
 }
 
@@ -260,8 +260,8 @@ $finance-accent-border: rgba(250, 204, 21, 0.30);
   width: 100%;
   padding: 14px;
   border: 0;
-  border-top: 1px solid #f0f2f5;
-  background: #f9fafb;
+  border-top: 1px solid var(--border-light);
+  background: var(--surface-hover);
   font-size: 13px;
   font-weight: 700;
   color: var(--text-500);
@@ -281,7 +281,7 @@ $finance-accent-border: rgba(250, 204, 21, 0.30);
   justify-content: center;
   padding: 40px 16px;
   text-align: center;
-  color: #9ca3af;
+  color: var(--text-400);
 
   p {
     margin: 8px 0 0;
@@ -291,7 +291,7 @@ $finance-accent-border: rgba(250, 204, 21, 0.30);
 
 .transactions-card__empty-icon {
   font-size: 32px;
-  color: #d1d5db;
+  color: var(--text-400);
 }
 
 // ═══════════════════════════════════════
@@ -331,8 +331,8 @@ $finance-accent-border: rgba(250, 204, 21, 0.30);
   align-items: center;
   gap: 12px;
   padding: 12px 20px;
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
+  background: var(--surface-panel);
+  border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
@@ -370,13 +370,13 @@ $finance-accent-border: rgba(250, 204, 21, 0.30);
 
 .category-chip--over {
   border-color: rgba(220, 38, 38, 0.3);
-  background: #fef2f2;
+  background: var(--color-danger-bg);
 }
 
 .category-chip__limit-bar {
   width: 100%;
   height: 4px;
-  background: #f0f2f5;
+  background: var(--surface-hover);
   border-radius: 2px;
   margin-top: 6px;
   overflow: hidden;
@@ -407,8 +407,8 @@ $finance-accent-border: rgba(250, 204, 21, 0.30);
 // ─── Chart card ───
 .chart-card {
   padding: 24px;
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
+  background: var(--surface-panel);
+  border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
@@ -464,7 +464,7 @@ $finance-accent-border: rgba(250, 204, 21, 0.30);
   }
 
   &--neutral {
-    color: #6b7280;
+    color: var(--text-500);
     background: rgba(107, 114, 128, 0.08);
     border-color: rgba(107, 114, 128, 0.2);
   }
@@ -491,8 +491,8 @@ $finance-accent-border: rgba(250, 204, 21, 0.30);
 
 .goal-card {
   padding: 24px;
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
+  background: var(--surface-panel);
+  border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
@@ -548,7 +548,7 @@ $finance-accent-border: rgba(250, 204, 21, 0.30);
 .goal-card__progress-bar {
   width: 100%;
   height: 10px;
-  background: #f0f2f5;
+  background: var(--surface-hover);
   border-radius: 9999px;
   overflow: hidden;
   margin-bottom: 12px;
@@ -609,8 +609,8 @@ $finance-accent-border: rgba(250, 204, 21, 0.30);
 // ─── Tab toggle ───
 .tab-toggle {
   display: flex;
-  background: #f5f7f8;
-  border: 1px solid #e5e7eb;
+  background: var(--segmented-bg);
+  border: 1px solid var(--segmented-border);
   border-radius: 10px;
   padding: 3px;
   gap: 2px;
@@ -628,7 +628,7 @@ $finance-accent-border: rgba(250, 204, 21, 0.30);
   transition: all 0.15s ease;
 
   &:hover:not(.tab-toggle__btn--active) {
-    background: #ffffff;
+    background: var(--surface-panel);
   }
 
   &--active {
@@ -649,7 +649,7 @@ $finance-accent-border: rgba(250, 204, 21, 0.30);
   align-items: center;
   justify-content: center;
   padding: 16px;
-  background: rgba(0, 0, 0, 0.40);
+  background: var(--overlay-bg);
   backdrop-filter: blur(4px);
   animation: overlayIn 0.15s ease-out;
 }
@@ -667,12 +667,12 @@ $finance-accent-border: rgba(250, 204, 21, 0.30);
 .dialog {
   width: 100%;
   max-width: 440px;
-  background: #fff;
+  background: var(--surface-panel);
   border-radius: 16px;
   padding: 40px 32px 32px;
   text-align: center;
   box-shadow: 0 24px 48px rgba(0, 0, 0, 0.16);
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border-color);
   animation: dialogIn 0.2s ease-out;
 
   &--wide {
@@ -746,15 +746,15 @@ $finance-accent-border: rgba(250, 204, 21, 0.30);
   transition: background 0.15s ease;
 
   &--secondary {
-    background: #f3f4f6;
-    color: #374151;
-    &:hover { background: #e5e7eb; }
+    background: var(--btn-secondary-bg);
+    color: var(--btn-secondary-text);
+    &:hover { background: var(--btn-secondary-hover); }
   }
 
   &--primary {
     background: var(--color-primary);
     color: #fff;
-    &:hover { background: #1d7ad8; }
+    &:hover { background: var(--color-primary-hover); }
   }
 }
 
@@ -772,8 +772,8 @@ $finance-accent-border: rgba(250, 204, 21, 0.30);
   height: 48px;
   padding: 0 16px;
   border-radius: 10px;
-  border: 1px solid #dbe0e6;
-  background: #fff;
+  border: 1px solid var(--border-color);
+  background: var(--surface-panel);
   color: var(--text-900);
   font-size: 15px;
   outline: none;
@@ -802,7 +802,7 @@ $finance-accent-border: rgba(250, 204, 21, 0.30);
   justify-content: center;
   border: 2px solid transparent;
   border-radius: 10px;
-  background: #f5f7f8;
+  background: var(--surface-muted);
   color: var(--text-500);
   cursor: pointer;
   transition: all 0.15s ease;
@@ -812,7 +812,7 @@ $finance-accent-border: rgba(250, 204, 21, 0.30);
   }
 
   &:hover {
-    background: #e5e7eb;
+    background: var(--border-color);
   }
 
   &--active {
@@ -847,7 +847,7 @@ $finance-accent-border: rgba(250, 204, 21, 0.30);
   &--active {
     border-width: 2px;
     border-style: solid;
-    box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px currentColor;
+    box-shadow: 0 0 0 2px var(--surface-panel), 0 0 0 4px currentColor;
   }
 }
 
@@ -870,9 +870,9 @@ $finance-accent-border: rgba(250, 204, 21, 0.30);
   justify-content: center;
   gap: 6px;
   height: 44px;
-  border: 2px solid #e5e7eb;
+  border: 2px solid var(--border-color);
   border-radius: 10px;
-  background: #ffffff;
+  background: var(--surface-panel);
   color: var(--text-500);
   font-size: 14px;
   font-weight: 600;
@@ -884,18 +884,18 @@ $finance-accent-border: rgba(250, 204, 21, 0.30);
   }
 
   &:hover {
-    border-color: #d1d5db;
+    border-color: var(--text-400);
   }
 
   &--active-expense {
     border-color: #dc2626;
-    background: #fef2f2;
+    background: var(--color-danger-bg);
     color: #dc2626;
   }
 
   &--active-income {
     border-color: #16a34a;
-    background: #f0fdf4;
+    background: rgba(22, 163, 74, 0.08);
     color: #16a34a;
   }
 }
@@ -912,9 +912,9 @@ $finance-accent-border: rgba(250, 204, 21, 0.30);
   align-items: center;
   gap: 6px;
   padding: 8px 14px;
-  border: 2px solid #e5e7eb;
+  border: 2px solid var(--border-color);
   border-radius: 10px;
-  background: #ffffff;
+  background: var(--surface-panel);
   font-size: 13px;
   font-weight: 600;
   color: var(--text-600);
@@ -922,7 +922,7 @@ $finance-accent-border: rgba(250, 204, 21, 0.30);
   transition: all 0.15s ease;
 
   &:hover {
-    border-color: #d1d5db;
+    border-color: var(--text-400);
   }
 
   &--active {
@@ -965,15 +965,15 @@ $finance-accent-border: rgba(250, 204, 21, 0.30);
   font-weight: 800;
   color: var(--text-900);
   padding: 16px 0 8px;
-  border-bottom: 2px solid #e5e7eb;
+  border-bottom: 2px solid var(--border-color);
   margin-bottom: 4px;
 }
 
 .history-period {
-  border-bottom: 1px solid #f0f2f5;
+  border-bottom: 1px solid var(--border-light);
 
   &--over {
-    background: #fef2f2;
+    background: var(--color-danger-bg);
   }
 }
 
@@ -990,7 +990,7 @@ $finance-accent-border: rgba(250, 204, 21, 0.30);
   font-family: inherit;
 
   &:hover {
-    background: #f9fafb;
+    background: var(--surface-hover);
   }
 }
 
@@ -1064,13 +1064,13 @@ $finance-accent-border: rgba(250, 204, 21, 0.30);
   align-items: center;
   gap: 10px;
   padding: 8px 12px;
-  background: #ffffff;
-  border: 1px solid #f0f2f5;
+  background: var(--surface-panel);
+  border: 1px solid var(--border-light);
   border-radius: 8px;
 
   &--over {
     border-color: rgba(220, 38, 38, 0.3);
-    background: #fff5f5;
+    background: var(--color-danger-bg);
   }
 }
 
@@ -1092,7 +1092,7 @@ $finance-accent-border: rgba(250, 204, 21, 0.30);
   flex: 1;
   font-size: 13px;
   font-weight: 500;
-  color: var(--text-700);
+  color: var(--text-600);
 }
 
 .history-cat__total {
@@ -1120,7 +1120,7 @@ $finance-accent-border: rgba(250, 204, 21, 0.30);
   font-weight: 500;
   color: var(--text-500);
   padding: 8px 12px;
-  background: #f9fafb;
+  background: var(--surface-hover);
   border-radius: 6px;
   margin-top: 4px;
 }
