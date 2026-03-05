@@ -4,7 +4,7 @@
   gap: 10px;
 
   padding-left: 24px;
-  border-left: 1px solid #e5e7eb;
+  border-left: 1px solid var(--border-color);
 }
 
 .filter__label {
@@ -12,7 +12,7 @@
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.12em;
-  color: #60758a;
+  color: var(--icon-muted);
   white-space: nowrap;
 }
 
@@ -27,7 +27,7 @@
   height: 32px;
 
   border-radius: 9999px;
-  border: 2px solid #ffffff;
+  border: 2px solid var(--surface-panel);
 
   background: transparent;
   padding: 0;
@@ -72,7 +72,7 @@
   border-radius: 9999px;
   background-size: cover;
   background-position: center;
-  background-color: #e5e7eb;
+  background-color: var(--border-color);
 }
 
 .chip__tooltip {
@@ -81,7 +81,7 @@
   bottom: -30px;
   transform: translateX(-50%);
 
-  background: #111827;
+  background: var(--text-900);
   color: #fff;
   font-size: 10px;
   padding: 4px 8px;

@@ -3,6 +3,7 @@ import { RouterLink } from '@angular/router';
 import { UserService } from '../../../features/user/data/user.service';
 import { NotificationService } from '../../../features/notifications/data/notification.service';
 import { NotificationDropdownComponent } from '../../../features/notifications/ui/notification-dropdown/notification-dropdown.component';
+import { ThemeService } from '../../data/theme.service';
 
 @Component({
   selector: 'app-topbar',
@@ -17,12 +18,13 @@ export class TopbarComponent {
 
   protected readonly userService = inject(UserService);
   protected readonly notificationService = inject(NotificationService);
+  protected readonly themeService = inject(ThemeService);
   private readonly elRef = inject(ElementRef);
 
   readonly showNotifications = signal(false);
 
   toggleTheme(): void {
-    console.log('toggle theme');
+    this.themeService.toggleTheme();
   }
 
   toggleNotifications(): void {

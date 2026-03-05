@@ -27,20 +27,20 @@
   font-weight: 800;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: #d1d5db;
+  color: var(--text-400);
 }
 
 .newcol__body {
   height: 128px;
   border-radius: 12px;
-  border: 2px dashed #dbe0e6;
-  background: rgba(255, 255, 255, 0.3);
+  border: 2px dashed var(--border-color);
+  background: transparent;
   cursor: pointer;
 
   display: grid;
   place-items: center;
   gap: 6px;
-  color: #60758a;
+  color: var(--icon-muted);
 
   transition: border-color .2s ease, color .2s ease;
 

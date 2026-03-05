@@ -9,6 +9,7 @@ import {
   CreateCategoryDto,
   CreateSavingsGoalDto,
   CreateTransactionDto,
+  PreviousMonthBalanceResponse,
   SavingsGoal,
   SpendingLimits,
   Transaction,
@@ -18,6 +19,7 @@ import {
  * API endpoints:
  *
  * GET    /api/Finance/balance                        → BalanceResponse             Load current balance
+ * GET    /api/Finance/balance/previous-month         → PreviousMonthBalanceResponse Load balance at end of previous month
  * PATCH  /api/Finance/balance                        → BalanceResponse             Adjust balance. Body: AdjustBalanceDto { amount }
  *
  * GET    /api/Finance/categories                     → Category[]                  Load all categories
@@ -44,7 +46,9 @@ export class FinanceService {
   // ─── State ───
 
   readonly balance = signal(0);
+  readonly previousMonthBalance = signal<number | null>(null);
   readonly categories = signal<Category[]>([]);
+
   readonly transactions = signal<Transaction[]>([]);
   readonly savingsGoals = signal<SavingsGoal[]>([]);
   readonly limits = signal<SpendingLimits>({ monthlyLimit: 0, weeklyLimit: 0 });
@@ -56,6 +60,13 @@ export class FinanceService {
     this.http.get<BalanceResponse>(`${this.apiUrl}/api/Finance/balance`)
       .subscribe(res => {
         this.balance.set(res.balance);
+      });
+  }
+
+  loadPreviousMonthBalance(): void {
+    this.http.get<PreviousMonthBalanceResponse>(`${this.apiUrl}/api/Finance/balance/previous-month`)
+      .subscribe(res => {
+        this.previousMonthBalance.set(res.balance);
       });
   }
 

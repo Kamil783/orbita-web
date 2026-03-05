@@ -15,7 +15,7 @@
     top: 0;
     bottom: 0;
     width: 1px;
-    background: #e5e7eb;
+    background: var(--border-color);
   }
 }
 
@@ -49,7 +49,7 @@
   font-weight: 800;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: #60758a;
+  color: var(--icon-muted);
 }
 
 .pill {
@@ -62,15 +62,15 @@
 }
 
 .pill--muted {
-  background: #eef2f7;
-  color: #60758a;
+  background: var(--surface-muted);
+  color: var(--icon-muted);
 }
 
 .hdrbtn {
   border: 0;
   background: transparent;
   cursor: pointer;
-  color: #60758a;
+  color: var(--icon-muted);
   padding: 6px;
   border-radius: 10px;
 

@@ -3,9 +3,9 @@
   right: 0;
   top: calc(100% + 8px);
   width: 340px;
-  background: #ffffff;
+  background: var(--surface-panel);
   border-radius: 12px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12), 0 0 0 1px var(--border-color);
   overflow: hidden;
   z-index: 100;
   animation: dropdownIn 0.15s ease-out;
@@ -27,13 +27,13 @@
   align-items: center;
   justify-content: space-between;
   padding: 14px 16px;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid var(--border-light);
 }
 
 .dropdown__title {
   font-size: 14px;
   font-weight: 700;
-  color: #111418;
+  color: var(--text-main);
 }
 
 .dropdown__mark-all {
@@ -41,7 +41,7 @@
   background: transparent;
   font-size: 12px;
   font-weight: 600;
-  color: #258cf4;
+  color: var(--color-primary);
   cursor: pointer;
   padding: 0;
 
@@ -60,7 +60,7 @@
   align-items: flex-start;
   gap: 12px;
   padding: 14px 16px;
-  border-bottom: 1px solid #f5f5f5;
+  border-bottom: 1px solid var(--border-light);
   position: relative;
   cursor: pointer;
   transition: background 0.15s;
@@ -70,7 +70,7 @@
   }
 
   &:hover {
-    background: #f9fafb;
+    background: var(--surface-hover);
   }
 
   &--unread {
@@ -85,7 +85,7 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #258cf4;
+  background: var(--color-primary);
 }
 
 .notification-item__icon {
@@ -111,20 +111,20 @@
   margin: 0;
   font-size: 13px;
   font-weight: 600;
-  color: #111418;
+  color: var(--text-main);
   line-height: 1.4;
 }
 
 .notification-item__time {
   margin: 4px 0 0;
   font-size: 11px;
-  color: #60758a;
+  color: var(--icon-muted);
 }
 
 .dropdown__empty {
   padding: 40px 16px;
   text-align: center;
-  color: #9ca3af;
+  color: var(--text-400);
 
   p {
     margin: 8px 0 0;
@@ -134,5 +134,5 @@
 
 .dropdown__empty-icon {
   font-size: 32px;
-  color: #d1d5db;
+  color: var(--text-400);
 }

@@ -1,7 +1,18 @@
 :root {
   --color-primary: #258cf4;
+  --color-primary-hover: #1d7ad8;
   --bg-light: #fcfcfc;
   --bg-dark: #101922;
+
+  --surface-app: #f5f7f8;
+  --surface-panel: #ffffff;
+  --surface-muted: #f5f7f8;
+  --surface-hover: #f0f2f5;
+  --surface-input: #f5f7f8;
+  --border-color: #e5e7eb;
+  --border-light: #f0f2f5;
+  --icon-muted: #60758a;
+  --text-main: #111418;
 
   --text-900: #111827; // gray-900
   --text-600: #4b5563; // gray-600
@@ -15,6 +26,74 @@
   --shadow-md: 0 10px 25px rgba(0, 0, 0, 0.08);
   --shadow-hero: 0 20px 50px rgba(37, 140, 244, 0.30);
   --shadow-hero-hover: 0 25px 60px rgba(37, 140, 244, 0.40);
+
+  --overlay-bg: rgba(0, 0, 0, 0.40);
+
+  // Status / semantic
+  --color-danger: #ef4444;
+  --color-danger-hover: #dc2626;
+  --color-danger-bg: #fef2f2;
+  --color-danger-border: #fecaca;
+  --color-success: #10b981;
+  --color-success-bg: rgba(16, 185, 129, 0.08);
+  --color-warning: #f59e0b;
+
+  // Priority
+  --priority-high-bg: #fee2e2;
+  --priority-high-text: #dc2626;
+  --priority-med-bg: #dbeafe;
+  --priority-med-text: #258cf4;
+  --priority-low-bg: #f3f4f6;
+  --priority-low-text: #6b7280;
+
+  // Toggle / segmented
+  --segmented-bg: #f5f7f8;
+  --segmented-border: #f3f4f6;
+  --segmented-text: #6b7280;
+
+  // Button secondary
+  --btn-secondary-bg: #f3f4f6;
+  --btn-secondary-text: #374151;
+  --btn-secondary-hover: #e5e7eb;
+}
+
+:root[data-theme='dark'] {
+  --surface-app: #101922;
+  --surface-panel: #17212c;
+  --surface-muted: #202d3c;
+  --surface-hover: #253244;
+  --surface-input: #202d3c;
+  --border-color: #2d3a49;
+  --border-light: #243040;
+  --icon-muted: #b4c3d6;
+  --text-main: #edf2f7;
+  --text-900: #edf2f7;
+  --text-600: #c5d1df;
+  --text-500: #9badc2;
+  --text-400: #8296ad;
+
+  --shadow-md: 0 10px 25px rgba(0, 0, 0, 0.25);
+
+  --overlay-bg: rgba(0, 0, 0, 0.60);
+
+  --color-danger-bg: rgba(239, 68, 68, 0.12);
+  --color-danger-border: rgba(239, 68, 68, 0.25);
+  --color-success-bg: rgba(16, 185, 129, 0.12);
+
+  --priority-high-bg: rgba(239, 68, 68, 0.15);
+  --priority-high-text: #f87171;
+  --priority-med-bg: rgba(37, 140, 244, 0.15);
+  --priority-med-text: #60a5fa;
+  --priority-low-bg: #253244;
+  --priority-low-text: #9badc2;
+
+  --segmented-bg: #202d3c;
+  --segmented-border: #2d3a49;
+  --segmented-text: #9badc2;
+
+  --btn-secondary-bg: #253244;
+  --btn-secondary-text: #c5d1df;
+  --btn-secondary-hover: #2d3a49;
 }
 
 html, body {
@@ -24,6 +103,6 @@ html, body {
 
 body {
   font-family: "Inter", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-  background: var(--bg-light);
+  background: var(--surface-app);
   color: var(--text-900);
 }

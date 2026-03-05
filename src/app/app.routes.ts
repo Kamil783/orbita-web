@@ -28,6 +28,12 @@ export const routes: Routes = [
       import('./pages/calendar/calendar-page.component').then(m => m.CalendarPageComponent),
   },
   {
+    path: 'health',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./pages/health/health-page.component').then(m => m.HealthPageComponent),
+  },
+  {
     path: 'finance',
     canActivate: [authGuard],
     loadComponent: () =>

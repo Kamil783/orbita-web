@@ -2,8 +2,8 @@
   height: 100vh;
   display: flex;
   overflow: hidden;
-  background: #f5f7f8;
-  color: #111418;
+  background: var(--surface-app);
+  color: var(--text-main);
 }
 
 .main {

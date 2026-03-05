@@ -32,10 +32,10 @@
 
 // --- Profile Card ---
 .profile-card {
-  background: #ffffff;
+  background: var(--surface-panel);
   border-radius: var(--radius-md);
   padding: 32px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border-color);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
@@ -60,7 +60,7 @@
   color: #ffffff;
   font-size: 48px;
   font-weight: 700;
-  border: 4px solid #ffffff;
+  border: 4px solid var(--surface-panel);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
 }
 
@@ -138,33 +138,33 @@
   gap: 8px;
   height: 48px;
   margin-top: 24px;
-  border: 1px solid #fecaca;
+  border: 1px solid var(--color-danger-border);
   border-radius: var(--radius-md);
-  background: #fef2f2;
-  color: #dc2626;
+  background: var(--color-danger-bg);
+  color: var(--color-danger-hover);
   font-size: 14px;
   font-weight: 700;
   cursor: pointer;
   transition: background 0.2s ease, color 0.2s ease;
 
   &:hover {
-    background: #dc2626;
+    background: var(--color-danger-hover);
     color: #ffffff;
   }
 }
 
 // --- Preferences Panel ---
 .preferences {
-  background: #ffffff;
+  background: var(--surface-panel);
   border-radius: var(--radius-md);
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border-color);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   overflow: hidden;
 }
 
 .preferences__section {
   padding: 24px;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--border-color);
 
   &--last {
     border-bottom: 0;
@@ -192,7 +192,7 @@
   justify-content: space-between;
   padding: 16px;
   border-radius: var(--radius-md);
-  background: #f5f7f8;
+  background: var(--surface-muted);
 }
 
 .toggle-row__text {
@@ -213,7 +213,7 @@
   color: var(--text-500);
 }
 
-// --- Toggle Switch (fixed) ---
+// --- Toggle Switch ---
 .toggle {
   position: relative;
   display: inline-flex;
@@ -234,7 +234,7 @@
   width: 48px;
   height: 26px;
   border-radius: 13px;
-  background: #d1d5db;
+  background: var(--text-400);
   transition: background 0.2s ease;
 
   &::after {
@@ -259,14 +259,14 @@
   }
 }
 
-// --- Integration Row (Google Calendar) ---
+// --- Integration Row ---
 .integration-row {
   display: flex;
   align-items: center;
   gap: 16px;
   padding: 16px;
   border-radius: var(--radius-md);
-  background: #f5f7f8;
+  background: var(--surface-muted);
 }
 
 .integration-row__icon-wrapper {
@@ -307,7 +307,7 @@
   transition: background 0.2s ease;
 
   &:hover {
-    background: #1d7ad8;
+    background: var(--color-primary-hover);
   }
 
   .material-symbols-outlined {
@@ -315,12 +315,12 @@
   }
 
   &--connected {
-    background: #fef2f2;
-    color: #dc2626;
-    border: 1px solid #fecaca;
+    background: var(--color-danger-bg);
+    color: var(--color-danger-hover);
+    border: 1px solid var(--color-danger-border);
 
     &:hover {
-      background: #dc2626;
+      background: var(--color-danger-hover);
       color: #ffffff;
     }
   }
@@ -398,6 +398,20 @@
   border-radius: 50%;
   background: #10b981;
   margin-left: 4px;
+
+  &--error {
+    background: #ef4444;
+  }
+
+  &--checking {
+    background: #f59e0b;
+    animation: pulse 1s ease-in-out infinite;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
 }
 
 // --- Overlay & Edit Dialog ---
@@ -409,7 +423,7 @@
   align-items: center;
   justify-content: center;
   padding: 16px;
-  background: rgba(0, 0, 0, 0.40);
+  background: var(--overlay-bg);
   backdrop-filter: blur(4px);
   animation: overlayIn 0.15s ease-out;
 }
@@ -427,12 +441,12 @@
 .edit-dialog {
   width: 100%;
   max-width: 440px;
-  background: #fff;
+  background: var(--surface-panel);
   border-radius: 16px;
   padding: 40px 32px 32px;
   text-align: center;
   box-shadow: 0 24px 48px rgba(0, 0, 0, 0.16);
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border-color);
   animation: dialogIn 0.2s ease-out;
 
   &__icon {
@@ -458,6 +472,31 @@
     text-align: left;
   }
 
+  &__delete-avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 16px;
+    border: 1px solid var(--color-danger-border);
+    border-radius: 10px;
+    background: var(--color-danger-bg);
+    color: var(--color-danger-hover);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+
+    .material-symbols-outlined { font-size: 18px; }
+
+    &:hover {
+      background: var(--color-danger-hover);
+      color: #ffffff;
+    }
+  }
+
   &__actions { display: flex; gap: 12px; }
 
   &__btn {
@@ -470,8 +509,8 @@
     cursor: pointer;
     transition: background 0.15s ease;
 
-    &--secondary { background: #f3f4f6; color: #374151; &:hover { background: #e5e7eb; } }
-    &--primary   { background: var(--color-primary); color: #fff; &:hover { background: #1d7ad8; } }
+    &--secondary { background: var(--btn-secondary-bg); color: var(--btn-secondary-text); &:hover { background: var(--btn-secondary-hover); } }
+    &--primary   { background: var(--color-primary); color: #fff; &:hover { background: var(--color-primary-hover); } }
   }
 }
 
@@ -482,8 +521,8 @@
     height: 48px;
     padding: 0 16px;
     border-radius: 10px;
-    border: 1px solid #dbe0e6;
-    background: #fff;
+    border: 1px solid var(--border-color);
+    background: var(--surface-panel);
     color: var(--text-900);
     font-size: 15px;
     outline: none;

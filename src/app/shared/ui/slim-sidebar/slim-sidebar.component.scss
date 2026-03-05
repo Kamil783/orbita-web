@@ -1,8 +1,8 @@
 .sidebar {
   width: 100px;
   height: 100%;
-  background: #ffffff;
-  border-right: 1px solid #e5e7eb;
+  background: var(--surface-panel);
+  border-right: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -44,7 +44,7 @@
 .nav__item {
   position: relative;
   width: 100%;
-  color: #60758a;
+  color: var(--icon-muted);
   text-decoration: none;
   display: flex;
   flex-direction: column;
@@ -98,7 +98,7 @@
   border: 0;
   background: transparent;
   cursor: pointer;
-  color: #60758a;
+  color: var(--icon-muted);
   padding: 8px;
   border-radius: 10px;
 
