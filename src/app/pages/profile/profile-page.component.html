@@ -138,8 +138,17 @@
         <!-- App status -->
         <div class="app-status">
           <p class="app-status__text">
-            Orbita v2.4.0 • Все системы работают
-            <span class="app-status__dot"></span>
+            Orbita v{{ appVersion }} •
+            @if (systemStatus() === 'checking') {
+              Проверка соединения…
+              <span class="app-status__dot app-status__dot--checking"></span>
+            } @else if (systemStatus() === 'ok') {
+              Все системы работают
+              <span class="app-status__dot"></span>
+            } @else {
+              Сервер недоступен
+              <span class="app-status__dot app-status__dot--error"></span>
+            }
           </p>
         </div>
       </div>
@@ -181,6 +190,13 @@
           />
         </div>
       </div>
+
+      @if (userService.avatarUrl()) {
+        <button class="edit-dialog__delete-avatar" type="button" (click)="deleteAvatar()">
+          <span class="material-symbols-outlined">delete</span>
+          Удалить фото профиля
+        </button>
+      }
 
       <div class="edit-dialog__actions">
         <button class="edit-dialog__btn edit-dialog__btn--secondary" type="button" (click)="cancelEdit()">

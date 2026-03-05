@@ -87,6 +87,17 @@ export class UserService {
     ).subscribe();
   }
 
+  deleteAvatar(): void {
+    this._avatar.set(null);
+
+    this.http.delete(`${this.apiUrl}/api/User/avatar`).pipe(
+      catchError(err => {
+        console.error('Failed to delete avatar', err);
+        return of(null);
+      }),
+    ).subscribe();
+  }
+
   /** @deprecated Use updateProfile() instead */
   updateLocal(name: string, email: string): void {
     this.updateProfile(name, email);

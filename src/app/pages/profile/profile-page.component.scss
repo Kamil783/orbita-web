@@ -398,6 +398,20 @@
   border-radius: 50%;
   background: #10b981;
   margin-left: 4px;
+
+  &--error {
+    background: #ef4444;
+  }
+
+  &--checking {
+    background: #f59e0b;
+    animation: pulse 1s ease-in-out infinite;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
 }
 
 // --- Overlay & Edit Dialog ---
@@ -456,6 +470,31 @@
     gap: 16px;
     margin-bottom: 28px;
     text-align: left;
+  }
+
+  &__delete-avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 16px;
+    border: 1px solid var(--color-danger-border);
+    border-radius: 10px;
+    background: var(--color-danger-bg);
+    color: var(--color-danger-hover);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+
+    .material-symbols-outlined { font-size: 18px; }
+
+    &:hover {
+      background: var(--color-danger-hover);
+      color: #ffffff;
+    }
   }
 
   &__actions { display: flex; gap: 12px; }
