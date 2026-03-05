@@ -46,15 +46,15 @@ $finance-accent-border: rgba(250, 204, 21, 0.30);
   }
 
   &--primary {
-    background: var(--color-primary);
-    color: #ffffff;
-    border-color: var(--color-primary);
+    background: $finance-accent;
+    color: #000000;
+    border-color: $finance-accent;
 
     &:hover {
-      background: var(--color-primary-hover);
-      color: #ffffff;
-      border-color: var(--color-primary-hover);
-      box-shadow: 0 4px 12px rgba(37, 140, 244, 0.25);
+      background: darken($finance-accent, 8%);
+      color: #000000;
+      border-color: darken($finance-accent, 8%);
+      box-shadow: 0 4px 12px rgba(250, 204, 21, 0.35);
     }
   }
 }
