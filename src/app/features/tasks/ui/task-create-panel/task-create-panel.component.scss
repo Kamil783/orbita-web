@@ -214,8 +214,25 @@
 
 /* ── Responsive ── */
 @media (max-width: 768px) {
+  .overlay {
+    justify-content: stretch;
+  }
+
   .panel {
     max-width: 100%;
+    border-left: 0;
+  }
+
+  .panel__header {
+    padding: 16px;
+  }
+
+  .panel__body {
+    padding: 16px;
+  }
+
+  .panel__footer {
+    padding: 16px;
   }
 
   .field-row {
