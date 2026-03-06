@@ -5,7 +5,8 @@
   gap: 16px;
 
   padding: 24px;
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: hidden;
 }
 
 .newcol {
@@ -57,4 +58,17 @@
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.04em;
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .board {
+    padding: 16px;
+    gap: 12px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .newcol {
+    min-width: 240px;
+  }
 }

@@ -102,3 +102,43 @@
   text-transform: uppercase;
   color: rgba(17, 24, 39, 0.80);
 }
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .preview {
+    margin-top: 40px;
+  }
+
+  .frame {
+    border-radius: var(--radius-md);
+    padding: 4px;
+  }
+
+  .dock {
+    bottom: 12px;
+    padding: 0 12px;
+  }
+
+  .dock__inner {
+    padding: 10px 12px;
+    gap: 8px;
+    border-radius: 10px;
+  }
+
+  .dock__item {
+    min-width: 0;
+    gap: 2px;
+  }
+
+  .dock__icon {
+    font-size: 18px;
+  }
+
+  .dock__label {
+    font-size: 8px;
+  }
+
+  .dock__divider {
+    height: 24px;
+  }
+}

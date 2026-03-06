@@ -87,3 +87,13 @@
     font-size: 18px;
   }
 }
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .toast-stack {
+    left: 12px;
+    right: 12px;
+    width: auto;
+    top: 12px;
+  }
+}

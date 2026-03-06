@@ -415,3 +415,39 @@ app-date-picker {
   margin: 0;
   font-size: 14px;
 }
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .backlog {
+    padding: 16px;
+  }
+
+  .backlog__header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .backlog__toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .backlog__search {
+    width: 100%;
+  }
+
+  .task-row__right {
+    gap: 8px;
+  }
+
+  .task-row__week-btn {
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+
+  .task-row__date,
+  .task-row__estimate {
+    display: none;
+  }
+}

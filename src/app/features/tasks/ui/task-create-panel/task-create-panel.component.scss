@@ -211,3 +211,14 @@
 
   &:hover { background: var(--btn-secondary-hover); }
 }
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .panel {
+    max-width: 100%;
+  }
+
+  .field-row {
+    grid-template-columns: 1fr;
+  }
+}

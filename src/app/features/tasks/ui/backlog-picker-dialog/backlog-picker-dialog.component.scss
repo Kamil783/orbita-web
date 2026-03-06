@@ -170,3 +170,11 @@
   .material-symbols-outlined { font-size: 40px; opacity: 0.4; }
   p { margin: 0; font-size: 14px; }
 }
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .dialog {
+    max-height: 80vh;
+    border-radius: 12px;
+  }
+}

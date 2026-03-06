@@ -34,6 +34,15 @@ export class ProfilePageComponent implements OnInit {
   editName = '';
   editEmail = '';
 
+  // Change password dialog
+  readonly showPasswordDialog = signal(false);
+  readonly passwordLoading = signal(false);
+  readonly passwordError = signal('');
+  readonly passwordSuccess = signal(false);
+  currentPassword = '';
+  newPassword = '';
+  confirmPassword = '';
+
   ngOnInit(): void {
     this.checkSystemStatus();
   }
@@ -100,7 +109,62 @@ export class ProfilePageComponent implements OnInit {
   }
 
   changePassword(): void {
-    console.log('change password');
+    this.currentPassword = '';
+    this.newPassword = '';
+    this.confirmPassword = '';
+    this.passwordError.set('');
+    this.passwordSuccess.set(false);
+    this.showPasswordDialog.set(true);
+  }
+
+  cancelPasswordChange(): void {
+    this.showPasswordDialog.set(false);
+  }
+
+  onPasswordDialogBackdropClick(): void {
+    if (!this.passwordLoading()) {
+      this.showPasswordDialog.set(false);
+    }
+  }
+
+  onPasswordDialogClick(event: MouseEvent): void {
+    event.stopPropagation();
+  }
+
+  savePassword(): void {
+    this.passwordError.set('');
+
+    if (!this.currentPassword || !this.newPassword || !this.confirmPassword) {
+      this.passwordError.set('Заполните все поля');
+      return;
+    }
+
+    if (this.newPassword.length < 6) {
+      this.passwordError.set('Новый пароль должен содержать минимум 6 символов');
+      return;
+    }
+
+    if (this.newPassword !== this.confirmPassword) {
+      this.passwordError.set('Пароли не совпадают');
+      return;
+    }
+
+    this.passwordLoading.set(true);
+    this.authService.changePassword({
+      currentPassword: this.currentPassword,
+      newPassword: this.newPassword,
+    }).subscribe({
+      next: () => {
+        this.passwordLoading.set(false);
+        this.passwordSuccess.set(true);
+        setTimeout(() => this.showPasswordDialog.set(false), 1500);
+      },
+      error: (err) => {
+        this.passwordLoading.set(false);
+        const message = err?.error?.message || err?.error || 'Не удалось сменить пароль';
+        this.passwordError.set(typeof message === 'string' ? message : 'Не удалось сменить пароль');
+      },
+    });
   }
 
   logout(): void {

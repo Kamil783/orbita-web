@@ -110,3 +110,15 @@
 .col__cards.cdk-drop-list-dragging > *:not(.cdk-drag-placeholder) {
   transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
 }
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  :host {
+    min-width: 240px;
+    flex: 0 0 240px;
+  }
+
+  .col {
+    overflow-y: auto;
+  }
+}

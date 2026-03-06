@@ -136,3 +136,14 @@
   font-size: 32px;
   color: var(--text-400);
 }
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .dropdown {
+    position: fixed;
+    right: 8px;
+    left: 8px;
+    top: 60px;
+    width: auto;
+  }
+}
