@@ -89,11 +89,13 @@
               </div>
             }
 
-            <!-- Current time indicator -->
-            <div class="current-time" [style.top.px]="currentTimeOffset()">
-              <div class="current-time__dot"></div>
-              <div class="current-time__line"></div>
-            </div>
+            <!-- Current time indicator (only on today) -->
+            @if (isSelectedDateToday()) {
+              <div class="current-time" [style.top.px]="currentTimeOffset()">
+                <div class="current-time__dot"></div>
+                <div class="current-time__line"></div>
+              </div>
+            }
           </div>
         </div>
       </div>

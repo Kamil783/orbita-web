@@ -653,6 +653,7 @@
 
   .week-header {
     grid-template-columns: 50px repeat(7, 1fr);
+    min-width: 600px;
   }
 
   .week-header__dayname {
