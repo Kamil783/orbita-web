@@ -86,6 +86,11 @@
   letter-spacing: 0.12em;
 }
 
+// Profile link — only visible on mobile
+.nav__item--mobile-only {
+  display: none;
+}
+
 .bottom {
   margin-top: auto;
   padding-top: 18px;
@@ -165,19 +170,11 @@
     letter-spacing: 0.04em;
   }
 
-  .bottom {
-    margin-top: 0;
-    padding-top: 0;
+  .nav__item--mobile-only {
     display: flex;
-    align-items: center;
-    padding: 0 8px;
   }
 
-  .iconbtn {
-    padding: 6px;
-
-    .material-symbols-outlined {
-      font-size: 22px;
-    }
+  .bottom {
+    display: none;
   }
 }
