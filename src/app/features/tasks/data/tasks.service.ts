@@ -9,18 +9,18 @@ import {
 /**
  * API endpoints:
  *
- * GET    /api/Tasks/weekly         → KanbanColumnVm[]        Load weekly board columns with cards
+ * GET    /api/Tasks/weekly         → KanbanColumnVm[]        Load weekly board columns with cards (assigneeIds only)
  * POST   /api/Tasks/move           → void                    Body: { taskId, fromColumnId, toColumnId, fromIndex, toIndex }
  * POST   /api/Tasks/move-to        → void                    Body: { taskId, targetStatus }
  * DELETE /api/Tasks/:id            → void                    Delete a task
  *
- * GET    /api/Backlog              → BacklogTask[]           Load all backlog tasks
- * POST   /api/Backlog              → BacklogTask             Create a new backlog task. Body: { title, priority, dueDate?, estimateMinutes?, assignees? }
+ * GET    /api/Backlog              → BacklogTask[]           Load all backlog tasks (assigneeIds only)
+ * POST   /api/Backlog              → BacklogTask             Create a new backlog task. Body: { title, priority, dueDate?, estimateMinutes?, assigneeIds? }
  * POST   /api/Backlog/:id/to-week  → { kanbanCard }          Add backlog task to weekly board. Body: { targetStatus }
  * POST   /api/Backlog/:id/from-week→ void                    Remove backlog task from weekly board
  * PATCH  /api/Backlog/:id/done     → void                    Body: { done: boolean }
  *
- * GET    /api/Team/members         → AssigneeOption[]        Load team members (id, name, avatar?)
+ * GET    /api/Team/members         → AssigneeOption[]        Load team members (id, name, avatar?) — cached locally
  *
  * POST   /api/Columns              → { id }                 Create a new board column. Body: { title }
  */
@@ -31,6 +31,14 @@ export class TasksService {
   private readonly http = inject(HttpClient);
 
   readonly members = signal<AssigneeOption[]>([]);
+
+  readonly membersMap = computed(() => {
+    const map = new Map<string, AssigneeOption>();
+    for (const m of this.members()) {
+      map.set(m.id, m);
+    }
+    return map;
+  });
 
   readonly filterItems = computed<TasksFilterItemVm[]>(() => [
     { id: 'all', name: 'Все', isAll: true },
@@ -72,6 +80,12 @@ export class TasksService {
     this.http.get<AssigneeOption[]>(`${this.apiUrl}/api/Team/members`).subscribe(members => {
       this.members.set(members);
     });
+  }
+
+  resolveAssignees(ids?: string[]): AssigneeOption[] {
+    if (!ids?.length) return [];
+    const map = this.membersMap();
+    return ids.map(id => map.get(id)).filter((m): m is AssigneeOption => !!m);
   }
 
   // ── Kanban operations ──
@@ -207,7 +221,14 @@ export class TasksService {
   }
 
   addBacklogTask(task: Omit<BacklogTask, 'id' | 'inWeek' | 'done'>): void {
-    this.http.post<BacklogTask>(`${this.apiUrl}/api/Backlog`, task).subscribe(created => {
+    const dto = {
+      title: task.title,
+      priority: task.priority,
+      dueDate: task.dueDate,
+      estimateMinutes: task.estimateMinutes,
+      assigneeIds: task.assigneeIds,
+    };
+    this.http.post<BacklogTask>(`${this.apiUrl}/api/Backlog`, dto).subscribe(created => {
       this.backlog.update(list => [...list, created]);
     });
   }

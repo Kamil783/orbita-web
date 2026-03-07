@@ -56,7 +56,7 @@ export class TasksPageComponent implements OnInit {
       .map(col => ({
         ...col,
         cards: col.cards.filter(
-          card => card.assignees?.some(a => a.id === filterId),
+          card => card.assigneeIds?.includes(filterId),
         ),
       }))
       .map(col => ({ ...col, totalCount: col.cards.length }));

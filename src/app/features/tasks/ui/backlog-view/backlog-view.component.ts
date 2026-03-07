@@ -6,6 +6,7 @@ import { AvatarPipe } from '../../../../shared/ui/avatar-pipe/avatar.pipe';
 import { TasksService } from '../../data/tasks.service';
 import { AssigneeOption, BacklogTask, TaskPriority, PRIORITY_LABELS } from '../../models/task.models';
 
+
 type BacklogFilter = 'all' | 'week' | 'available';
 
 @Component({
@@ -79,7 +80,7 @@ export class BacklogViewComponent {
 
     // Assignee filter
     if (af !== 'all') {
-      tasks = tasks.filter(t => t.assignees?.some(a => a.id === af));
+      tasks = tasks.filter(t => t.assigneeIds?.includes(af));
     }
 
     if (q) {
@@ -107,6 +108,10 @@ export class BacklogViewComponent {
     return `priority--${priority}`;
   }
 
+  resolveAssignees(ids?: string[]): AssigneeOption[] {
+    return this.tasksService.resolveAssignees(ids);
+  }
+
   formatEstimate(minutes?: number): string {
     if (!minutes) return '';
     const h = Math.floor(minutes / 60);
@@ -131,7 +136,6 @@ export class BacklogViewComponent {
   onSaveNewTask(): void {
     if (!this.newTitle.trim()) return;
 
-    const assignee = this.assigneeOptions().find(a => a.id === this.newAssigneeId);
     const estimateMin = this.newEstimate ? parseInt(this.newEstimate, 10) : undefined;
 
     this.tasksService.addBacklogTask({
@@ -139,9 +143,7 @@ export class BacklogViewComponent {
       priority: this.newPriority(),
       dueDate: this.newDueDate || undefined,
       estimateMinutes: estimateMin && !isNaN(estimateMin) ? estimateMin : undefined,
-      assignees: assignee
-        ? [{ id: assignee.id, avatar: assignee.avatar ?? '', name: assignee.name }]
-        : undefined,
+      assigneeIds: this.newAssigneeId ? [this.newAssigneeId] : undefined,
     });
     this.resetForm();
   }

@@ -2,12 +2,6 @@ export type TaskPriority = 'high' | 'medium' | 'low';
 export type TaskStatus = 'todo' | 'inprogress' | 'done';
 export type TasksTab = 'board' | 'backlog';
 
-export interface TaskAssignee {
-  id: string;
-  avatar: string;
-  name?: string;
-}
-
 export interface TaskCardVm {
   id: string;
   title: string;
@@ -16,7 +10,7 @@ export interface TaskCardVm {
   deadlineText?: string;
   completedText?: string;
   progressPct?: number;
-  assignees?: TaskAssignee[];
+  assigneeIds?: string[];
   backlogId?: string;
 }
 
@@ -36,7 +30,7 @@ export interface BacklogTask {
   priority: TaskPriority;
   dueDate?: string;
   estimateMinutes?: number;
-  assignees?: TaskAssignee[];
+  assigneeIds?: string[];
   description?: string;
   inWeek: boolean;
   done: boolean;

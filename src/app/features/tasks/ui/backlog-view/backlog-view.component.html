@@ -134,10 +134,10 @@
               {{ task.dueDate }}
             </span>
           }
-          @if (task.assignees?.length) {
+          @if (task.assigneeIds?.length) {
             <div class="task-row__avatars">
-              @for (a of task.assignees; track a.id) {
-                <img class="task-row__avatar" [src]="a.avatar | avatar" [alt]="a.name ?? ''" />
+              @for (a of resolveAssignees(task.assigneeIds); track a.id) {
+                <img class="task-row__avatar" [src]="a.avatar | avatar" [alt]="a.name" />
               }
             </div>
           }
