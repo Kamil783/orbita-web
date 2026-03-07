@@ -55,6 +55,30 @@
       <!-- Right column: preferences -->
       <div class="page__right">
         <div class="preferences">
+          <!-- Appearance -->
+          <div class="preferences__section">
+            <h2 class="preferences__heading">
+              <span class="material-symbols-outlined preferences__heading-icon">palette</span>
+              Внешний вид
+            </h2>
+
+            <div class="toggle-row">
+              <div class="toggle-row__text">
+                <p class="toggle-row__title">Тёмная тема</p>
+                <p class="toggle-row__desc">Переключение между светлой и тёмной темой</p>
+              </div>
+              <label class="toggle">
+                <input
+                  type="checkbox"
+                  class="toggle__input"
+                  [checked]="themeService.isDarkTheme"
+                  (change)="toggleTheme()"
+                />
+                <span class="toggle__slider"></span>
+              </label>
+            </div>
+          </div>
+
           <!-- Notifications -->
           <div class="preferences__section">
             <h2 class="preferences__heading">
@@ -78,7 +102,14 @@
               </label>
             </div>
 
-
+            @if (notificationService.unreadCount() > 0) {
+              <div class="notification-action">
+                <button class="notification-action__btn" type="button" (click)="markAllRead()">
+                  <span class="material-symbols-outlined">done_all</span>
+                  Прочитать все ({{ notificationService.unreadCount() }})
+                </button>
+              </div>
+            }
           </div>
 
           <!-- Google Calendar Integration -->

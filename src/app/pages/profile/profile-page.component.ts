@@ -6,6 +6,8 @@ import { TopbarComponent } from '../../shared/ui/topbar/topbar.component';
 import { UserService } from '../../features/user/data/user.service';
 import { AuthService } from '../../features/auth/data/auth.service';
 import { CalendarService } from '../../features/calendar/data/calendar.service';
+import { ThemeService } from '../../shared/data/theme.service';
+import { NotificationService } from '../../features/notifications/data/notification.service';
 import { environment } from '../../../environments/environment';
 
 @Component({
@@ -21,6 +23,8 @@ export class ProfilePageComponent implements OnInit {
   protected readonly userService = inject(UserService);
   private readonly authService = inject(AuthService);
   protected readonly calendarService = inject(CalendarService);
+  protected readonly themeService = inject(ThemeService);
+  protected readonly notificationService = inject(NotificationService);
   private readonly http = inject(HttpClient);
 
   readonly appVersion = environment.appVersion;
@@ -57,6 +61,14 @@ export class ProfilePageComponent implements OnInit {
 
   togglePushNotifications(): void {
     this.pushNotifications.update(v => !v);
+  }
+
+  toggleTheme(): void {
+    this.themeService.toggleTheme();
+  }
+
+  markAllRead(): void {
+    this.notificationService.markAllAsRead();
   }
 
   editProfile(): void {

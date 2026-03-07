@@ -572,6 +572,35 @@
   }
 }
 
+// --- Notification action ---
+.notification-action {
+  margin-top: 12px;
+}
+
+.notification-action__btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background: var(--surface-panel);
+  color: var(--color-primary);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+
+  .material-symbols-outlined {
+    font-size: 18px;
+  }
+
+  &:hover {
+    background: rgba(37, 140, 244, 0.05);
+  }
+}
+
 // ─── Responsive ───
 @media (max-width: 1024px) {
   .page__grid {
