@@ -235,6 +235,67 @@
   color: #fff;
 }
 
+.add-form__textarea {
+  flex: 1;
+  width: 100%;
+  padding: 10px 14px;
+  font-size: 14px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--surface-panel);
+  color: var(--text-main);
+  outline: none;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 48px;
+
+  &::placeholder { color: var(--text-400); }
+  &:focus { border-color: var(--color-primary); }
+}
+
+.add-form__assignees {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.add-form__assignees-icon {
+  font-size: 18px;
+  color: var(--text-400);
+}
+
+.assignee-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px 4px 4px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid var(--border-color);
+  border-radius: 9999px;
+  background: var(--surface-panel);
+  color: var(--text-500);
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover:not(.assignee-chip--active) {
+    background: var(--surface-muted);
+  }
+}
+
+.assignee-chip--active {
+  background: var(--color-primary);
+  color: #fff;
+  border-color: var(--color-primary);
+}
+
+.assignee-chip__avatar {
+  width: 20px;
+  height: 20px;
+  border-radius: 9999px;
+}
+
 /* Ensure app-select and app-date-picker size consistently in the form row */
 app-select,
 app-date-picker {
@@ -313,6 +374,7 @@ app-date-picker {
   flex-shrink: 0;
 }
 
+.priority--critical { background: #dc2626; box-shadow: 0 0 6px rgba(220, 38, 38, 0.4); }
 .priority--high { background: #ef4444; }
 .priority--medium { background: #f59e0b; }
 .priority--low { background: #10b981; }

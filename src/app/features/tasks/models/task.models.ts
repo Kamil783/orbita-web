@@ -1,4 +1,4 @@
-export type TaskPriority = 'high' | 'medium' | 'low';
+export type TaskPriority = 'critical' | 'high' | 'medium' | 'low';
 export type TaskStatus = 'todo' | 'inprogress' | 'done';
 export type TasksTab = 'board' | 'backlog';
 
@@ -27,13 +27,15 @@ export interface KanbanColumnVm {
 export interface BacklogTask {
   id: string;
   title: string;
+  description?: string;
   priority: TaskPriority;
   dueDate?: string;
+  dueDisplayText?: string;
   estimateMinutes?: number;
-  assigneeIds?: string[];
-  description?: string;
+  estimateDisplayText?: string;
+  isCompleted: boolean;
   inWeek: boolean;
-  done: boolean;
+  assigneeIds?: string[];
 }
 
 export interface TasksFilterItemVm {
@@ -78,6 +80,7 @@ export const TASK_STATUS_LABELS: Record<TaskStatus, string> = {
 };
 
 export const PRIORITY_LABELS: Record<TaskPriority, string> = {
+  critical: 'Критичный',
   high: 'Высокий',
   medium: 'Средний',
   low: 'Низкий',

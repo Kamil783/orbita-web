@@ -30,6 +30,11 @@
   border-radius: 6px;
 }
 
+.badge--critical {
+  background: rgba(220, 38, 38, 0.12);
+  color: #dc2626;
+}
+
 .badge--high {
   background: var(--priority-high-bg);
   color: var(--priority-high-text);

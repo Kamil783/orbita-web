@@ -79,6 +79,14 @@
           (keydown.enter)="onSaveNewTask()"
         />
       </div>
+      <div class="add-form__row">
+        <textarea
+          class="add-form__textarea"
+          placeholder="Описание задачи..."
+          rows="2"
+          [(ngModel)]="newDescription"
+        ></textarea>
+      </div>
       <div class="add-form__row add-form__row--secondary">
         <div class="add-form__priority">
           @for (p of priorities; track p.value) {
@@ -93,12 +101,22 @@
           }
         </div>
         <app-date-picker [(ngModel)]="newDueDate" placeholder="Срок" />
-        <app-select
-          [(ngModel)]="newAssigneeId"
-          [options]="assigneeSelectOptions()"
-          placeholder="Исполнитель"
-          icon="person"
-        />
+        <div class="add-form__assignees">
+          <span class="material-symbols-outlined add-form__assignees-icon">group</span>
+          @for (a of assigneeOptions(); track a.id) {
+            <button
+              class="assignee-chip"
+              [class.assignee-chip--active]="isAssigneeSelected(a.id)"
+              type="button"
+              (click)="toggleAssignee(a.id)"
+            >
+              @if (a.avatar) {
+                <img class="assignee-chip__avatar" [src]="a.avatar | avatar" [alt]="a.name" />
+              }
+              {{ a.name }}
+            </button>
+          }
+        </div>
         <app-select
           [(ngModel)]="newEstimate"
           [options]="estimateOptions"

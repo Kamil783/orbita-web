@@ -35,6 +35,7 @@ export class TaskCreatePanelComponent {
     { value: 'low', label: 'Низкий' },
     { value: 'medium', label: 'Средний' },
     { value: 'high', label: 'Высокий' },
+    { value: 'critical', label: 'Критичный' },
   ];
 
   selectPriority(value: TaskPriority): void {

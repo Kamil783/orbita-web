@@ -53,11 +53,11 @@ export class TasksService {
   readonly backlog = signal<BacklogTask[]>([]);
 
   readonly availableBacklogTasks = computed(() =>
-    this.backlog().filter(t => !t.inWeek && !t.done),
+    this.backlog().filter(t => !t.inWeek && !t.isCompleted),
   );
 
   readonly completedBacklogTasks = computed(() =>
-    this.backlog().filter(t => t.done),
+    this.backlog().filter(t => t.isCompleted),
   );
 
   readonly backlogCount = computed(() => this.backlog().length);
@@ -203,10 +203,10 @@ export class TasksService {
   toggleBacklogDone(backlogTaskId: string): void {
     const task = this.backlog().find(t => t.id === backlogTaskId);
     if (!task) return;
-    const newDone = !task.done;
+    const newDone = !task.isCompleted;
 
     this.backlog.update(list =>
-      list.map(t => (t.id === backlogTaskId ? { ...t, done: newDone } : t)),
+      list.map(t => (t.id === backlogTaskId ? { ...t, isCompleted: newDone } : t)),
     );
 
     this.http.patch(`${this.apiUrl}/api/Backlog/${backlogTaskId}/done`, { done: newDone }).subscribe();
@@ -214,19 +214,20 @@ export class TasksService {
 
   markBacklogDone(backlogTaskId: string): void {
     this.backlog.update(list =>
-      list.map(t => (t.id === backlogTaskId ? { ...t, done: true } : t)),
+      list.map(t => (t.id === backlogTaskId ? { ...t, isCompleted: true } : t)),
     );
 
     this.http.patch(`${this.apiUrl}/api/Backlog/${backlogTaskId}/done`, { done: true }).subscribe();
   }
 
-  addBacklogTask(task: Omit<BacklogTask, 'id' | 'inWeek' | 'done'>): void {
+  addBacklogTask(task: Omit<BacklogTask, 'id' | 'inWeek' | 'isCompleted'>): void {
     const dto = {
       title: task.title,
       priority: task.priority,
-      dueDate: task.dueDate,
-      estimateMinutes: task.estimateMinutes,
-      assigneeIds: task.assigneeIds,
+      dueDate: task.dueDate || null,
+      estimateMinutes: task.estimateMinutes || null,
+      assignee: task.assigneeIds?.map(id => Number(id)) ?? [],
+      description: task.description || null,
     };
     this.http.post<BacklogTask>(`${this.apiUrl}/api/Backlog`, dto).subscribe(created => {
       this.backlog.update(list => [...list, created]);

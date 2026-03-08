@@ -29,9 +29,10 @@ export class BacklogViewComponent {
 
   // New task form
   newTitle = '';
+  newDescription = '';
   newPriority = signal<TaskPriority>('medium');
   newDueDate = '';
-  newAssigneeId = '';
+  newAssigneeIds = signal<string[]>([]);
   newEstimate = '';
 
   readonly priorityLabels = PRIORITY_LABELS;
@@ -61,6 +62,7 @@ export class BacklogViewComponent {
     { value: 'low', label: 'Низкий' },
     { value: 'medium', label: 'Средний' },
     { value: 'high', label: 'Высокий' },
+    { value: 'critical', label: 'Критичный' },
   ];
 
   readonly filteredTasks = computed(() => {
@@ -70,7 +72,7 @@ export class BacklogViewComponent {
     const q = this.searchQuery().toLowerCase().trim();
 
     // Exclude done tasks from the main list
-    tasks = tasks.filter(t => !t.done);
+    tasks = tasks.filter(t => !t.isCompleted);
 
     if (f === 'week') {
       tasks = tasks.filter(t => t.inWeek);
@@ -137,13 +139,15 @@ export class BacklogViewComponent {
     if (!this.newTitle.trim()) return;
 
     const estimateMin = this.newEstimate ? parseInt(this.newEstimate, 10) : undefined;
+    const ids = this.newAssigneeIds();
 
     this.tasksService.addBacklogTask({
       title: this.newTitle.trim(),
+      description: this.newDescription.trim() || undefined,
       priority: this.newPriority(),
       dueDate: this.newDueDate || undefined,
       estimateMinutes: estimateMin && !isNaN(estimateMin) ? estimateMin : undefined,
-      assigneeIds: this.newAssigneeId ? [this.newAssigneeId] : undefined,
+      assigneeIds: ids.length ? ids : undefined,
     });
     this.resetForm();
   }
@@ -156,12 +160,23 @@ export class BacklogViewComponent {
     this.newPriority.set(value);
   }
 
+  toggleAssignee(id: string): void {
+    this.newAssigneeIds.update(ids =>
+      ids.includes(id) ? ids.filter(x => x !== id) : [...ids, id],
+    );
+  }
+
+  isAssigneeSelected(id: string): boolean {
+    return this.newAssigneeIds().includes(id);
+  }
+
   private resetForm(): void {
     this.showAddForm.set(false);
     this.newTitle = '';
+    this.newDescription = '';
     this.newPriority.set('medium');
     this.newDueDate = '';
-    this.newAssigneeId = '';
+    this.newAssigneeIds.set([]);
     this.newEstimate = '';
   }
 }

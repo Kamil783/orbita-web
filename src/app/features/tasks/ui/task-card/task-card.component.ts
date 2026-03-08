@@ -34,9 +34,10 @@ export class TaskCardComponent {
 
   get badgeText(): string {
     switch (this.task().priority) {
-      case 'high':   return 'Высокий приоритет';
-      case 'medium': return 'Средний';
-      case 'low':    return 'Низкий';
+      case 'critical': return 'Критичный';
+      case 'high':     return 'Высокий приоритет';
+      case 'medium':   return 'Средний';
+      case 'low':      return 'Низкий';
     }
   }
 
