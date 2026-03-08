@@ -60,12 +60,6 @@ export interface TaskCreatePayload {
   description: string;
 }
 
-export interface AssigneeOption {
-  id: string;
-  name: string;
-  avatar?: string;
-}
-
 export interface TaskDropEvent {
   fromColumnId: string;
   toColumnId: string;

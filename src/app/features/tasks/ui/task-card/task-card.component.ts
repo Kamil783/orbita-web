@@ -1,9 +1,8 @@
 import { Component, ElementRef, HostListener, inject, input, output, signal } from '@angular/core';
 import { NgClass } from '@angular/common';
 import { AvatarPipe } from '../../../../shared/ui/avatar-pipe/avatar.pipe';
-import { TasksService } from '../../data/tasks.service';
+import { User, UserService } from '../../../user/data/user.service';
 import {
-  AssigneeOption,
   TaskCardVm,
   TaskMenuAction,
   TaskStatus,
@@ -18,7 +17,7 @@ import {
   styleUrl: './task-card.component.scss',
 })
 export class TaskCardComponent {
-  private readonly tasksService = inject(TasksService);
+  private readonly userService = inject(UserService);
 
   task = input.required<TaskCardVm>();
 
@@ -28,8 +27,8 @@ export class TaskCardComponent {
 
   constructor(private readonly elRef: ElementRef<HTMLElement>) {}
 
-  get assignees(): AssigneeOption[] {
-    return this.tasksService.resolveAssignees(this.task().assigneeIds);
+  get assignees(): User[] {
+    return this.userService.resolveUsers(this.task().assigneeIds);
   }
 
   get badgeText(): string {

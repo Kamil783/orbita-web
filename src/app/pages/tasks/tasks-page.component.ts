@@ -3,6 +3,7 @@ import { AppShellComponent } from '../../shared/ui/app-shell/app-shell.component
 import { KanbanBoardComponent } from '../../features/tasks/ui/kanban-board/kanban-board.component';
 import { TopbarComponent } from '../../shared/ui/topbar/topbar.component';
 import { TasksService } from '../../features/tasks/data/tasks.service';
+import { UserService } from '../../features/user/data/user.service';
 import { TasksFilterComponent } from '../../features/tasks/ui/tasks-filter/tasks-filter.component';
 import { ConfirmDialogComponent } from '../../shared/ui/confirm-dialog/confirm-dialog.component';
 import { TaskCreatePanelComponent } from '../../features/tasks/ui/task-create-panel/task-create-panel.component';
@@ -29,17 +30,18 @@ import {
 })
 export class TasksPageComponent implements OnInit {
   private readonly tasksService = inject(TasksService);
+  private readonly userService = inject(UserService);
 
   readonly title = 'Задачи';
   readonly activeTab = signal<TasksTab>('board');
 
   readonly filterItems = this.tasksService.filterItems;
-  readonly assigneeOptions = this.tasksService.members;
+  readonly assigneeOptions = this.userService.members;
 
   ngOnInit(): void {
     this.tasksService.loadWeeklyBoard();
     this.tasksService.loadBacklog();
-    this.tasksService.loadMembers();
+    this.userService.loadMembers();
   }
 
   readonly selectedFilterId = signal('all');

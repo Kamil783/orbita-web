@@ -9,6 +9,12 @@ export interface UserProfile {
   avatar?: string;
 }
 
+export interface User {
+  id: string;
+  name: string;
+  avatar?: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class UserService {
   private readonly apiUrl = environment.apiUrl;
@@ -32,6 +38,30 @@ export class UserService {
     const n = this._name();
     return n ? n.charAt(0).toUpperCase() : '?';
   });
+
+  // ── Team members ──
+
+  readonly members = signal<User[]>([]);
+
+  readonly membersMap = computed(() => {
+    const map = new Map<string, User>();
+    for (const m of this.members()) {
+      map.set(m.id, m);
+    }
+    return map;
+  });
+
+  loadMembers(): void {
+    this.http.get<User[]>(`${this.apiUrl}/api/Team/members`).subscribe(members => {
+      this.members.set(members);
+    });
+  }
+
+  resolveUsers(ids?: string[]): User[] {
+    if (!ids?.length) return [];
+    const map = this.membersMap();
+    return ids.map(id => map.get(id)).filter((m): m is User => !!m);
+  }
 
   constructor(private readonly http: HttpClient) {}
 

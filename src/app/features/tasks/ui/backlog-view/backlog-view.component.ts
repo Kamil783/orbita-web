@@ -3,8 +3,9 @@ import { FormsModule } from '@angular/forms';
 import { DatePickerComponent } from '../../../../shared/ui/date-picker/date-picker.component';
 import { SelectComponent, SelectOption } from '../../../../shared/ui/select/select.component';
 import { AvatarPipe } from '../../../../shared/ui/avatar-pipe/avatar.pipe';
+import { User, UserService } from '../../../user/data/user.service';
 import { TasksService } from '../../data/tasks.service';
-import { AssigneeOption, BacklogTask, TaskPriority, PRIORITY_LABELS } from '../../models/task.models';
+import { BacklogTask, TaskPriority, PRIORITY_LABELS } from '../../models/task.models';
 
 
 type BacklogFilter = 'all' | 'week' | 'available';
@@ -18,9 +19,10 @@ type BacklogFilter = 'all' | 'week' | 'available';
 })
 export class BacklogViewComponent {
   private readonly tasksService = inject(TasksService);
+  private readonly userService = inject(UserService);
 
   /** Assignee options from the parent page */
-  readonly assigneeOptions = input<AssigneeOption[]>([]);
+  readonly assigneeOptions = input<User[]>([]);
 
   readonly filter = signal<BacklogFilter>('all');
   readonly assigneeFilter = signal<string>('all'); // 'all' or assignee id
@@ -110,8 +112,8 @@ export class BacklogViewComponent {
     return `priority--${priority}`;
   }
 
-  resolveAssignees(ids?: string[]): AssigneeOption[] {
-    return this.tasksService.resolveAssignees(ids);
+  resolveAssignees(ids?: string[]): User[] {
+    return this.userService.resolveUsers(ids);
   }
 
   formatEstimate(minutes?: number): string {

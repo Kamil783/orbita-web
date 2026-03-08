@@ -1,8 +1,9 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
+import { UserService } from '../../user/data/user.service';
 import {
-  AssigneeOption, BacklogTask, KanbanColumnVm, TaskCardVm,
+  BacklogTask, KanbanColumnVm, TaskCardVm,
   TasksFilterItemVm, TaskStatus,
 } from '../models/task.models';
 
@@ -15,12 +16,10 @@ import {
  * DELETE /api/Tasks/:id            → void                    Delete a task
  *
  * GET    /api/Backlog              → BacklogTask[]           Load all backlog tasks (assigneeIds only)
- * POST   /api/Backlog              → BacklogTask             Create a new backlog task. Body: { title, priority, dueDate?, estimateMinutes?, assigneeIds? }
+ * POST   /api/Backlog              → BacklogTask             Create a new backlog task. Body: { title, priority, dueDate?, estimateMinutes?, assignee? }
  * POST   /api/Backlog/:id/to-week  → { kanbanCard }          Add backlog task to weekly board. Body: { targetStatus }
  * POST   /api/Backlog/:id/from-week→ void                    Remove backlog task from weekly board
  * PATCH  /api/Backlog/:id/done     → void                    Body: { done: boolean }
- *
- * GET    /api/Team/members         → AssigneeOption[]        Load team members (id, name, avatar?) — cached locally
  *
  * POST   /api/Columns              → { id }                 Create a new board column. Body: { title }
  */
@@ -29,20 +28,11 @@ import {
 export class TasksService {
   private readonly apiUrl = environment.apiUrl;
   private readonly http = inject(HttpClient);
-
-  readonly members = signal<AssigneeOption[]>([]);
-
-  readonly membersMap = computed(() => {
-    const map = new Map<string, AssigneeOption>();
-    for (const m of this.members()) {
-      map.set(m.id, m);
-    }
-    return map;
-  });
+  private readonly userService = inject(UserService);
 
   readonly filterItems = computed<TasksFilterItemVm[]>(() => [
     { id: 'all', name: 'Все', isAll: true },
-    ...this.members().map(m => ({ id: m.id, name: m.name, avatar: m.avatar })),
+    ...this.userService.members().map(m => ({ id: m.id, name: m.name, avatar: m.avatar })),
   ]);
 
   readonly columns = signal<KanbanColumnVm[]>([
@@ -74,18 +64,6 @@ export class TasksService {
     this.http.get<BacklogTask[]>(`${this.apiUrl}/api/Backlog`).subscribe(tasks => {
       this.backlog.set(tasks);
     });
-  }
-
-  loadMembers(): void {
-    this.http.get<AssigneeOption[]>(`${this.apiUrl}/api/Team/members`).subscribe(members => {
-      this.members.set(members);
-    });
-  }
-
-  resolveAssignees(ids?: string[]): AssigneeOption[] {
-    if (!ids?.length) return [];
-    const map = this.membersMap();
-    return ids.map(id => map.get(id)).filter((m): m is AssigneeOption => !!m);
   }
 
   // ── Kanban operations ──
