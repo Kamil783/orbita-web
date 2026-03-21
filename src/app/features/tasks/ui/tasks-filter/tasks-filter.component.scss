@@ -75,6 +75,19 @@
   background-color: var(--border-color);
 }
 
+.chip__initial {
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1;
+  width: 100%;
+  height: 100%;
+  border-radius: 9999px;
+  display: grid;
+  place-items: center;
+  background: var(--color-primary);
+}
+
 .chip__tooltip {
   position: absolute;
   left: 50%;

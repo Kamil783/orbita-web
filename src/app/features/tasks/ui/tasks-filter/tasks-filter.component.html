@@ -14,12 +14,15 @@
       >
         @if (i.isAll) {
           <span class="chip__text">ВСЕ</span>
-        } @else {
+        } @else if (i.avatar) {
           <span
             class="chip__avatar"
-            [style.backgroundImage]="i.avatar ? 'url(' + (i.avatar | avatar) + ')' : null"
+            [style.backgroundImage]="'url(' + (i.avatar | avatar) + ')'"
             aria-hidden="true"
           ></span>
+          <span class="chip__tooltip" aria-hidden="true">{{ i.name }}</span>
+        } @else {
+          <span class="chip__initial" aria-hidden="true">{{ i.name.charAt(0).toUpperCase() }}</span>
           <span class="chip__tooltip" aria-hidden="true">{{ i.name }}</span>
         }
       </button>
