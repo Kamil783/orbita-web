@@ -33,6 +33,6 @@ export class KanbanColumnComponent {
 
   onHeaderAction(): void {
     const col = this.column();
-    this.headerAction.emit({ columnId: col.id, icon: col.headerActionIcon });
+    this.headerAction.emit({ columnId: col.id, columnType: col.columnType, icon: col.headerActionIcon });
   }
 }

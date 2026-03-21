@@ -92,7 +92,7 @@ export class TasksPageComponent implements OnInit {
   }
 
   onHeaderAction(action: ColumnHeaderAction): void {
-    if (action.columnId === 'done') {
+    if (action.columnType === 'done') {
       this.showCompletedDialog.set(true);
     } else {
       this.pickerTargetStatus.set(action.columnId);

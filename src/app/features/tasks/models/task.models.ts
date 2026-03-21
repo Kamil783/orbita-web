@@ -15,11 +15,15 @@ export interface TaskCardVm {
   backlogId?: string;
 }
 
+/** Роль колонки на доске. Дефолтные три — всегда присутствуют, custom — пользовательские */
+export type ColumnType = 'todo' | 'inprogress' | 'done' | 'custom';
+
 export interface KanbanColumnVm {
   id: string;
   title: string;
   /** Общее число задач на сервере (может не совпадать с cards.length при пагинации) */
   totalCount: number;
+  columnType: ColumnType;
   headerActionIcon: string;
   muted?: boolean;
   cards: TaskCardVm[];
@@ -51,7 +55,7 @@ export type TaskMenuAction =
   | { type: 'moveTo'; taskId: string; targetColumnId: string }
   | { type: 'delete'; taskId: string };
 
-export type ColumnHeaderAction = { columnId: string; icon: string };
+export type ColumnHeaderAction = { columnId: string; columnType: ColumnType; icon: string };
 
 export interface TaskCreatePayload {
   title: string;

@@ -44,6 +44,11 @@ export class TaskCardComponent {
     return `badge--${this.task().priority}`;
   }
 
+  get isDone(): boolean {
+    const col = this.allColumns().find(c => c.id === this.task().status);
+    return col?.columnType === 'done';
+  }
+
   get moveTargets(): { columnId: string; label: string }[] {
     const current = this.task().status;
     return this.allColumns()

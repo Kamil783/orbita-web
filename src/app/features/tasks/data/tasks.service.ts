@@ -36,9 +36,9 @@ export class TasksService {
   ]);
 
   readonly columns = signal<KanbanColumnVm[]>([
-    { id: 'todo', title: 'К выполнению', totalCount: 0, headerActionIcon: 'add_circle', cards: [] },
-    { id: 'inprogress', title: 'В процессе', totalCount: 0, headerActionIcon: 'add_circle', cards: [] },
-    { id: 'done', title: 'Готово', totalCount: 0, headerActionIcon: 'checklist', muted: true, cards: [] },
+    { id: 'todo', title: 'К выполнению', totalCount: 0, columnType: 'todo', headerActionIcon: 'add_circle', cards: [] },
+    { id: 'inprogress', title: 'В процессе', totalCount: 0, columnType: 'inprogress', headerActionIcon: 'add_circle', cards: [] },
+    { id: 'done', title: 'Готово', totalCount: 0, columnType: 'done', headerActionIcon: 'checklist', muted: true, cards: [] },
   ]);
   readonly backlog = signal<BacklogTask[]>([]);
 
@@ -82,7 +82,7 @@ export class TasksService {
       fromCol.totalCount = fromCol.cards.length;
       toCol.totalCount = toCol.cards.length;
 
-      if (toColumnId === 'done' && card.backlogId) {
+      if (toCol.columnType === 'done' && card.backlogId) {
         this.markBacklogDone(card.backlogId);
       }
 
@@ -114,7 +114,7 @@ export class TasksService {
         targetCol.cards.unshift(card);
         targetCol.totalCount = targetCol.cards.length;
 
-        if (targetColumnId === 'done' && card.backlogId) {
+        if (targetCol.columnType === 'done' && card.backlogId) {
           this.markBacklogDone(card.backlogId);
         }
       }
@@ -140,7 +140,10 @@ export class TasksService {
 
   // ── Backlog operations ──
 
-  addToWeek(backlogTaskId: string, targetColumnId: string = 'todo'): void {
+  addToWeek(backlogTaskId: string, targetColumnId?: string): void {
+    targetColumnId ??= this.columns().find(c => c.columnType === 'todo')?.id ?? this.columns()[0]?.id;
+    if (!targetColumnId) return;
+
     const task = this.backlog().find(t => t.id === backlogTaskId);
     if (!task || task.inWeek) return;
 
@@ -220,6 +223,7 @@ export class TasksService {
       id: tempId,
       title,
       totalCount: 0,
+      columnType: 'custom',
       headerActionIcon: 'add_circle',
       cards: [],
     };

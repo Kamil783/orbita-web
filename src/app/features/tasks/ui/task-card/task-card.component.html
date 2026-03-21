@@ -1,7 +1,7 @@
 <article
   class="card"
   [class.card--inprogress]="task().progressPct != null"
-  [class.card--done]="task().status === 'done'"
+  [class.card--done]="isDone"
 >
   <div class="top">
     <span class="badge" [ngClass]="badgeClass">{{ badgeText }}</span>
@@ -51,7 +51,7 @@
     </div>
   </div>
 
-  <h4 class="title" [class.title--strike]="task().status === 'done'">
+  <h4 class="title" [class.title--strike]="isDone">
     {{ task().title }}
   </h4>
 
