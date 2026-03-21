@@ -3,10 +3,9 @@ import { NgClass } from '@angular/common';
 import { AvatarPipe } from '../../../../shared/ui/avatar-pipe/avatar.pipe';
 import { User, UserService } from '../../../user/data/user.service';
 import {
+  KanbanColumnVm,
   TaskCardVm,
   TaskMenuAction,
-  TaskStatus,
-  TASK_STATUS_LABELS,
 } from '../../models/task.models';
 
 @Component({
@@ -20,6 +19,7 @@ export class TaskCardComponent {
   private readonly userService = inject(UserService);
 
   task = input.required<TaskCardVm>();
+  allColumns = input<KanbanColumnVm[]>([]);
 
   readonly menuAction = output<TaskMenuAction>();
 
@@ -44,11 +44,11 @@ export class TaskCardComponent {
     return `badge--${this.task().priority}`;
   }
 
-  get moveTargets(): { status: TaskStatus; label: string }[] {
+  get moveTargets(): { columnId: string; label: string }[] {
     const current = this.task().status;
-    return (['todo', 'inprogress', 'done'] as TaskStatus[])
-      .filter(s => s !== current)
-      .map(s => ({ status: s, label: TASK_STATUS_LABELS[s] }));
+    return this.allColumns()
+      .filter(col => col.id !== current)
+      .map(col => ({ columnId: col.id, label: col.title }));
   }
 
   toggleMenu(event: MouseEvent): void {
@@ -62,10 +62,10 @@ export class TaskCardComponent {
     this.menuAction.emit({ type: 'edit', taskId: this.task().id });
   }
 
-  onMoveTo(event: MouseEvent, targetStatus: TaskStatus): void {
+  onMoveTo(event: MouseEvent, targetColumnId: string): void {
     event.stopPropagation();
     this.menuOpen.set(false);
-    this.menuAction.emit({ type: 'moveTo', taskId: this.task().id, targetStatus });
+    this.menuAction.emit({ type: 'moveTo', taskId: this.task().id, targetColumnId });
   }
 
   onDelete(event: MouseEvent): void {

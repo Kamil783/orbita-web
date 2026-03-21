@@ -4,7 +4,7 @@ import { environment } from '../../../../environments/environment';
 import { UserService } from '../../user/data/user.service';
 import {
   BacklogTask, KanbanColumnVm, TaskCardVm,
-  TasksFilterItemVm, TaskStatus,
+  TasksFilterItemVm,
 } from '../models/task.models';
 
 /**
@@ -76,7 +76,7 @@ export class TasksService {
       const toCol = result.find(c => c.id === toColumnId)!;
 
       const [card] = fromCol.cards.splice(fromIndex, 1);
-      card.status = toColumnId as TaskStatus;
+      card.status = toColumnId;
       toCol.cards.splice(toIndex, 0, card);
 
       fromCol.totalCount = fromCol.cards.length;
@@ -94,7 +94,7 @@ export class TasksService {
     }).subscribe();
   }
 
-  moveTaskById(taskId: string, targetStatus: TaskStatus): void {
+  moveTaskById(taskId: string, targetColumnId: string): void {
     this.columns.update(cols => {
       const result = cols.map(col => ({ ...col, cards: [...col.cards] }));
 
@@ -109,12 +109,12 @@ export class TasksService {
       }
 
       if (card) {
-        card.status = targetStatus;
-        const targetCol = result.find(c => c.id === targetStatus)!;
+        card.status = targetColumnId;
+        const targetCol = result.find(c => c.id === targetColumnId)!;
         targetCol.cards.unshift(card);
         targetCol.totalCount = targetCol.cards.length;
 
-        if (targetStatus === 'done' && card.backlogId) {
+        if (targetColumnId === 'done' && card.backlogId) {
           this.markBacklogDone(card.backlogId);
         }
       }
@@ -122,7 +122,7 @@ export class TasksService {
       return result;
     });
 
-    this.http.post(`${this.apiUrl}/api/Tasks/move-to`, { taskId, targetStatus }).subscribe();
+    this.http.post(`${this.apiUrl}/api/Tasks/move-to`, { taskId, targetStatus: targetColumnId }).subscribe();
   }
 
   deleteTask(taskId: string): void {

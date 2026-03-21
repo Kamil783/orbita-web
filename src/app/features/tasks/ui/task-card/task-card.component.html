@@ -32,8 +32,8 @@
             </button>
 
             <div class="dropdown__submenu">
-              @for (target of moveTargets; track target.status) {
-                <button class="dropdown__item" (click)="onMoveTo($event, target.status)">
+              @for (target of moveTargets; track target.columnId) {
+                <button class="dropdown__item" (click)="onMoveTo($event, target.columnId)">
                   {{ target.label }}
                 </button>
               }

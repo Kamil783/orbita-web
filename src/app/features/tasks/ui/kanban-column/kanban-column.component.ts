@@ -16,6 +16,7 @@ import { ColumnHeaderAction, KanbanColumnVm, TaskDropEvent, TaskMenuAction } fro
 export class KanbanColumnComponent {
   readonly showDivider = input(false);
   readonly column = input.required<KanbanColumnVm>();
+  readonly allColumns = input<KanbanColumnVm[]>([]);
   readonly menuAction = output<TaskMenuAction>();
   readonly taskDrop = output<TaskDropEvent>();
   readonly headerAction = output<ColumnHeaderAction>();

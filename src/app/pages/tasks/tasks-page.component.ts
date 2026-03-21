@@ -13,7 +13,7 @@ import { CompletedTasksDialogComponent } from '../../features/tasks/ui/completed
 import { ColumnCreateDialogComponent } from '../../features/tasks/ui/column-create-dialog/column-create-dialog.component';
 import {
   ColumnHeaderAction, TaskCreatePayload,
-  TaskDropEvent, TasksTab, TaskMenuAction, TaskStatus,
+  TaskDropEvent, TasksTab, TaskMenuAction,
 } from '../../features/tasks/models/task.models';
 
 @Component({
@@ -80,7 +80,7 @@ export class TasksPageComponent implements OnInit {
         this.deleteTaskId.set(action.taskId);
         break;
       case 'moveTo':
-        this.tasksService.moveTaskById(action.taskId, action.targetStatus);
+        this.tasksService.moveTaskById(action.taskId, action.targetColumnId);
         break;
       default:
         console.log('task menu action:', action);

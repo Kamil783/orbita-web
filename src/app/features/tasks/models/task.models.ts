@@ -5,7 +5,8 @@ export type TasksTab = 'board' | 'backlog';
 export interface TaskCardVm {
   id: string;
   title: string;
-  status: TaskStatus;
+  /** Column ID the card belongs to (e.g. 'todo', 'inprogress', 'done', or a custom column ID) */
+  status: string;
   priority: TaskPriority;
   deadlineText?: string;
   completedText?: string;
@@ -47,7 +48,7 @@ export interface TasksFilterItemVm {
 
 export type TaskMenuAction =
   | { type: 'edit'; taskId: string }
-  | { type: 'moveTo'; taskId: string; targetStatus: TaskStatus }
+  | { type: 'moveTo'; taskId: string; targetColumnId: string }
   | { type: 'delete'; taskId: string };
 
 export type ColumnHeaderAction = { columnId: string; icon: string };
