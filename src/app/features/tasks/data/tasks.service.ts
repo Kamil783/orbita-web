@@ -140,7 +140,7 @@ export class TasksService {
 
   // ── Backlog operations ──
 
-  addToWeek(backlogTaskId: string, targetStatus: TaskStatus = 'todo'): void {
+  addToWeek(backlogTaskId: string, targetColumnId: string = 'todo'): void {
     const task = this.backlog().find(t => t.id === backlogTaskId);
     if (!task || task.inWeek) return;
 
@@ -150,11 +150,11 @@ export class TasksService {
 
     this.http.post<{ kanbanCard: TaskCardVm }>(
       `${this.apiUrl}/api/Backlog/${backlogTaskId}/to-week`,
-      { targetStatus },
+      { targetStatus: targetColumnId },
     ).subscribe(res => {
       this.columns.update(cols =>
         cols.map(col => {
-          if (col.id !== targetStatus) return col;
+          if (col.id !== targetColumnId) return col;
           const cards = [...col.cards, res.kanbanCard];
           return { ...col, cards, totalCount: cards.length };
         }),

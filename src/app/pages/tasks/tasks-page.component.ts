@@ -66,7 +66,7 @@ export class TasksPageComponent implements OnInit {
 
   readonly showCreatePanel = signal(false);
   readonly deleteTaskId = signal<string | null>(null);
-  readonly pickerTargetStatus = signal<TaskStatus | null>(null);
+  readonly pickerTargetStatus = signal<string | null>(null);
   readonly showCompletedDialog = signal(false);
   readonly showColumnCreateDialog = signal(false);
 
@@ -95,7 +95,7 @@ export class TasksPageComponent implements OnInit {
     if (action.columnId === 'done') {
       this.showCompletedDialog.set(true);
     } else {
-      this.pickerTargetStatus.set(action.columnId as TaskStatus);
+      this.pickerTargetStatus.set(action.columnId);
     }
   }
 
