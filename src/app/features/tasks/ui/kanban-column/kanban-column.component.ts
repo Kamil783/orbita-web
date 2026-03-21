@@ -21,8 +21,9 @@ export class KanbanColumnComponent {
   readonly taskDrop = output<TaskDropEvent>();
   readonly headerAction = output<ColumnHeaderAction>();
 
-  onDrop(event: CdkDragDrop<string>): void {
+  onDrop(event: CdkDragDrop<string, string, string>): void {
     this.taskDrop.emit({
+      taskId: event.item.data,
       fromColumnId: event.previousContainer.data,
       toColumnId: event.container.data,
       fromIndex: event.previousIndex,

@@ -68,7 +68,7 @@ export class TasksService {
 
   // ── Kanban operations ──
 
-  moveTask(fromColumnId: string, toColumnId: string, fromIndex: number, toIndex: number): void {
+  moveTask(taskId: string, fromColumnId: string, toColumnId: string, fromIndex: number, toIndex: number): void {
     // Optimistic update
     this.columns.update(cols => {
       const result = cols.map(col => ({ ...col, cards: [...col.cards] }));
@@ -90,7 +90,7 @@ export class TasksService {
     });
 
     this.http.post(`${this.apiUrl}/api/Tasks/move`, {
-      fromColumnId, toColumnId, fromIndex, toIndex,
+      taskId, fromColumnId, toColumnId, fromIndex, toIndex,
     }).subscribe();
   }
 

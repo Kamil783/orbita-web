@@ -88,7 +88,7 @@ export class TasksPageComponent implements OnInit {
   }
 
   onTaskDrop(event: TaskDropEvent): void {
-    this.tasksService.moveTask(event.fromColumnId, event.toColumnId, event.fromIndex, event.toIndex);
+    this.tasksService.moveTask(event.taskId, event.fromColumnId, event.toColumnId, event.fromIndex, event.toIndex);
   }
 
   onHeaderAction(action: ColumnHeaderAction): void {

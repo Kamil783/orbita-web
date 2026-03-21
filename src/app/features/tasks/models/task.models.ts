@@ -62,6 +62,7 @@ export interface TaskCreatePayload {
 }
 
 export interface TaskDropEvent {
+  taskId: string;
   fromColumnId: string;
   toColumnId: string;
   fromIndex: number;
