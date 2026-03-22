@@ -22,6 +22,7 @@ export class TaskCardComponent {
   allColumns = input<KanbanColumnVm[]>([]);
 
   readonly menuAction = output<TaskMenuAction>();
+  readonly cardClick = output<TaskCardVm>();
 
   readonly menuOpen = signal(false);
 

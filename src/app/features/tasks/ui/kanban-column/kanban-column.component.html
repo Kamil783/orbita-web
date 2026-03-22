@@ -18,7 +18,7 @@
   >
     @for (t of column().cards; track t.id) {
       <div cdkDrag [cdkDragData]="t.id">
-        <app-task-card [task]="t" [allColumns]="allColumns()" (menuAction)="menuAction.emit($event)" />
+        <app-task-card [task]="t" [allColumns]="allColumns()" (menuAction)="menuAction.emit($event)" (cardClick)="cardClick.emit($event)" />
         <div class="drag-placeholder" *cdkDragPlaceholder></div>
       </div>
     }

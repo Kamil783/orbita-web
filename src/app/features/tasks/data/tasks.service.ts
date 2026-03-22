@@ -85,6 +85,8 @@ export class TasksService {
 
       if (toCol.columnType === 'done' && card.backlogId) {
         this.markBacklogDone(card.backlogId);
+      } else if (fromCol.columnType === 'done' && toCol.columnType !== 'done' && card.backlogId) {
+        this.unmarkBacklogDone(card.backlogId);
       }
 
       return result;
@@ -100,9 +102,11 @@ export class TasksService {
       const result = cols.map(col => ({ ...col, cards: [...col.cards] }));
 
       let card: TaskCardVm | undefined;
+      let fromCol: (typeof result)[0] | undefined;
       for (const col of result) {
         const idx = col.cards.findIndex(c => c.id === taskId);
         if (idx !== -1) {
+          fromCol = col;
           [card] = col.cards.splice(idx, 1);
           col.totalCount = col.cards.length;
           break;
@@ -117,6 +121,8 @@ export class TasksService {
 
         if (targetCol.columnType === 'done' && card.backlogId) {
           this.markBacklogDone(card.backlogId);
+        } else if (fromCol?.columnType === 'done' && targetCol.columnType !== 'done' && card.backlogId) {
+          this.unmarkBacklogDone(card.backlogId);
         }
       }
 
@@ -202,6 +208,14 @@ export class TasksService {
     this.http.patch(`${this.apiUrl}/api/Backlog/${backlogTaskId}/done`, { done: true }).subscribe();
   }
 
+  unmarkBacklogDone(backlogTaskId: string): void {
+    this.backlog.update(list =>
+      list.map(t => (t.id === backlogTaskId ? { ...t, isCompleted: false } : t)),
+    );
+
+    this.http.patch(`${this.apiUrl}/api/Backlog/${backlogTaskId}/done`, { done: false }).subscribe();
+  }
+
   updateBacklogTask(id: string, changes: Partial<Pick<BacklogTask, 'title' | 'description' | 'priority' | 'dueDate' | 'estimateMinutes' | 'assigneeIds'>>): void {
     // Optimistic update
     this.backlog.update(list =>
@@ -218,6 +232,23 @@ export class TasksService {
         // Rollback on error — reload backlog
         this.loadBacklog();
       },
+    });
+  }
+
+  /** Create a backlog task and immediately add it to the "К выполнению" column on the board */
+  createTaskOnBoard(task: Omit<BacklogTask, 'id' | 'inWeek' | 'isCompleted'>): void {
+    const dto = {
+      title: task.title,
+      priority: task.priority,
+      dueDate: task.dueDate || null,
+      estimateMinutes: task.estimateMinutes || null,
+      assignee: task.assigneeIds?.map(id => Number(id)) ?? [],
+      description: task.description || null,
+    };
+    this.http.post<BacklogTask>(`${this.apiUrl}/api/Backlog`, dto).subscribe(created => {
+      this.backlog.update(list => [...list, created]);
+      // Immediately add to the board
+      this.addToWeek(created.id);
     });
   }
 

@@ -1,0 +1,209 @@
+<div class="overlay" (click)="onBackdropClick()">
+  <div class="dialog" (click)="onDialogClick($event)">
+    <header class="dialog__header">
+      <div class="dialog__header-left">
+        <div class="dialog__icon-wrap">
+          <span class="material-symbols-outlined">assignment</span>
+        </div>
+        <div>
+          <h3 class="dialog__title">Детали задачи</h3>
+          <span class="badge" [class]="badgeClass">{{ badgeText }}</span>
+        </div>
+      </div>
+      <button class="dialog__close" type="button" (click)="close.emit()">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </header>
+
+    @if (isEditing()) {
+      <!-- Edit mode -->
+      <div class="dialog__body">
+        <div class="field">
+          <label class="field__label">Название</label>
+          <input
+            class="field__input"
+            type="text"
+            placeholder="Название задачи..."
+            [(ngModel)]="editTitle"
+          />
+        </div>
+
+        <div class="field">
+          <label class="field__label">Описание</label>
+          <textarea
+            class="field__input field__textarea"
+            placeholder="Добавьте описание..."
+            rows="4"
+            [(ngModel)]="editDescription"
+          ></textarea>
+        </div>
+
+        <div class="field">
+          <label class="field__label">Приоритет</label>
+          <div class="segmented">
+            @for (p of priorities; track p.value) {
+              <button
+                class="seg-btn"
+                [class.seg-btn--active]="editPriority() === p.value"
+                type="button"
+                (click)="selectPriority(p.value)"
+              >
+                {{ p.label }}
+              </button>
+            }
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label class="field__label">Срок</label>
+            <app-date-picker [(ngModel)]="editDueDate" placeholder="Выберите дату" />
+          </div>
+
+          <div class="field">
+            <label class="field__label">Время</label>
+            <app-select
+              [(ngModel)]="editEstimate"
+              [options]="estimateOptions"
+              placeholder="Выбрать"
+              icon="timer"
+            />
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="field__label">Исполнители</label>
+          <div class="assignee-dropdown" (click)="$event.stopPropagation()">
+            <div
+              class="assignee-dropdown__trigger"
+              [class.assignee-dropdown__trigger--open]="assigneeDropdownOpen()"
+              (click)="toggleAssigneeDropdown()"
+            >
+              <span class="material-symbols-outlined assignee-dropdown__icon">group</span>
+              @if (assigneeDropdownLabel()) {
+                <span class="assignee-dropdown__value">{{ assigneeDropdownLabel() }}</span>
+              } @else {
+                <span class="assignee-dropdown__placeholder">Выбрать участников</span>
+              }
+              <span class="material-symbols-outlined assignee-dropdown__chevron">expand_more</span>
+            </div>
+            @if (assigneeDropdownOpen()) {
+              <div class="assignee-dropdown__list">
+                @for (a of assigneeOptions(); track a.id) {
+                  <button
+                    class="assignee-dropdown__option"
+                    [class.assignee-dropdown__option--selected]="isAssigneeSelected(a.id)"
+                    type="button"
+                    (click)="toggleAssignee(a.id)"
+                  >
+                    @if (a.avatar) {
+                      <img class="assignee-dropdown__avatar" [src]="a.avatar | avatar" [alt]="a.name" />
+                    } @else {
+                      <span class="assignee-dropdown__initial">{{ a.name.charAt(0).toUpperCase() }}</span>
+                    }
+                    <span class="assignee-dropdown__name">{{ a.name }}</span>
+                    @if (isAssigneeSelected(a.id)) {
+                      <span class="material-symbols-outlined assignee-dropdown__check">check</span>
+                    }
+                  </button>
+                }
+              </div>
+            }
+          </div>
+        </div>
+
+        @if (editProgress() !== null) {
+          <div class="field">
+            <label class="field__label">Прогресс: {{ editProgress() }}%</label>
+            <input
+              class="field__range"
+              type="range"
+              min="0"
+              max="100"
+              step="5"
+              [value]="editProgress()"
+              (input)="editProgress.set(+$any($event.target).value)"
+            />
+          </div>
+        }
+      </div>
+
+      <footer class="dialog__footer">
+        <button class="btn btn--primary" type="button" (click)="saveEdit()">Сохранить</button>
+        <button class="btn btn--secondary" type="button" (click)="cancelEdit()">Отмена</button>
+      </footer>
+    } @else {
+      <!-- View mode -->
+      <div class="dialog__body">
+        <h2 class="detail__title">{{ card().title }}</h2>
+
+        @if (backlogTask?.description; as desc) {
+          <p class="detail__description">{{ desc }}</p>
+        } @else {
+          <p class="detail__description detail__description--empty">Нет описания</p>
+        }
+
+        @if (card().progressPct != null) {
+          <div class="detail__section">
+            <span class="detail__label">Прогресс</span>
+            <div class="detail__progress">
+              <div class="detail__progress-bar" [style.width.%]="card().progressPct"></div>
+            </div>
+            <span class="detail__progress-text">{{ card().progressPct }}%</span>
+          </div>
+        }
+
+        <div class="detail__meta">
+          @if (card().deadlineText) {
+            <div class="detail__meta-item">
+              <span class="material-symbols-outlined">event</span>
+              <span>{{ card().deadlineText }}</span>
+            </div>
+          }
+
+          @if (card().completedText) {
+            <div class="detail__meta-item">
+              <span class="material-symbols-outlined">done_all</span>
+              <span>{{ card().completedText }}</span>
+            </div>
+          }
+
+          @if (backlogTask?.estimateMinutes; as mins) {
+            <div class="detail__meta-item detail__meta-item--purple">
+              <span class="material-symbols-outlined">timer</span>
+              <span>{{ mins }} мин</span>
+            </div>
+          }
+        </div>
+
+        @if (assignees.length) {
+          <div class="detail__section">
+            <span class="detail__label">Исполнители</span>
+            <div class="detail__assignees">
+              @for (a of assignees; track a.id) {
+                <div class="detail__assignee">
+                  @if (a.avatar) {
+                    <img class="detail__avatar" [src]="a.avatar | avatar" [alt]="a.name" />
+                  } @else {
+                    <span class="detail__avatar detail__avatar--initial">{{ a.name.charAt(0).toUpperCase() }}</span>
+                  }
+                  <span>{{ a.name }}</span>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+
+      <footer class="dialog__footer">
+        @if (card().backlogId) {
+          <button class="btn btn--primary" type="button" (click)="startEdit()">
+            <span class="material-symbols-outlined">edit</span>
+            Редактировать
+          </button>
+        }
+        <button class="btn btn--secondary" type="button" (click)="close.emit()">Закрыть</button>
+      </footer>
+    }
+  </div>
+</div>

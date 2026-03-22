@@ -2,6 +2,7 @@
   class="card"
   [class.card--inprogress]="task().progressPct != null"
   [class.card--done]="isDone"
+  (click)="cardClick.emit(task())"
 >
   <div class="top">
     <span class="badge" [ngClass]="badgeClass">{{ badgeText }}</span>

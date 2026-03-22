@@ -11,8 +11,9 @@ import { BacklogViewComponent } from '../../features/tasks/ui/backlog-view/backl
 import { BacklogPickerDialogComponent } from '../../features/tasks/ui/backlog-picker-dialog/backlog-picker-dialog.component';
 import { CompletedTasksDialogComponent } from '../../features/tasks/ui/completed-tasks-dialog/completed-tasks-dialog.component';
 import { ColumnCreateDialogComponent } from '../../features/tasks/ui/column-create-dialog/column-create-dialog.component';
+import { TaskDetailDialogComponent } from '../../features/tasks/ui/task-detail-dialog/task-detail-dialog.component';
 import {
-  ColumnHeaderAction, TaskCreatePayload,
+  ColumnHeaderAction, TaskCardVm, TaskCreatePayload,
   TaskDropEvent, TasksTab, TaskMenuAction,
 } from '../../features/tasks/models/task.models';
 
@@ -23,7 +24,7 @@ import {
     AppShellComponent, KanbanBoardComponent, TopbarComponent,
     TasksFilterComponent, ConfirmDialogComponent, TaskCreatePanelComponent,
     BacklogViewComponent, BacklogPickerDialogComponent, CompletedTasksDialogComponent,
-    ColumnCreateDialogComponent,
+    ColumnCreateDialogComponent, TaskDetailDialogComponent,
   ],
   templateUrl: './tasks-page.component.html',
   styleUrl: './tasks-page.component.scss',
@@ -58,7 +59,7 @@ export class TasksPageComponent implements OnInit {
       .map(col => ({
         ...col,
         cards: col.cards.filter(
-          card => card.assigneeIds?.includes(filterId),
+          card => card.assigneeIds?.map(String).includes(filterId),
         ),
       }))
       .map(col => ({ ...col, totalCount: col.cards.length }));
@@ -69,6 +70,7 @@ export class TasksPageComponent implements OnInit {
   readonly pickerTargetStatus = signal<string | null>(null);
   readonly showCompletedDialog = signal(false);
   readonly showColumnCreateDialog = signal(false);
+  readonly detailCard = signal<TaskCardVm | null>(null);
 
   setTab(tab: TasksTab): void {
     this.activeTab.set(tab);
@@ -82,8 +84,27 @@ export class TasksPageComponent implements OnInit {
       case 'moveTo':
         this.tasksService.moveTaskById(action.taskId, action.targetColumnId);
         break;
-      default:
-        console.log('task menu action:', action);
+      case 'edit':
+        this.openDetailByTaskId(action.taskId);
+        break;
+    }
+  }
+
+  onCardClick(card: TaskCardVm): void {
+    this.detailCard.set(card);
+  }
+
+  onCloseDetail(): void {
+    this.detailCard.set(null);
+  }
+
+  private openDetailByTaskId(taskId: string): void {
+    for (const col of this.tasksService.columns()) {
+      const card = col.cards.find(c => c.id === taskId);
+      if (card) {
+        this.detailCard.set(card);
+        return;
+      }
     }
   }
 
@@ -116,7 +137,13 @@ export class TasksPageComponent implements OnInit {
   }
 
   onSaveTask(payload: TaskCreatePayload): void {
-    console.log('save task:', payload);
+    this.tasksService.createTaskOnBoard({
+      title: payload.title,
+      priority: payload.priority,
+      dueDate: payload.dueDate || undefined,
+      description: payload.description || undefined,
+      assigneeIds: payload.assigneeId ? [payload.assigneeId] : undefined,
+    });
     this.showCreatePanel.set(false);
   }
 
