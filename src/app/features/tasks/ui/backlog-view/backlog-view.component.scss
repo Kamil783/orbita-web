@@ -115,8 +115,9 @@
 .filter-chip--avatar {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
-  padding: 4px 12px 4px 4px;
+  padding: 4px 12px;
 }
 
 .filter-chip__avatar {
@@ -253,53 +254,151 @@
   &:focus { border-color: var(--color-primary); }
 }
 
-.add-form__assignees {
+/* ── Assignee multi-select dropdown ── */
+.assignee-dropdown {
+  position: relative;
+  min-width: 160px;
+}
+
+.assignee-dropdown__trigger {
   display: flex;
   align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-
-.add-form__assignees-icon {
-  font-size: 18px;
-  color: var(--text-400);
-}
-
-.assignee-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 4px 10px 4px 4px;
-  font-size: 12px;
-  font-weight: 600;
+  gap: 8px;
+  width: 100%;
+  height: 42px;
+  padding: 10px 14px;
+  background: var(--surface-input);
   border: 1px solid var(--border-color);
-  border-radius: 9999px;
-  background: var(--surface-panel);
-  color: var(--text-500);
+  border-radius: 10px;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  box-sizing: border-box;
 
-  &:hover:not(.assignee-chip--active) {
-    background: var(--surface-muted);
+  &:hover {
+    border-color: var(--text-400);
+  }
+
+  &--open {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(37, 140, 244, 0.15);
   }
 }
 
-.assignee-chip--active {
-  background: var(--color-primary);
-  color: #fff;
-  border-color: var(--color-primary);
+.assignee-dropdown__icon {
+  font-size: 18px;
+  color: var(--text-500);
+  flex-shrink: 0;
 }
 
-.assignee-chip__avatar {
-  width: 20px;
-  height: 20px;
+.assignee-dropdown__value {
+  flex: 1;
+  font-size: 14px;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.assignee-dropdown__placeholder {
+  flex: 1;
+  font-size: 14px;
+  color: var(--text-400);
+}
+
+.assignee-dropdown__chevron {
+  font-size: 18px;
+  color: var(--text-400);
+  flex-shrink: 0;
+  transition: transform 0.15s ease;
+
+  .assignee-dropdown__trigger--open & {
+    transform: rotate(180deg);
+  }
+}
+
+.assignee-dropdown__list {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 200;
+  width: 100%;
+  min-width: 200px;
+  max-height: 220px;
+  overflow-y: auto;
+  background: var(--surface-panel);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.12);
+  padding: 6px;
+  animation: selIn 0.15s ease-out;
+}
+
+@keyframes selIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.assignee-dropdown__option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 9px 12px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-main);
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.12s ease, color 0.12s ease;
+
+  &:hover:not(.assignee-dropdown__option--selected) {
+    background: var(--surface-muted);
+  }
+
+  &--selected {
+    background: rgba(37, 140, 244, 0.08);
+    color: var(--color-primary);
+    font-weight: 600;
+  }
+}
+
+.assignee-dropdown__avatar {
+  width: 24px;
+  height: 24px;
   border-radius: 9999px;
+  flex-shrink: 0;
+}
+
+.assignee-dropdown__name {
+  flex: 1;
+}
+
+.assignee-dropdown__check {
+  font-size: 18px;
+  color: var(--color-primary);
+  flex-shrink: 0;
 }
 
 /* Ensure app-select and app-date-picker size consistently in the form row */
 app-select,
 app-date-picker {
   min-width: 130px;
+}
+
+/* Make icons in date-picker & select more contrasting inside the form */
+.add-form {
+  app-date-picker,
+  app-select {
+    ::ng-deep .dp__icon,
+    ::ng-deep .sel__icon,
+    ::ng-deep .dp__chevron,
+    ::ng-deep .sel__chevron {
+      color: var(--text-500);
+    }
+  }
 }
 
 .add-form__save {
@@ -336,7 +435,7 @@ app-date-picker {
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 8px;
 }
 
 .task-row {
@@ -345,16 +444,20 @@ app-date-picker {
   justify-content: space-between;
   padding: 12px 16px;
   border-radius: 10px;
+  border: 1px solid var(--border-color);
+  background: var(--surface-panel);
   gap: 12px;
-  transition: background 0.12s ease;
+  transition: background 0.12s ease, box-shadow 0.12s ease;
 
   &:hover {
     background: var(--surface-muted);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   }
 }
 
 .task-row--in-week {
   background: rgba(37, 140, 244, 0.04);
+  border-color: rgba(37, 140, 244, 0.2);
 
   &:hover { background: rgba(37, 140, 244, 0.08); }
 }

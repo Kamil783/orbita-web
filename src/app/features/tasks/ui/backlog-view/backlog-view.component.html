@@ -101,20 +101,40 @@
           }
         </div>
         <app-date-picker [(ngModel)]="newDueDate" placeholder="Срок" />
-        <div class="add-form__assignees">
-          <span class="material-symbols-outlined add-form__assignees-icon">group</span>
-          @for (a of assigneeOptions(); track a.id) {
-            <button
-              class="assignee-chip"
-              [class.assignee-chip--active]="isAssigneeSelected(a.id)"
-              type="button"
-              (click)="toggleAssignee(a.id)"
-            >
-              @if (a.avatar) {
-                <img class="assignee-chip__avatar" [src]="a.avatar | avatar" [alt]="a.name" />
+        <div class="assignee-dropdown" (click)="$event.stopPropagation()">
+          <div
+            class="assignee-dropdown__trigger"
+            [class.assignee-dropdown__trigger--open]="assigneeDropdownOpen()"
+            [class.assignee-dropdown__trigger--filled]="newAssigneeIds().length"
+            (click)="toggleAssigneeDropdown()"
+          >
+            <span class="material-symbols-outlined assignee-dropdown__icon">group</span>
+            @if (assigneeDropdownLabel()) {
+              <span class="assignee-dropdown__value">{{ assigneeDropdownLabel() }}</span>
+            } @else {
+              <span class="assignee-dropdown__placeholder">Участники</span>
+            }
+            <span class="material-symbols-outlined assignee-dropdown__chevron">expand_more</span>
+          </div>
+          @if (assigneeDropdownOpen()) {
+            <div class="assignee-dropdown__list">
+              @for (a of assigneeOptions(); track a.id) {
+                <button
+                  class="assignee-dropdown__option"
+                  [class.assignee-dropdown__option--selected]="isAssigneeSelected(a.id)"
+                  type="button"
+                  (click)="toggleAssignee(a.id)"
+                >
+                  @if (a.avatar) {
+                    <img class="assignee-dropdown__avatar" [src]="a.avatar | avatar" [alt]="a.name" />
+                  }
+                  <span class="assignee-dropdown__name">{{ a.name }}</span>
+                  @if (isAssigneeSelected(a.id)) {
+                    <span class="material-symbols-outlined assignee-dropdown__check">check</span>
+                  }
+                </button>
               }
-              {{ a.name }}
-            </button>
+            </div>
           }
         </div>
         <app-select

@@ -1,4 +1,4 @@
-import { Component, computed, inject, input, signal } from '@angular/core';
+import { Component, computed, ElementRef, HostListener, inject, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DatePickerComponent } from '../../../../shared/ui/date-picker/date-picker.component';
 import { SelectComponent, SelectOption } from '../../../../shared/ui/select/select.component';
@@ -18,8 +18,17 @@ type BacklogFilter = 'all' | 'week' | 'available';
   styleUrl: './backlog-view.component.scss',
 })
 export class BacklogViewComponent {
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.assignee-dropdown')) {
+      this.assigneeDropdownOpen.set(false);
+    }
+  }
+
   private readonly tasksService = inject(TasksService);
   private readonly userService = inject(UserService);
+  private readonly elementRef = inject(ElementRef);
 
   /** Assignee options from the parent page */
   readonly assigneeOptions = input<User[]>([]);
@@ -36,6 +45,15 @@ export class BacklogViewComponent {
   newDueDate = '';
   newAssigneeIds = signal<string[]>([]);
   newEstimate = '';
+
+  readonly assigneeDropdownOpen = signal(false);
+
+  readonly assigneeDropdownLabel = computed(() => {
+    const ids = this.newAssigneeIds();
+    if (!ids.length) return '';
+    const users = this.assigneeOptions().filter(a => ids.includes(a.id));
+    return users.map(u => u.name).join(', ');
+  });
 
   readonly priorityLabels = PRIORITY_LABELS;
 
@@ -172,8 +190,14 @@ export class BacklogViewComponent {
     return this.newAssigneeIds().includes(id);
   }
 
+  toggleAssigneeDropdown(): void {
+    this.assigneeDropdownOpen.update(v => !v);
+  }
+
+
   private resetForm(): void {
     this.showAddForm.set(false);
+    this.assigneeDropdownOpen.set(false);
     this.newTitle = '';
     this.newDescription = '';
     this.newPriority.set('medium');
