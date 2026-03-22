@@ -184,6 +184,10 @@
 
 .add-form__row--secondary {
   align-items: center;
+  background: var(--surface-panel);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 4px;
 }
 
 .add-form__row--actions {
@@ -208,12 +212,6 @@
 .add-form__priority {
   display: flex;
   gap: 4px;
-  background: var(--surface-panel);
-  border: 1px solid var(--border-color);
-  border-radius: 10px;
-  padding: 4px;
-  height: 42px;
-  box-sizing: border-box;
   align-items: center;
 }
 
@@ -399,6 +397,37 @@ app-date-picker {
       color: var(--text-500);
     }
   }
+
+  /* Remove nested borders inside the secondary row — the row itself is the container */
+  .add-form__row--secondary {
+    app-date-picker ::ng-deep .dp__input,
+    app-select ::ng-deep .sel__input {
+      border: 0;
+      background: transparent;
+      border-radius: 0;
+      height: auto;
+      padding: 6px 10px;
+
+      &:hover { border-color: transparent; }
+      &--open { box-shadow: none; }
+    }
+
+    .assignee-dropdown__trigger {
+      border: 0;
+      background: transparent;
+      border-radius: 0;
+      height: auto;
+      padding: 6px 10px;
+
+      &:hover { border-color: transparent; }
+      &--open { box-shadow: none; }
+    }
+
+    /* Thin separators between controls */
+    > *:not(:last-child) {
+      border-right: 1px solid var(--border-color);
+    }
+  }
 }
 
 .add-form__save {
@@ -447,12 +476,71 @@ app-date-picker {
   border: 1px solid var(--border-color);
   background: var(--surface-panel);
   gap: 12px;
+  cursor: pointer;
   transition: background 0.12s ease, box-shadow 0.12s ease;
 
   &:hover {
     background: var(--surface-muted);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   }
+}
+
+/* ── Inline edit form ── */
+.edit-form {
+  background: var(--surface-muted);
+  border: 1px solid var(--color-primary);
+  border-radius: 12px;
+  padding: 14px 16px;
+  animation: formIn 0.15s ease-out;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.edit-form__row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.edit-form__row--secondary {
+  align-items: center;
+  background: var(--surface-panel);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 4px;
+
+  app-date-picker ::ng-deep .dp__input,
+  app-select ::ng-deep .sel__input {
+    border: 0;
+    background: transparent;
+    border-radius: 0;
+    height: auto;
+    padding: 6px 10px;
+
+    &:hover { border-color: transparent; }
+    &--open { box-shadow: none; }
+  }
+
+  .assignee-dropdown__trigger {
+    border: 0;
+    background: transparent;
+    border-radius: 0;
+    height: auto;
+    padding: 6px 10px;
+
+    &:hover { border-color: transparent; }
+    &--open { box-shadow: none; }
+  }
+
+  > *:not(:last-child) {
+    border-right: 1px solid var(--border-color);
+  }
+}
+
+.edit-form__row--actions {
+  justify-content: flex-end;
 }
 
 .task-row--in-week {

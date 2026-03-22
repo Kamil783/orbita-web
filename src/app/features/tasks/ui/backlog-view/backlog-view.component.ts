@@ -23,6 +23,7 @@ export class BacklogViewComponent {
     const target = event.target as HTMLElement;
     if (!target.closest('.assignee-dropdown')) {
       this.assigneeDropdownOpen.set(false);
+      this.editAssigneeDropdownOpen.set(false);
     }
   }
 
@@ -45,6 +46,23 @@ export class BacklogViewComponent {
   newDueDate = '';
   newAssigneeIds = signal<string[]>([]);
   newEstimate = '';
+
+  // Edit task state
+  readonly editingTaskId = signal<string | null>(null);
+  editTitle = '';
+  editDescription = '';
+  editPriority = signal<TaskPriority>('medium');
+  editDueDate = '';
+  editAssigneeIds = signal<string[]>([]);
+  editEstimate = '';
+  readonly editAssigneeDropdownOpen = signal(false);
+
+  readonly editAssigneeDropdownLabel = computed(() => {
+    const ids = this.editAssigneeIds();
+    if (!ids.length) return '';
+    const users = this.assigneeOptions().filter(a => ids.includes(a.id));
+    return users.map(u => u.name).join(', ');
+  });
 
   readonly assigneeDropdownOpen = signal(false);
 
@@ -192,6 +210,60 @@ export class BacklogViewComponent {
 
   toggleAssigneeDropdown(): void {
     this.assigneeDropdownOpen.update(v => !v);
+  }
+
+  // ── Edit task ──
+
+  startEdit(task: BacklogTask): void {
+    this.editingTaskId.set(task.id);
+    this.editTitle = task.title;
+    this.editDescription = task.description ?? '';
+    this.editPriority.set(task.priority);
+    this.editDueDate = task.dueDate ?? '';
+    this.editAssigneeIds.set(task.assigneeIds ? [...task.assigneeIds] : []);
+    this.editEstimate = task.estimateMinutes ? String(task.estimateMinutes) : '';
+    this.editAssigneeDropdownOpen.set(false);
+  }
+
+  saveEdit(): void {
+    const id = this.editingTaskId();
+    if (!id || !this.editTitle.trim()) return;
+
+    const estimateMin = this.editEstimate ? parseInt(this.editEstimate, 10) : undefined;
+    const ids = this.editAssigneeIds();
+
+    this.tasksService.updateBacklogTask(id, {
+      title: this.editTitle.trim(),
+      description: this.editDescription.trim() || undefined,
+      priority: this.editPriority(),
+      dueDate: this.editDueDate || undefined,
+      estimateMinutes: estimateMin && !isNaN(estimateMin) ? estimateMin : undefined,
+      assigneeIds: ids.length ? ids : undefined,
+    });
+    this.cancelEdit();
+  }
+
+  cancelEdit(): void {
+    this.editingTaskId.set(null);
+    this.editAssigneeDropdownOpen.set(false);
+  }
+
+  selectEditPriority(value: TaskPriority): void {
+    this.editPriority.set(value);
+  }
+
+  toggleEditAssignee(id: string): void {
+    this.editAssigneeIds.update(ids =>
+      ids.includes(id) ? ids.filter(x => x !== id) : [...ids, id],
+    );
+  }
+
+  isEditAssigneeSelected(id: string): boolean {
+    return this.editAssigneeIds().includes(id);
+  }
+
+  toggleEditAssigneeDropdown(): void {
+    this.editAssigneeDropdownOpen.update(v => !v);
   }
 
 

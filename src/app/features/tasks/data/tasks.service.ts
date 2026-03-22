@@ -20,6 +20,7 @@ import {
  * POST   /api/Backlog/:id/to-week  → { kanbanCard }          Add backlog task to weekly board. Body: { targetStatus }
  * POST   /api/Backlog/:id/from-week→ void                    Remove backlog task from weekly board
  * PATCH  /api/Backlog/:id/done     → void                    Body: { done: boolean }
+ * PATCH  /api/Backlog/:id          → BacklogTask             Update backlog task. Body: { title?, description?, priority?, dueDate?, estimateMinutes?, assigneeIds? }
  *
  * POST   /api/Columns              → { id }                 Create a new board column. Body: { title }
  */
@@ -199,6 +200,25 @@ export class TasksService {
     );
 
     this.http.patch(`${this.apiUrl}/api/Backlog/${backlogTaskId}/done`, { done: true }).subscribe();
+  }
+
+  updateBacklogTask(id: string, changes: Partial<Pick<BacklogTask, 'title' | 'description' | 'priority' | 'dueDate' | 'estimateMinutes' | 'assigneeIds'>>): void {
+    // Optimistic update
+    this.backlog.update(list =>
+      list.map(t => (t.id === id ? { ...t, ...changes } : t)),
+    );
+
+    this.http.patch<BacklogTask>(`${this.apiUrl}/api/Backlog/${id}`, changes).subscribe({
+      next: (updated) => {
+        this.backlog.update(list =>
+          list.map(t => (t.id === id ? updated : t)),
+        );
+      },
+      error: () => {
+        // Rollback on error — reload backlog
+        this.loadBacklog();
+      },
+    });
   }
 
   addBacklogTask(task: Omit<BacklogTask, 'id' | 'inWeek' | 'isCompleted'>): void {

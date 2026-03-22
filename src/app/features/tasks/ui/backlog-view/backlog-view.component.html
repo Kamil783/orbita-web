@@ -154,45 +154,133 @@
   <!-- Task list -->
   <div class="backlog__list">
     @for (task of filteredTasks(); track task.id) {
-      <div class="task-row" [class.task-row--in-week]="task.inWeek">
-        <div class="task-row__left">
-          <span class="task-row__priority" [class]="priorityClass(task.priority)"></span>
-          <span class="task-row__title">{{ task.title }}</span>
-        </div>
-        <div class="task-row__right">
-          @if (task.estimateMinutes) {
-            <span class="task-row__estimate">
-              <span class="material-symbols-outlined">timer</span>
-              {{ formatEstimate(task.estimateMinutes) }}
-            </span>
-          }
-          @if (task.dueDate) {
-            <span class="task-row__date">
-              <span class="material-symbols-outlined">calendar_today</span>
-              {{ task.dueDate }}
-            </span>
-          }
-          @if (task.assigneeIds?.length) {
-            <div class="task-row__avatars">
-              @for (a of resolveAssignees(task.assigneeIds); track a.id) {
-                <img class="task-row__avatar" [src]="a.avatar | avatar" [alt]="a.name" />
+      @if (editingTaskId() === task.id) {
+        <!-- Inline edit form -->
+        <div class="edit-form" (click)="$event.stopPropagation()">
+          <div class="edit-form__row">
+            <input
+              class="add-form__input"
+              type="text"
+              placeholder="Название задачи..."
+              [(ngModel)]="editTitle"
+              (keydown.enter)="saveEdit()"
+            />
+          </div>
+          <div class="edit-form__row">
+            <textarea
+              class="add-form__textarea"
+              placeholder="Описание задачи..."
+              rows="2"
+              [(ngModel)]="editDescription"
+            ></textarea>
+          </div>
+          <div class="edit-form__row edit-form__row--secondary">
+            <div class="add-form__priority">
+              @for (p of priorities; track p.value) {
+                <button
+                  class="seg-btn"
+                  [class.seg-btn--active]="editPriority() === p.value"
+                  type="button"
+                  (click)="selectEditPriority(p.value)"
+                >
+                  {{ p.label }}
+                </button>
               }
             </div>
-          }
-          <button
-            class="task-row__week-btn"
-            [class.task-row__week-btn--active]="task.inWeek"
-            type="button"
-            (click)="toggleWeek(task)"
-            [attr.aria-label]="task.inWeek ? 'Убрать из недели' : 'Добавить в неделю'"
-          >
-            <span class="material-symbols-outlined">
-              {{ task.inWeek ? 'event_busy' : 'date_range' }}
-            </span>
-            {{ task.inWeek ? 'Убрать' : 'В неделю' }}
-          </button>
+            <app-date-picker [(ngModel)]="editDueDate" placeholder="Срок" />
+            <div class="assignee-dropdown" (click)="$event.stopPropagation()">
+              <div
+                class="assignee-dropdown__trigger"
+                [class.assignee-dropdown__trigger--open]="editAssigneeDropdownOpen()"
+                [class.assignee-dropdown__trigger--filled]="editAssigneeIds().length"
+                (click)="toggleEditAssigneeDropdown()"
+              >
+                <span class="material-symbols-outlined assignee-dropdown__icon">group</span>
+                @if (editAssigneeDropdownLabel()) {
+                  <span class="assignee-dropdown__value">{{ editAssigneeDropdownLabel() }}</span>
+                } @else {
+                  <span class="assignee-dropdown__placeholder">Участники</span>
+                }
+                <span class="material-symbols-outlined assignee-dropdown__chevron">expand_more</span>
+              </div>
+              @if (editAssigneeDropdownOpen()) {
+                <div class="assignee-dropdown__list">
+                  @for (a of assigneeOptions(); track a.id) {
+                    <button
+                      class="assignee-dropdown__option"
+                      [class.assignee-dropdown__option--selected]="isEditAssigneeSelected(a.id)"
+                      type="button"
+                      (click)="toggleEditAssignee(a.id)"
+                    >
+                      @if (a.avatar) {
+                        <img class="assignee-dropdown__avatar" [src]="a.avatar | avatar" [alt]="a.name" />
+                      }
+                      <span class="assignee-dropdown__name">{{ a.name }}</span>
+                      @if (isEditAssigneeSelected(a.id)) {
+                        <span class="material-symbols-outlined assignee-dropdown__check">check</span>
+                      }
+                    </button>
+                  }
+                </div>
+              }
+            </div>
+            <app-select
+              [(ngModel)]="editEstimate"
+              [options]="estimateOptions"
+              placeholder="Время"
+              icon="timer"
+            />
+          </div>
+          <div class="edit-form__row edit-form__row--actions">
+            <button class="add-form__save" type="button" (click)="saveEdit()">Сохранить</button>
+            <button class="add-form__cancel" type="button" (click)="cancelEdit()">Отмена</button>
+          </div>
         </div>
-      </div>
+      } @else {
+        <div
+          class="task-row"
+          [class.task-row--in-week]="task.inWeek"
+          (click)="startEdit(task)"
+        >
+          <div class="task-row__left">
+            <span class="task-row__priority" [class]="priorityClass(task.priority)"></span>
+            <span class="task-row__title">{{ task.title }}</span>
+          </div>
+          <div class="task-row__right">
+            @if (task.estimateMinutes) {
+              <span class="task-row__estimate">
+                <span class="material-symbols-outlined">timer</span>
+                {{ formatEstimate(task.estimateMinutes) }}
+              </span>
+            }
+            @if (task.dueDate) {
+              <span class="task-row__date">
+                <span class="material-symbols-outlined">calendar_today</span>
+                {{ task.dueDate }}
+              </span>
+            }
+            @if (task.assigneeIds?.length) {
+              <div class="task-row__avatars">
+                @for (a of resolveAssignees(task.assigneeIds); track a.id) {
+                  <img class="task-row__avatar" [src]="a.avatar | avatar" [alt]="a.name" />
+                }
+              </div>
+            }
+            <button
+              class="task-row__week-btn"
+              [class.task-row__week-btn--active]="task.inWeek"
+              type="button"
+              (click)="toggleWeek(task); $event.stopPropagation()"
+              [attr.aria-label]="task.inWeek ? 'Убрать из недели' : 'Добавить в неделю'"
+            >
+              <span class="material-symbols-outlined">
+                {{ task.inWeek ? 'event_busy' : 'date_range' }}
+              </span>
+              {{ task.inWeek ? 'Убрать' : 'В неделю' }}
+            </button>
+          </div>
+        </div>
+      }
     } @empty {
       <div class="backlog__empty">
         <span class="material-symbols-outlined backlog__empty-icon">inbox</span>
