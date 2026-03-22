@@ -50,6 +50,8 @@
         >
           @if (a.avatar) {
             <img class="filter-chip__avatar" [src]="a.avatar | avatar" [alt]="a.name" />
+          } @else {
+            <span class="filter-chip__initial">{{ a.name.charAt(0).toUpperCase() }}</span>
           }
           {{ a.name }}
         </button>
@@ -127,6 +129,8 @@
                 >
                   @if (a.avatar) {
                     <img class="assignee-dropdown__avatar" [src]="a.avatar | avatar" [alt]="a.name" />
+                  } @else {
+                    <span class="assignee-dropdown__initial">{{ a.name.charAt(0).toUpperCase() }}</span>
                   }
                   <span class="assignee-dropdown__name">{{ a.name }}</span>
                   @if (isAssigneeSelected(a.id)) {
@@ -214,6 +218,8 @@
                     >
                       @if (a.avatar) {
                         <img class="assignee-dropdown__avatar" [src]="a.avatar | avatar" [alt]="a.name" />
+                      } @else {
+                        <span class="assignee-dropdown__initial">{{ a.name.charAt(0).toUpperCase() }}</span>
                       }
                       <span class="assignee-dropdown__name">{{ a.name }}</span>
                       @if (isEditAssigneeSelected(a.id)) {
@@ -262,7 +268,11 @@
             @if (task.assigneeIds?.length) {
               <div class="task-row__avatars">
                 @for (a of resolveAssignees(task.assigneeIds); track a.id) {
-                  <img class="task-row__avatar" [src]="a.avatar | avatar" [alt]="a.name" />
+                  @if (a.avatar) {
+                    <img class="task-row__avatar" [src]="a.avatar | avatar" [alt]="a.name" />
+                  } @else {
+                    <span class="task-row__avatar task-row__avatar--initial">{{ a.name.charAt(0).toUpperCase() }}</span>
+                  }
                 }
               </div>
             }

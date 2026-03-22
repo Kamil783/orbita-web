@@ -110,6 +110,11 @@
   background: var(--color-primary);
   color: #fff;
   border-color: var(--color-primary);
+
+  .filter-chip__initial {
+    background: #fff;
+    color: var(--color-primary);
+  }
 }
 
 .filter-chip--avatar {
@@ -117,13 +122,26 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  padding: 4px 12px;
+  padding: 6px 14px;
 }
 
 .filter-chip__avatar {
   width: 20px;
   height: 20px;
   border-radius: 9999px;
+}
+
+.filter-chip__initial {
+  width: 20px;
+  height: 20px;
+  border-radius: 9999px;
+  background: var(--color-primary);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
 }
 
 .backlog__search {
@@ -367,6 +385,19 @@
   width: 24px;
   height: 24px;
   border-radius: 9999px;
+  flex-shrink: 0;
+}
+
+.assignee-dropdown__initial {
+  width: 24px;
+  height: 24px;
+  border-radius: 9999px;
+  background: var(--color-primary);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  display: grid;
+  place-items: center;
   flex-shrink: 0;
 }
 
@@ -617,6 +648,16 @@ app-date-picker {
   height: 26px;
   border-radius: 9999px;
   border: 2px solid var(--surface-panel);
+
+  &--initial {
+    display: grid;
+    place-items: center;
+    background: var(--color-primary);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
 }
 
 .task-row__week-btn {
