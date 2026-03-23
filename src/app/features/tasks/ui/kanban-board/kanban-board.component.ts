@@ -1,4 +1,4 @@
-import { Component, input, output } from '@angular/core';
+import { Component, input, output, signal, computed } from '@angular/core';
 import { CdkDropListGroup } from '@angular/cdk/drag-drop';
 import { KanbanColumnComponent } from '../kanban-column/kanban-column.component';
 import { ColumnHeaderAction, KanbanColumnVm, TaskCardVm, TaskDropEvent, TaskMenuAction } from '../../models/task.models';
@@ -17,4 +17,16 @@ export class KanbanBoardComponent {
   readonly headerAction = output<ColumnHeaderAction>();
   readonly cardClick = output<TaskCardVm>();
   readonly newColumn = output<void>();
+
+  readonly activeColumnIndex = signal(0);
+
+  readonly activeColumn = computed(() => {
+    const cols = this.columns();
+    const idx = this.activeColumnIndex();
+    return cols[idx] ?? cols[0];
+  });
+
+  selectColumn(index: number): void {
+    this.activeColumnIndex.set(index);
+  }
 }

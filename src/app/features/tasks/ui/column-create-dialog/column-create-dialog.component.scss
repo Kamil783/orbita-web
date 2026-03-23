@@ -133,3 +133,11 @@
     cursor: not-allowed;
   }
 }
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .dialog {
+    padding: 28px 20px 24px;
+    border-radius: 12px;
+  }
+}

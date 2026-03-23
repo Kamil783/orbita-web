@@ -14,6 +14,16 @@
       <span class="material-symbols-outlined nav__icon">{{ i.icon }}</span>
       <span class="nav__label">{{ i.label }}</span>
     </a>
+
+    <!-- Profile link: visible only on mobile bottom nav -->
+    <a
+      class="nav__item nav__item--mobile-only"
+      routerLink="/profile"
+      routerLinkActive="nav__item--active"
+    >
+      <span class="material-symbols-outlined nav__icon">person</span>
+      <span class="nav__label">Профиль</span>
+    </a>
   </nav>
 
   <div class="bottom">

@@ -110,3 +110,15 @@
 .chip:hover .chip__tooltip {
   opacity: 1;
 }
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .filter {
+    padding-left: 12px;
+    gap: 6px;
+  }
+
+  .filter__label {
+    display: none;
+  }
+}

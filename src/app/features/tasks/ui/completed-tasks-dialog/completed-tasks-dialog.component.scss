@@ -178,3 +178,11 @@
 
   &:hover { background: var(--btn-secondary-hover); }
 }
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .dialog {
+    max-height: 80vh;
+    border-radius: 12px;
+  }
+}

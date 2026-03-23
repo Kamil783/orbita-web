@@ -1,11 +1,12 @@
+// ─── Desktop: classic kanban ───
 .board {
   height: 100%;
   width: 100%;
   display: flex;
   gap: 16px;
-
   padding: 24px;
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: hidden;
 }
 
 .newcol {
@@ -57,4 +58,93 @@
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.04em;
+}
+
+// ─── Mobile board: hidden on desktop ───
+.mobile-board {
+  display: none;
+}
+
+// ─── Responsive ───
+@media (max-width: 768px) {
+  // Hide desktop board
+  .board {
+    display: none;
+  }
+
+  // Show mobile board
+  .mobile-board {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+  }
+}
+
+// ─── Mobile tabs ───
+.mobile-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 12px 16px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--surface-panel);
+}
+
+.mobile-tabs__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  background: var(--surface-panel);
+  color: var(--text-600);
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.mobile-tabs__btn:hover {
+  border-color: var(--color-primary);
+}
+
+.mobile-tabs__btn--active {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #ffffff;
+}
+
+.mobile-tabs__btn--active .mobile-tabs__count {
+  background: rgba(255, 255, 255, 0.25);
+  color: #ffffff;
+}
+
+.mobile-tabs__count {
+  font-size: 11px;
+  font-weight: 800;
+  padding: 1px 8px;
+  border-radius: 9999px;
+  background: var(--surface-muted);
+  color: var(--text-400);
+}
+
+.mobile-column {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 16px;
+
+  app-kanban-column {
+    display: block;
+    min-width: 0;
+    max-width: none;
+    flex: none;
+  }
 }
