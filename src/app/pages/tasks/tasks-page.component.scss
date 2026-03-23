@@ -53,9 +53,27 @@
   display: grid;
   place-items: center;
   transition: transform .15s ease;
+  z-index: 20;
 
   &:hover { transform: scale(1.05); }
   &:active { transform: scale(0.95); }
 
   .material-symbols-outlined { font-size: 28px; }
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .tab-toggle__btn {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+
+  .fab {
+    right: 16px;
+    bottom: 80px;
+    width: 48px;
+    height: 48px;
+
+    .material-symbols-outlined { font-size: 24px; }
+  }
 }

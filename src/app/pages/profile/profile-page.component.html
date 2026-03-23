@@ -55,6 +55,30 @@
       <!-- Right column: preferences -->
       <div class="page__right">
         <div class="preferences">
+          <!-- Appearance -->
+          <div class="preferences__section">
+            <h2 class="preferences__heading">
+              <span class="material-symbols-outlined preferences__heading-icon">palette</span>
+              Внешний вид
+            </h2>
+
+            <div class="toggle-row">
+              <div class="toggle-row__text">
+                <p class="toggle-row__title">Тёмная тема</p>
+                <p class="toggle-row__desc">Переключение между светлой и тёмной темой</p>
+              </div>
+              <label class="toggle">
+                <input
+                  type="checkbox"
+                  class="toggle__input"
+                  [checked]="themeService.isDarkTheme"
+                  (change)="toggleTheme()"
+                />
+                <span class="toggle__slider"></span>
+              </label>
+            </div>
+          </div>
+
           <!-- Notifications -->
           <div class="preferences__section">
             <h2 class="preferences__heading">
@@ -78,7 +102,14 @@
               </label>
             </div>
 
-
+            @if (notificationService.unreadCount() > 0) {
+              <div class="notification-action">
+                <button class="notification-action__btn" type="button" (click)="markAllRead()">
+                  <span class="material-symbols-outlined">done_all</span>
+                  Прочитать все ({{ notificationService.unreadCount() }})
+                </button>
+              </div>
+            }
           </div>
 
           <!-- Google Calendar Integration -->
@@ -206,6 +237,89 @@
           Сохранить
         </button>
       </div>
+    </div>
+  </div>
+}
+
+<!-- Change Password Dialog -->
+@if (showPasswordDialog()) {
+  <div class="overlay" (click)="onPasswordDialogBackdropClick()">
+    <div class="edit-dialog" (click)="onPasswordDialogClick($event)">
+      <div class="edit-dialog__icon edit-dialog__icon--security">
+        <span class="material-symbols-outlined">lock</span>
+      </div>
+
+      @if (passwordSuccess()) {
+        <h3 class="edit-dialog__title">Пароль изменён</h3>
+        <p class="edit-dialog__desc">Ваш пароль был успешно обновлён</p>
+        <div class="password-success">
+          <span class="material-symbols-outlined">check_circle</span>
+        </div>
+      } @else {
+        <h3 class="edit-dialog__title">Сменить пароль</h3>
+        <p class="edit-dialog__desc">Введите текущий и новый пароль</p>
+
+        @if (passwordError()) {
+          <div class="password-error">
+            <span class="material-symbols-outlined">error</span>
+            {{ passwordError() }}
+          </div>
+        }
+
+        <div class="edit-dialog__fields">
+          <div class="edit-field">
+            <label class="edit-field__label" for="currentPassword">Текущий пароль</label>
+            <input
+              id="currentPassword"
+              class="edit-field__input"
+              type="password"
+              [(ngModel)]="currentPassword"
+              placeholder="Введите текущий пароль"
+            />
+          </div>
+
+          <div class="edit-field">
+            <label class="edit-field__label" for="newPassword">Новый пароль</label>
+            <input
+              id="newPassword"
+              class="edit-field__input"
+              type="password"
+              [(ngModel)]="newPassword"
+              placeholder="Минимум 6 символов"
+            />
+          </div>
+
+          <div class="edit-field">
+            <label class="edit-field__label" for="confirmPassword">Подтвердите пароль</label>
+            <input
+              id="confirmPassword"
+              class="edit-field__input"
+              type="password"
+              [(ngModel)]="confirmPassword"
+              placeholder="Повторите новый пароль"
+            />
+          </div>
+        </div>
+
+        <div class="edit-dialog__actions">
+          <button
+            class="edit-dialog__btn edit-dialog__btn--secondary"
+            type="button"
+            (click)="cancelPasswordChange()"
+            [disabled]="passwordLoading()"
+          >
+            Отмена
+          </button>
+          <button
+            class="edit-dialog__btn edit-dialog__btn--primary"
+            type="button"
+            (click)="savePassword()"
+            [disabled]="passwordLoading()"
+          >
+            {{ passwordLoading() ? 'Сохранение...' : 'Сохранить' }}
+          </button>
+        </div>
+      }
     </div>
   </div>
 }
