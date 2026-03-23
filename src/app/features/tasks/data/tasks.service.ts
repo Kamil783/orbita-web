@@ -216,7 +216,7 @@ export class TasksService {
     this.http.patch(`${this.apiUrl}/api/Backlog/${backlogTaskId}/done`, { done: false }).subscribe();
   }
 
-  updateBacklogTask(id: string, changes: Partial<Pick<BacklogTask, 'title' | 'description' | 'priority' | 'dueDate' | 'estimateMinutes' | 'assigneeIds'>>): void {
+  updateBacklogTask(id: string, changes: Partial<Pick<BacklogTask, 'title' | 'description' | 'priority' | 'dueDate' | 'estimateMinutes' | 'assigneeIds' | 'progressPct'>>): void {
     // Optimistic update
     this.backlog.update(list =>
       list.map(t => (t.id === id ? { ...t, ...changes } : t)),
