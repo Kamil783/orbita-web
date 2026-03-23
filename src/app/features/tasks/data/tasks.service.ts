@@ -340,7 +340,6 @@ export class TasksService {
     this.currentWeekStart.set(nextMonday.toISOString().slice(0, 10));
 
     this.http.post(`${this.apiUrl}/api/Weeks/new`, {
-      archiveLabel: archive.label,
       startDate: archive.startDate,
       endDate: archive.endDate,
     }).subscribe();

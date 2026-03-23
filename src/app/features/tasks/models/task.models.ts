@@ -42,6 +42,8 @@ export interface BacklogTask {
   inWeek: boolean;
   assigneeIds?: string[];
   progressPct?: number;
+  /** Labels of weeks this task has been assigned to (e.g. ["17 марта — 23 марта", "24 марта — 30 марта"]) */
+  weekLabels?: string[];
 }
 
 export interface TasksFilterItemVm {

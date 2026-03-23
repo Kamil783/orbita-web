@@ -176,6 +176,20 @@
           }
         </div>
 
+        @if (backlogTask?.weekLabels?.length) {
+          <div class="detail__section">
+            <span class="detail__label">Недели</span>
+            <div class="detail__weeks">
+              @for (label of backlogTask.weekLabels; track label) {
+                <span class="detail__week-chip">
+                  <span class="material-symbols-outlined">date_range</span>
+                  {{ label }}
+                </span>
+              }
+            </div>
+          </div>
+        }
+
         @if (assignees.length) {
           <div class="detail__section">
             <span class="detail__label">Исполнители</span>

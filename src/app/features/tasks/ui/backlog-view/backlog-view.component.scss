@@ -633,6 +633,17 @@ app-date-picker {
   flex-shrink: 0;
 }
 
+.task-row__week-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--color-primary);
+  white-space: nowrap;
+
+  .material-symbols-outlined { font-size: 14px; }
+}
+
 .task-row__estimate {
   display: flex;
   align-items: center;
