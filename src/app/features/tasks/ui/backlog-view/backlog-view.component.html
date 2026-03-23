@@ -266,7 +266,7 @@
             @if (task.weekLabels?.length) {
               <span class="task-row__week-label">
                 <span class="material-symbols-outlined">date_range</span>
-                {{ task.weekLabels[task.weekLabels.length - 1] }}
+                {{ task.weekLabels![task.weekLabels!.length - 1] }}
               </span>
             }
             @if (task.estimateMinutes) {
