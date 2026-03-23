@@ -51,15 +51,15 @@
         </div>
       </div>
 
-      <div class=”field”>
-        <label class=”field__checkbox”>
-          <input type=”checkbox” [ngModel]=”trackProgress” (ngModelChange)=”trackProgress = $event”>
+      <div class="field">
+        <label class="field__checkbox">
+          <input type="checkbox" [ngModel]="trackProgress" (ngModelChange)="trackProgress = $event" />
           <span>Учитывать прогресс</span>
         </label>
       </div>
 
-      <!-- ВАЖНО: добавили field--grow, чтобы “Описание” заполняло низ -->
-      <div class=”field field--grow”>
+      <!-- ВАЖНО: добавили field--grow, чтобы "Описание" заполняло низ -->
+      <div class="field field--grow">
         <label class="field__label">Описание</label>
         <textarea
           class="field__input field__textarea"
