@@ -236,7 +236,7 @@ export class TasksService {
   }
 
   /** Create a backlog task and immediately add it to the "К выполнению" column on the board */
-  createTaskOnBoard(task: Omit<BacklogTask, 'id' | 'inWeek' | 'isCompleted'>): void {
+  createTaskOnBoard(task: Omit<BacklogTask, 'id' | 'inWeek' | 'isCompleted'> & { progressPct?: number }): void {
     const dto = {
       title: task.title,
       priority: task.priority,
@@ -244,6 +244,7 @@ export class TasksService {
       estimateMinutes: task.estimateMinutes || null,
       assignee: task.assigneeIds ?? [],
       description: task.description || null,
+      progressPct: task.progressPct ?? null,
     };
     this.http.post<BacklogTask>(`${this.apiUrl}/api/Backlog`, dto).subscribe(created => {
       this.backlog.update(list => [...list, created]);
@@ -252,7 +253,7 @@ export class TasksService {
     });
   }
 
-  addBacklogTask(task: Omit<BacklogTask, 'id' | 'inWeek' | 'isCompleted'>): void {
+  addBacklogTask(task: Omit<BacklogTask, 'id' | 'inWeek' | 'isCompleted'> & { progressPct?: number }): void {
     const dto = {
       title: task.title,
       priority: task.priority,
@@ -260,6 +261,7 @@ export class TasksService {
       estimateMinutes: task.estimateMinutes || null,
       assignee: task.assigneeIds ?? [],
       description: task.description || null,
+      progressPct: task.progressPct ?? null,
     };
     this.http.post<BacklogTask>(`${this.apiUrl}/api/Backlog`, dto).subscribe(created => {
       this.backlog.update(list => [...list, created]);

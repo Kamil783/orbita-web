@@ -30,6 +30,7 @@ export class TaskCreatePanelComponent {
   dueDate = '';
   assigneeId = '';
   description = '';
+  trackProgress = false;
 
   readonly priorities: { value: TaskPriority; label: string }[] = [
     { value: 'low', label: 'Низкий' },
@@ -51,6 +52,7 @@ export class TaskCreatePanelComponent {
       dueDate: this.dueDate,
       assigneeId: this.assigneeId,
       description: this.description.trim(),
+      trackProgress: this.trackProgress,
     });
   }
 

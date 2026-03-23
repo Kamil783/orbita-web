@@ -143,6 +143,7 @@ export class TasksPageComponent implements OnInit {
       dueDate: payload.dueDate || undefined,
       description: payload.description || undefined,
       assigneeIds: payload.assigneeId ? [payload.assigneeId] : undefined,
+      progressPct: payload.trackProgress ? 0 : undefined,
     });
     this.showCreatePanel.set(false);
   }

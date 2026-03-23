@@ -63,6 +63,7 @@ export interface TaskCreatePayload {
   dueDate: string;
   assigneeId: string;
   description: string;
+  trackProgress: boolean;
 }
 
 export interface TaskDropEvent {

@@ -126,6 +126,22 @@
   line-height: 1.5;
 }
 
+.field__checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--text-main);
+  cursor: pointer;
+
+  input[type='checkbox'] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--color-primary);
+    cursor: pointer;
+  }
+}
+
 /* ── Делаем "Описание" растягивающимся ── */
 .field--grow {
   flex: 1 1 auto;
