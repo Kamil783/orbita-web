@@ -13,6 +13,8 @@ export interface TaskCardVm {
   progressPct?: number;
   assigneeIds?: string[];
   backlogId?: string;
+  /** Latest week label this task belongs to (e.g. "23 марта — 29 марта") */
+  weekLabel?: string;
 }
 
 /** Роль колонки на доске. Дефолтные три — всегда присутствуют, custom — пользовательские */
