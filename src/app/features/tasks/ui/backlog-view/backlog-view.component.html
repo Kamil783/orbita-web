@@ -148,6 +148,16 @@
           icon="timer"
         />
       </div>
+      <div class="add-form__row">
+        <label class="add-form__checkbox">
+          <input
+            type="checkbox"
+            [checked]="newTrackProgress"
+            (change)="newTrackProgress = $any($event.target).checked"
+          />
+          <span>Учитывать прогресс</span>
+        </label>
+      </div>
       <div class="add-form__row add-form__row--actions">
         <button class="add-form__save" type="button" (click)="onSaveNewTask()">Добавить</button>
         <button class="add-form__cancel" type="button" (click)="onCancelAdd()">Отмена</button>

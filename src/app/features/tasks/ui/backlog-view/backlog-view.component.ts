@@ -46,6 +46,7 @@ export class BacklogViewComponent {
   newDueDate = '';
   newAssigneeIds = signal<string[]>([]);
   newEstimate = '';
+  newTrackProgress = false;
 
   // Edit task state
   readonly editingTaskId = signal<string | null>(null);
@@ -186,6 +187,7 @@ export class BacklogViewComponent {
       dueDate: this.newDueDate || undefined,
       estimateMinutes: estimateMin && !isNaN(estimateMin) ? estimateMin : undefined,
       assigneeIds: ids.length ? ids : undefined,
+      progressPct: this.newTrackProgress ? 0 : undefined,
     });
     this.resetForm();
   }
@@ -276,5 +278,6 @@ export class BacklogViewComponent {
     this.newDueDate = '';
     this.newAssigneeIds.set([]);
     this.newEstimate = '';
+    this.newTrackProgress = false;
   }
 }
