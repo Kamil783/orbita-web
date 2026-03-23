@@ -259,10 +259,10 @@
                 {{ formatEstimate(task.estimateMinutes) }}
               </span>
             }
-            @if (task.dueDate) {
+            @if (task.dueDisplayText) {
               <span class="task-row__date">
                 <span class="material-symbols-outlined">calendar_today</span>
-                {{ task.dueDate }}
+                {{ task.dueDisplayText }}
               </span>
             }
             @if (task.assigneeIds?.length) {
