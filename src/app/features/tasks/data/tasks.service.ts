@@ -242,7 +242,7 @@ export class TasksService {
       priority: task.priority,
       dueDate: task.dueDate || null,
       estimateMinutes: task.estimateMinutes || null,
-      assignee: task.assigneeIds?.map(id => Number(id)) ?? [],
+      assignee: task.assigneeIds ?? [],
       description: task.description || null,
     };
     this.http.post<BacklogTask>(`${this.apiUrl}/api/Backlog`, dto).subscribe(created => {
@@ -258,7 +258,7 @@ export class TasksService {
       priority: task.priority,
       dueDate: task.dueDate || null,
       estimateMinutes: task.estimateMinutes || null,
-      assignee: task.assigneeIds?.map(id => Number(id)) ?? [],
+      assignee: task.assigneeIds ?? [],
       description: task.description || null,
     };
     this.http.post<BacklogTask>(`${this.apiUrl}/api/Backlog`, dto).subscribe(created => {
