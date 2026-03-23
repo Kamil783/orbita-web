@@ -1,7 +1,8 @@
 <article
   class="card"
   [class.card--inprogress]="task().progressPct != null"
-  [class.card--done]="task().status === 'done'"
+  [class.card--done]="isDone"
+  (click)="cardClick.emit(task())"
 >
   <div class="top">
     <span class="badge" [ngClass]="badgeClass">{{ badgeText }}</span>
@@ -32,8 +33,8 @@
             </button>
 
             <div class="dropdown__submenu">
-              @for (target of moveTargets; track target.status) {
-                <button class="dropdown__item" (click)="onMoveTo($event, target.status)">
+              @for (target of moveTargets; track target.columnId) {
+                <button class="dropdown__item" (click)="onMoveTo($event, target.columnId)">
                   {{ target.label }}
                 </button>
               }
@@ -51,7 +52,7 @@
     </div>
   </div>
 
-  <h4 class="title" [class.title--strike]="task().status === 'done'">
+  <h4 class="title" [class.title--strike]="isDone">
     {{ task().title }}
   </h4>
 
@@ -62,6 +63,13 @@
   }
 
   <div class="bottom">
+    @if (task().weekLabel) {
+      <div class="meta meta--week">
+        <span class="material-symbols-outlined">date_range</span>
+        <span>{{ task().weekLabel }}</span>
+      </div>
+    }
+
     @if (task().deadlineText) {
       <div class="meta">
         <span class="material-symbols-outlined">event</span>
@@ -76,10 +84,14 @@
       </div>
     }
 
-    @if (task().assignees?.length) {
+    @if (task().assigneeIds?.length) {
       <div class="avatars">
-        @for (a of task().assignees; track a.id) {
-          <span class="avatar" [style.backgroundImage]="'url(' + (a.avatar | avatar) + ')'"></span>
+        @for (a of assignees; track a.id) {
+          @if (a.avatar) {
+            <img class="avatar" [src]="a.avatar | avatar" [alt]="a.name" />
+          } @else {
+            <span class="avatar avatar--initial">{{ a.name.charAt(0).toUpperCase() }}</span>
+          }
         }
       </div>
     }

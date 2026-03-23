@@ -141,6 +141,7 @@
   flex-shrink: 0;
 }
 
+.priority--critical { background: #dc2626; box-shadow: 0 0 6px rgba(220, 38, 38, 0.4); }
 .priority--high { background: #ef4444; }
 .priority--medium { background: #f59e0b; }
 .priority--low { background: #10b981; }

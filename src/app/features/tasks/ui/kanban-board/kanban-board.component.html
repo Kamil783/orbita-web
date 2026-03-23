@@ -1,7 +1,7 @@
 <!-- Desktop: classic kanban (hidden on mobile via CSS) -->
 <div class="board" cdkDropListGroup>
-  @for (c of columns(); track c.id) {
-    <app-kanban-column [column]="c" [showDivider]="true" (menuAction)="menuAction.emit($event)" (taskDrop)="taskDrop.emit($event)" (headerAction)="headerAction.emit($event)"></app-kanban-column>
+  @for (c of columns(); track c.id; let last = $last) {
+    <app-kanban-column [column]="c" [allColumns]="columns()" [showDivider]="true" (menuAction)="menuAction.emit($event)" (taskDrop)="taskDrop.emit($event)" (headerAction)="headerAction.emit($event)" (cardClick)="cardClick.emit($event)"></app-kanban-column>
   }
 
   <section class="newcol">

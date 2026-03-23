@@ -1,10 +1,12 @@
-import { Component, computed, inject, input, signal } from '@angular/core';
+import { Component, computed, ElementRef, HostListener, inject, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DatePickerComponent } from '../../../../shared/ui/date-picker/date-picker.component';
 import { SelectComponent, SelectOption } from '../../../../shared/ui/select/select.component';
 import { AvatarPipe } from '../../../../shared/ui/avatar-pipe/avatar.pipe';
+import { User, UserService } from '../../../user/data/user.service';
 import { TasksService } from '../../data/tasks.service';
-import { AssigneeOption, BacklogTask, TaskPriority, PRIORITY_LABELS } from '../../models/task.models';
+import { BacklogTask, TaskPriority, PRIORITY_LABELS, WeekArchive } from '../../models/task.models';
+
 
 type BacklogFilter = 'all' | 'week' | 'available';
 
@@ -16,22 +18,64 @@ type BacklogFilter = 'all' | 'week' | 'available';
   styleUrl: './backlog-view.component.scss',
 })
 export class BacklogViewComponent {
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.assignee-dropdown')) {
+      this.assigneeDropdownOpen.set(false);
+      this.editAssigneeDropdownOpen.set(false);
+    }
+  }
+
   private readonly tasksService = inject(TasksService);
+  private readonly userService = inject(UserService);
+  private readonly elementRef = inject(ElementRef);
 
   /** Assignee options from the parent page */
-  readonly assigneeOptions = input<AssigneeOption[]>([]);
+  readonly assigneeOptions = input<User[]>([]);
 
   readonly filter = signal<BacklogFilter>('all');
   readonly assigneeFilter = signal<string>('all'); // 'all' or assignee id
   readonly searchQuery = signal('');
   readonly showAddForm = signal(false);
+  readonly expandedWeekIds = signal<Set<string>>(new Set());
+
+  readonly weekArchives = this.tasksService.weekArchives;
 
   // New task form
   newTitle = '';
+  newDescription = '';
   newPriority = signal<TaskPriority>('medium');
   newDueDate = '';
-  newAssigneeId = '';
+  newAssigneeIds = signal<string[]>([]);
   newEstimate = '';
+  newTrackProgress = false;
+
+  // Edit task state
+  readonly editingTaskId = signal<string | null>(null);
+  editTitle = '';
+  editDescription = '';
+  editPriority = signal<TaskPriority>('medium');
+  editDueDate = '';
+  editAssigneeIds = signal<string[]>([]);
+  editEstimate = '';
+  readonly editAssigneeDropdownOpen = signal(false);
+
+  readonly editAssigneeDropdownLabel = computed(() => {
+    const ids = this.editAssigneeIds();
+    if (!ids.length) return '';
+    const users = this.assigneeOptions().filter(a => ids.includes(a.id));
+    return users.map(u => u.name).join(', ');
+  });
+
+  readonly assigneeDropdownOpen = signal(false);
+
+  readonly assigneeDropdownLabel = computed(() => {
+    const ids = this.newAssigneeIds();
+    if (!ids.length) return '';
+    const users = this.assigneeOptions().filter(a => ids.includes(a.id));
+    return users.map(u => u.name).join(', ');
+  });
 
   readonly priorityLabels = PRIORITY_LABELS;
 
@@ -60,6 +104,7 @@ export class BacklogViewComponent {
     { value: 'low', label: 'Низкий' },
     { value: 'medium', label: 'Средний' },
     { value: 'high', label: 'Высокий' },
+    { value: 'critical', label: 'Критичный' },
   ];
 
   readonly filteredTasks = computed(() => {
@@ -69,7 +114,7 @@ export class BacklogViewComponent {
     const q = this.searchQuery().toLowerCase().trim();
 
     // Exclude done tasks from the main list
-    tasks = tasks.filter(t => !t.done);
+    tasks = tasks.filter(t => !t.isCompleted);
 
     if (f === 'week') {
       tasks = tasks.filter(t => t.inWeek);
@@ -79,7 +124,7 @@ export class BacklogViewComponent {
 
     // Assignee filter
     if (af !== 'all') {
-      tasks = tasks.filter(t => t.assignees?.some(a => a.id === af));
+      tasks = tasks.filter(t => t.assigneeIds?.includes(af));
     }
 
     if (q) {
@@ -107,6 +152,10 @@ export class BacklogViewComponent {
     return `priority--${priority}`;
   }
 
+  resolveAssignees(ids?: string[]): User[] {
+    return this.userService.resolveUsers(ids);
+  }
+
   formatEstimate(minutes?: number): string {
     if (!minutes) return '';
     const h = Math.floor(minutes / 60);
@@ -131,17 +180,17 @@ export class BacklogViewComponent {
   onSaveNewTask(): void {
     if (!this.newTitle.trim()) return;
 
-    const assignee = this.assigneeOptions().find(a => a.id === this.newAssigneeId);
     const estimateMin = this.newEstimate ? parseInt(this.newEstimate, 10) : undefined;
+    const ids = this.newAssigneeIds();
 
     this.tasksService.addBacklogTask({
       title: this.newTitle.trim(),
+      description: this.newDescription.trim() || undefined,
       priority: this.newPriority(),
       dueDate: this.newDueDate || undefined,
       estimateMinutes: estimateMin && !isNaN(estimateMin) ? estimateMin : undefined,
-      assignees: assignee
-        ? [{ id: assignee.id, avatar: assignee.avatar ?? '', name: assignee.name }]
-        : undefined,
+      assigneeIds: ids.length ? ids : undefined,
+      progressPct: this.newTrackProgress ? 0 : undefined,
     });
     this.resetForm();
   }
@@ -154,12 +203,101 @@ export class BacklogViewComponent {
     this.newPriority.set(value);
   }
 
+  toggleAssignee(id: string): void {
+    this.newAssigneeIds.update(ids =>
+      ids.includes(id) ? ids.filter(x => x !== id) : [...ids, id],
+    );
+  }
+
+  isAssigneeSelected(id: string): boolean {
+    return this.newAssigneeIds().includes(id);
+  }
+
+  toggleAssigneeDropdown(): void {
+    this.assigneeDropdownOpen.update(v => !v);
+  }
+
+  // ── Edit task ──
+
+  startEdit(task: BacklogTask): void {
+    this.editingTaskId.set(task.id);
+    this.editTitle = task.title;
+    this.editDescription = task.description ?? '';
+    this.editPriority.set(task.priority);
+    this.editDueDate = task.dueDate ?? '';
+    this.editAssigneeIds.set(task.assigneeIds ? [...task.assigneeIds] : []);
+    this.editEstimate = task.estimateMinutes ? String(task.estimateMinutes) : '';
+    this.editAssigneeDropdownOpen.set(false);
+  }
+
+  saveEdit(): void {
+    const id = this.editingTaskId();
+    if (!id || !this.editTitle.trim()) return;
+
+    const estimateMin = this.editEstimate ? parseInt(this.editEstimate, 10) : undefined;
+    const ids = this.editAssigneeIds();
+
+    this.tasksService.updateBacklogTask(id, {
+      title: this.editTitle.trim(),
+      description: this.editDescription.trim() || undefined,
+      priority: this.editPriority(),
+      dueDate: this.editDueDate || undefined,
+      estimateMinutes: estimateMin && !isNaN(estimateMin) ? estimateMin : undefined,
+      assigneeIds: ids.length ? ids : undefined,
+    });
+    this.cancelEdit();
+  }
+
+  cancelEdit(): void {
+    this.editingTaskId.set(null);
+    this.editAssigneeDropdownOpen.set(false);
+  }
+
+  selectEditPriority(value: TaskPriority): void {
+    this.editPriority.set(value);
+  }
+
+  toggleEditAssignee(id: string): void {
+    this.editAssigneeIds.update(ids =>
+      ids.includes(id) ? ids.filter(x => x !== id) : [...ids, id],
+    );
+  }
+
+  isEditAssigneeSelected(id: string): boolean {
+    return this.editAssigneeIds().includes(id);
+  }
+
+  toggleEditAssigneeDropdown(): void {
+    this.editAssigneeDropdownOpen.update(v => !v);
+  }
+
+  // ── Week archives ──
+
+  toggleWeekExpand(weekId: string): void {
+    this.expandedWeekIds.update(set => {
+      const next = new Set(set);
+      if (next.has(weekId)) {
+        next.delete(weekId);
+      } else {
+        next.add(weekId);
+      }
+      return next;
+    });
+  }
+
+  isWeekExpanded(weekId: string): boolean {
+    return this.expandedWeekIds().has(weekId);
+  }
+
   private resetForm(): void {
     this.showAddForm.set(false);
+    this.assigneeDropdownOpen.set(false);
     this.newTitle = '';
+    this.newDescription = '';
     this.newPriority.set('medium');
     this.newDueDate = '';
-    this.newAssigneeId = '';
+    this.newAssigneeIds.set([]);
     this.newEstimate = '';
+    this.newTrackProgress = false;
   }
 }

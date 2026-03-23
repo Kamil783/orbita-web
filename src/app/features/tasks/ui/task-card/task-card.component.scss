@@ -30,6 +30,11 @@
   border-radius: 6px;
 }
 
+.badge--critical {
+  background: rgba(220, 38, 38, 0.12);
+  color: #dc2626;
+}
+
 .badge--high {
   background: var(--priority-high-bg);
   color: var(--priority-high-text);
@@ -204,7 +209,7 @@
 .bottom {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  flex-wrap: wrap;
   gap: 10px;
 }
 
@@ -220,6 +225,10 @@
   font-size: 14px;
 }
 
+.meta--week {
+  color: var(--color-primary);
+}
+
 .avatars {
   display: flex;
   align-items: center;
@@ -229,12 +238,18 @@
   width: 20px;
   height: 20px;
   border-radius: 9999px;
-
-  background-size: cover;
-  background-position: center;
-  background-color: var(--border-color);
-
   border: 1px solid var(--surface-panel);
+  object-fit: cover;
+
+  &--initial {
+    display: grid;
+    place-items: center;
+    background: var(--color-primary);
+    color: #fff;
+    font-size: 9px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
 }
 
 /* ── Mobile ── */

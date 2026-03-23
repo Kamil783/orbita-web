@@ -1,6 +1,6 @@
 import { Component, computed, inject, input, output, signal } from '@angular/core';
 import { TasksService } from '../../data/tasks.service';
-import { BacklogTask, TaskPriority, TaskStatus } from '../../models/task.models';
+import { BacklogTask, TaskPriority } from '../../models/task.models';
 
 @Component({
   selector: 'app-backlog-picker-dialog',
@@ -11,7 +11,7 @@ import { BacklogTask, TaskPriority, TaskStatus } from '../../models/task.models'
 export class BacklogPickerDialogComponent {
   private readonly tasksService = inject(TasksService);
 
-  readonly targetStatus = input.required<TaskStatus>();
+  readonly targetStatus = input.required<string>();
   readonly close = output<void>();
 
   readonly searchQuery = signal('');
