@@ -41,6 +41,7 @@ export interface BacklogTask {
   isCompleted: boolean;
   inWeek: boolean;
   assigneeIds?: string[];
+  progressPct?: number;
 }
 
 export interface TasksFilterItemVm {
