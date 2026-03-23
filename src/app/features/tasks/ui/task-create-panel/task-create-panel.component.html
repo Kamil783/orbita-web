@@ -53,7 +53,7 @@
 
       <div class=”field”>
         <label class=”field__checkbox”>
-          <input type=”checkbox” [(ngModel)]=”trackProgress” />
+          <input type=”checkbox” [ngModel]=”trackProgress” (ngModelChange)=”trackProgress = $event”>
           <span>Учитывать прогресс</span>
         </label>
       </div>
