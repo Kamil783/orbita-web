@@ -308,4 +308,41 @@
       </div>
     }
   </div>
+
+  <!-- Closed weeks -->
+  @if (weekArchives().length) {
+    <div class="weeks-history">
+      <h3 class="weeks-history__title">
+        <span class="material-symbols-outlined">history</span>
+        Закрытые недели
+      </h3>
+      @for (week of weekArchives(); track week.id) {
+        <div class="week-card">
+          <button
+            class="week-card__header"
+            type="button"
+            (click)="toggleWeekExpand(week.id)"
+          >
+            <span class="material-symbols-outlined week-card__chevron" [class.week-card__chevron--open]="isWeekExpanded(week.id)">
+              chevron_right
+            </span>
+            <span class="week-card__label">{{ week.label }}</span>
+            <span class="week-card__count">{{ week.tasks.length }} задач</span>
+          </button>
+          @if (isWeekExpanded(week.id)) {
+            <div class="week-card__tasks">
+              @for (task of week.tasks; track task.id) {
+                <div class="week-card__task">
+                  <span class="task-row__priority" [class]="priorityClass(task.priority)"></span>
+                  <span class="week-card__task-title">{{ task.title }}</span>
+                </div>
+              } @empty {
+                <p class="week-card__empty">Нет завершённых задач</p>
+              }
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
 </div>

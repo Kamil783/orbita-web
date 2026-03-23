@@ -5,7 +5,7 @@ import { SelectComponent, SelectOption } from '../../../../shared/ui/select/sele
 import { AvatarPipe } from '../../../../shared/ui/avatar-pipe/avatar.pipe';
 import { User, UserService } from '../../../user/data/user.service';
 import { TasksService } from '../../data/tasks.service';
-import { BacklogTask, TaskPriority, PRIORITY_LABELS } from '../../models/task.models';
+import { BacklogTask, TaskPriority, PRIORITY_LABELS, WeekArchive } from '../../models/task.models';
 
 
 type BacklogFilter = 'all' | 'week' | 'available';
@@ -38,6 +38,9 @@ export class BacklogViewComponent {
   readonly assigneeFilter = signal<string>('all'); // 'all' or assignee id
   readonly searchQuery = signal('');
   readonly showAddForm = signal(false);
+  readonly expandedWeekIds = signal<Set<string>>(new Set());
+
+  readonly weekArchives = this.tasksService.weekArchives;
 
   // New task form
   newTitle = '';
@@ -268,6 +271,23 @@ export class BacklogViewComponent {
     this.editAssigneeDropdownOpen.update(v => !v);
   }
 
+  // ── Week archives ──
+
+  toggleWeekExpand(weekId: string): void {
+    this.expandedWeekIds.update(set => {
+      const next = new Set(set);
+      if (next.has(weekId)) {
+        next.delete(weekId);
+      } else {
+        next.add(weekId);
+      }
+      return next;
+    });
+  }
+
+  isWeekExpanded(weekId: string): boolean {
+    return this.expandedWeekIds().has(weekId);
+  }
 
   private resetForm(): void {
     this.showAddForm.set(false);

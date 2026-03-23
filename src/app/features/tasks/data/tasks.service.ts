@@ -4,7 +4,7 @@ import { environment } from '../../../../environments/environment';
 import { UserService } from '../../user/data/user.service';
 import {
   BacklogTask, KanbanColumnVm, TaskCardVm,
-  TasksFilterItemVm,
+  TasksFilterItemVm, WeekArchive,
 } from '../models/task.models';
 
 /**
@@ -42,6 +42,30 @@ export class TasksService {
     { id: 'done', title: 'Готово', totalCount: 0, columnType: 'done', headerActionIcon: 'checklist', muted: true, cards: [] },
   ]);
   readonly backlog = signal<BacklogTask[]>([]);
+  readonly weekArchives = signal<WeekArchive[]>([]);
+
+  readonly currentWeekStart = signal<string>(TasksService.getMonday(new Date()));
+  readonly currentWeekEnd = computed(() => {
+    const d = new Date(this.currentWeekStart());
+    d.setDate(d.getDate() + 6);
+    return d.toISOString().slice(0, 10);
+  });
+
+  readonly currentWeekLabel = computed(() => {
+    const fmt = (iso: string) => {
+      const d = new Date(iso);
+      return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });
+    };
+    return `${fmt(this.currentWeekStart())} — ${fmt(this.currentWeekEnd())}`;
+  });
+
+  private static getMonday(d: Date): string {
+    const date = new Date(d);
+    const day = date.getDay();
+    const diff = day === 0 ? -6 : 1 - day;
+    date.setDate(date.getDate() + diff);
+    return date.toISOString().slice(0, 10);
+  }
 
   readonly availableBacklogTasks = computed(() =>
     this.backlog().filter(t => !t.inWeek && !t.isCompleted),
@@ -266,6 +290,60 @@ export class TasksService {
     this.http.post<BacklogTask>(`${this.apiUrl}/api/Backlog`, dto).subscribe(created => {
       this.backlog.update(list => [...list, created]);
     });
+  }
+
+  // ── Week operations ──
+
+  loadWeekArchives(): void {
+    this.http.get<WeekArchive[]>(`${this.apiUrl}/api/Weeks/archives`).subscribe(archives => {
+      this.weekArchives.set(archives);
+    });
+  }
+
+  startNewWeek(): void {
+    const doneCol = this.columns().find(c => c.columnType === 'done');
+    const doneTasks = doneCol?.cards ?? [];
+    const completedBacklog = doneTasks
+      .filter(c => c.backlogId)
+      .map(c => this.backlog().find(t => t.id === c.backlogId))
+      .filter((t): t is BacklogTask => !!t);
+
+    const archive: WeekArchive = {
+      id: `week-${Date.now()}`,
+      label: this.currentWeekLabel(),
+      startDate: this.currentWeekStart(),
+      endDate: this.currentWeekEnd(),
+      tasks: completedBacklog,
+    };
+
+    // Add to local archives
+    this.weekArchives.update(list => [archive, ...list]);
+
+    // Clear done column cards
+    this.columns.update(cols =>
+      cols.map(col =>
+        col.columnType === 'done'
+          ? { ...col, cards: [], totalCount: 0 }
+          : col,
+      ),
+    );
+
+    // Mark completed backlog tasks as not in week
+    const doneBacklogIds = new Set(completedBacklog.map(t => t.id));
+    this.backlog.update(list =>
+      list.map(t => doneBacklogIds.has(t.id) ? { ...t, inWeek: false } : t),
+    );
+
+    // Advance week start to next Monday
+    const nextMonday = new Date(this.currentWeekStart());
+    nextMonday.setDate(nextMonday.getDate() + 7);
+    this.currentWeekStart.set(nextMonday.toISOString().slice(0, 10));
+
+    this.http.post(`${this.apiUrl}/api/Weeks/new`, {
+      archiveLabel: archive.label,
+      startDate: archive.startDate,
+      endDate: archive.endDate,
+    }).subscribe();
   }
 
   // ── Column operations ──

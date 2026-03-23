@@ -3,7 +3,7 @@
   flex-direction: column;
   height: 100%;
   padding: 24px 28px;
-  overflow: hidden;
+  overflow-y: auto;
 }
 
 /* ── Header ── */
@@ -724,4 +724,98 @@ app-date-picker {
 .backlog__empty p {
   margin: 0;
   font-size: 14px;
+}
+
+/* ── Closed weeks history ── */
+.weeks-history {
+  margin-top: 24px;
+  flex-shrink: 0;
+}
+
+.weeks-history__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 12px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-main);
+
+  .material-symbols-outlined {
+    font-size: 20px;
+    color: var(--icon-muted);
+  }
+}
+
+.week-card {
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  background: var(--surface-panel);
+  overflow: hidden;
+
+  & + & { margin-top: 8px; }
+}
+
+.week-card__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-main);
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.12s ease;
+
+  &:hover { background: var(--surface-muted); }
+}
+
+.week-card__chevron {
+  font-size: 18px;
+  color: var(--icon-muted);
+  transition: transform 0.15s ease;
+
+  &--open { transform: rotate(90deg); }
+}
+
+.week-card__label {
+  flex: 1;
+}
+
+.week-card__count {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--icon-muted);
+}
+
+.week-card__tasks {
+  padding: 0 16px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.week-card__task {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: var(--surface-muted);
+  font-size: 13px;
+}
+
+.week-card__task-title {
+  color: var(--text-main);
+}
+
+.week-card__empty {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-400);
+  padding: 4px 0;
 }

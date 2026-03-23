@@ -74,6 +74,14 @@ export interface TaskDropEvent {
   toIndex: number;
 }
 
+export interface WeekArchive {
+  id: string;
+  label: string;
+  startDate: string;
+  endDate: string;
+  tasks: BacklogTask[];
+}
+
 export const TASK_STATUS_LABELS: Record<TaskStatus, string> = {
   todo: 'К выполнению',
   inprogress: 'В процессе',

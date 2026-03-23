@@ -42,6 +42,7 @@ export class TasksPageComponent implements OnInit {
   ngOnInit(): void {
     this.tasksService.loadWeeklyBoard();
     this.tasksService.loadBacklog();
+    this.tasksService.loadWeekArchives();
     this.userService.loadMembers();
   }
 
@@ -70,7 +71,9 @@ export class TasksPageComponent implements OnInit {
   readonly pickerTargetStatus = signal<string | null>(null);
   readonly showCompletedDialog = signal(false);
   readonly showColumnCreateDialog = signal(false);
+  readonly showNewWeekConfirm = signal(false);
   readonly detailCard = signal<TaskCardVm | null>(null);
+  readonly weekLabel = this.tasksService.currentWeekLabel;
 
   setTab(tab: TasksTab): void {
     this.activeTab.set(tab);
@@ -158,6 +161,15 @@ export class TasksPageComponent implements OnInit {
 
   onCloseCompletedDialog(): void {
     this.showCompletedDialog.set(false);
+  }
+
+  onNewWeek(): void {
+    this.showNewWeekConfirm.set(true);
+  }
+
+  onConfirmNewWeek(): void {
+    this.tasksService.startNewWeek();
+    this.showNewWeekConfirm.set(false);
   }
 
   onNewColumn(): void {
