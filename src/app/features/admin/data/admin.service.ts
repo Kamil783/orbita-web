@@ -18,7 +18,7 @@ export class AdminService {
   }
 
   createUser(request: CreateUserRequest): void {
-    this.http.post<AdminUser>(`${this.apiUrl}/api/Admin/users`, request).subscribe(user => {
+    this.http.post<AdminUser>(`${this.apiUrl}/api/Auth/registration`, request).subscribe(user => {
       this.users.update(list => [...list, user]);
     });
   }
