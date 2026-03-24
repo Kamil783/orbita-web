@@ -1,4 +1,4 @@
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, HostListener, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { AppShellComponent } from '../../shared/ui/app-shell/app-shell.component';
 import { TopbarComponent } from '../../shared/ui/topbar/topbar.component';
@@ -26,10 +26,20 @@ export class AdminPageComponent implements OnInit {
   readonly showAddUserDialog = signal(false);
   readonly addUserLoading = signal(false);
   readonly addUserError = signal('');
+  readonly roleDropdownOpen = signal(false);
+  readonly roleOptions = [
+    { value: 'User', label: 'Пользователь', icon: 'person' },
+    { value: 'Admin', label: 'Администратор', icon: 'shield_person' },
+  ];
   newUserName = '';
   newUserEmail = '';
   newUserPassword = '';
   newUserRole = 'User';
+
+  @HostListener('document:click')
+  onDocumentClick(): void {
+    this.roleDropdownOpen.set(false);
+  }
 
   readonly filteredUsers = computed(() => {
     const q = this.searchQuery().toLowerCase().trim();
@@ -70,6 +80,7 @@ export class AdminPageComponent implements OnInit {
     this.newUserPassword = '';
     this.newUserRole = 'User';
     this.addUserError.set('');
+    this.roleDropdownOpen.set(false);
     this.showAddUserDialog.set(true);
   }
 
@@ -143,5 +154,10 @@ export class AdminPageComponent implements OnInit {
 
   userInitial(name: string): string {
     return name ? name.charAt(0).toUpperCase() : '?';
+  }
+
+  formatDate(iso: string): string {
+    const d = new Date(iso);
+    return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', year: 'numeric' });
   }
 }

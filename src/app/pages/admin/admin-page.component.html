@@ -107,7 +107,7 @@
                   <div class="task-cell">
                     <span class="task-cell__title">{{ task.title }}</span>
                     @if (task.dueDate) {
-                      <span class="task-cell__due">{{ task.dueDate }}</span>
+                      <span class="task-cell__due">{{ formatDate(task.dueDate) }}</span>
                     }
                   </div>
                 </td>
@@ -193,11 +193,36 @@
         </div>
 
         <div class="dialog__field">
-          <label class="dialog__label" for="newRole">Роль</label>
-          <select id="newRole" class="dialog__input dialog__select" [(ngModel)]="newUserRole">
-            <option value="User">Пользователь</option>
-            <option value="Admin">Администратор</option>
-          </select>
+          <label class="dialog__label">Роль</label>
+          <div class="role-dropdown" (click)="$event.stopPropagation()">
+            <div
+              class="role-dropdown__trigger"
+              [class.role-dropdown__trigger--open]="roleDropdownOpen()"
+              (click)="roleDropdownOpen.set(!roleDropdownOpen())"
+            >
+              <span class="material-symbols-outlined role-dropdown__icon">badge</span>
+              <span class="role-dropdown__value">{{ roleLabel(newUserRole) }}</span>
+              <span class="material-symbols-outlined role-dropdown__chevron">expand_more</span>
+            </div>
+            @if (roleDropdownOpen()) {
+              <div class="role-dropdown__list">
+                @for (r of roleOptions; track r.value) {
+                  <button
+                    class="role-dropdown__option"
+                    [class.role-dropdown__option--selected]="newUserRole === r.value"
+                    type="button"
+                    (click)="newUserRole = r.value; roleDropdownOpen.set(false)"
+                  >
+                    <span class="material-symbols-outlined role-dropdown__option-icon">{{ r.icon }}</span>
+                    <span class="role-dropdown__name">{{ r.label }}</span>
+                    @if (newUserRole === r.value) {
+                      <span class="material-symbols-outlined role-dropdown__check">check</span>
+                    }
+                  </button>
+                }
+              </div>
+            }
+          </div>
         </div>
       </div>
 
