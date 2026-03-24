@@ -1,0 +1,224 @@
+<app-app-shell>
+  <app-topbar [title]="title" placeholder="Поиск..."></app-topbar>
+
+  <main class="page">
+    <div class="page__header">
+      <h1 class="page__title">Администрирование</h1>
+      <p class="page__subtitle">Управление пользователями и задачами</p>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button
+        class="tabs__btn"
+        [class.tabs__btn--active]="activeTab() === 'users'"
+        (click)="setTab('users')"
+      >
+        <span class="material-symbols-outlined tabs__icon">group</span>
+        Пользователи
+        <span class="tabs__count">{{ adminService.users().length }}</span>
+      </button>
+      <button
+        class="tabs__btn"
+        [class.tabs__btn--active]="activeTab() === 'tasks'"
+        (click)="setTab('tasks')"
+      >
+        <span class="material-symbols-outlined tabs__icon">task</span>
+        Задачи бэклога
+        <span class="tabs__count">{{ adminService.backlogTasks().length }}</span>
+      </button>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <div class="toolbar__search">
+        <span class="material-symbols-outlined toolbar__search-icon">search</span>
+        <input
+          class="toolbar__search-input"
+          type="text"
+          [placeholder]="activeTab() === 'users' ? 'Найти пользователя...' : 'Найти задачу...'"
+          [value]="searchQuery()"
+          (input)="onSearch($event)"
+        />
+      </div>
+
+      @if (activeTab() === 'users') {
+        <button class="toolbar__action-btn" type="button" (click)="openAddUser()">
+          <span class="material-symbols-outlined">person_add</span>
+          Добавить пользователя
+        </button>
+      }
+    </div>
+
+    <!-- Users tab -->
+    @if (activeTab() === 'users') {
+      <div class="table-wrapper">
+        <table class="table">
+          <thead>
+            <tr>
+              <th class="table__th">Пользователь</th>
+              <th class="table__th">Email</th>
+              <th class="table__th">Роль</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (user of filteredUsers(); track user.id) {
+              <tr class="table__row">
+                <td class="table__td">
+                  <div class="user-cell">
+                    <span class="user-cell__avatar">{{ userInitial(user.name) }}</span>
+                    <span class="user-cell__name">{{ user.name }}</span>
+                  </div>
+                </td>
+                <td class="table__td table__td--muted">{{ user.email }}</td>
+                <td class="table__td">
+                  <span class="role-badge" [class.role-badge--admin]="user.role === 'Admin'">
+                    {{ roleLabel(user.role) }}
+                  </span>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td class="table__td table__td--empty" colspan="3">Пользователи не найдены</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+    <!-- Tasks tab -->
+    @if (activeTab() === 'tasks') {
+      <div class="table-wrapper">
+        <table class="table">
+          <thead>
+            <tr>
+              <th class="table__th">Задача</th>
+              <th class="table__th">Приоритет</th>
+              <th class="table__th">Создатель</th>
+              <th class="table__th">Исполнитель</th>
+              <th class="table__th">Статус</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (task of filteredTasks(); track task.id) {
+              <tr class="table__row">
+                <td class="table__td">
+                  <div class="task-cell">
+                    <span class="task-cell__title">{{ task.title }}</span>
+                    @if (task.dueDate) {
+                      <span class="task-cell__due">{{ task.dueDate }}</span>
+                    }
+                  </div>
+                </td>
+                <td class="table__td">
+                  <span class="priority-badge priority-badge--{{ task.priority }}">
+                    {{ priorityLabel(task.priority) }}
+                  </span>
+                </td>
+                <td class="table__td">{{ task.creatorName ?? resolveUserName(task.creatorId) }}</td>
+                <td class="table__td">{{ resolveAssigneeNames(task.assigneeIds) }}</td>
+                <td class="table__td">
+                  @if (task.isCompleted) {
+                    <span class="status-badge status-badge--done">Завершена</span>
+                  } @else if (task.inWeek) {
+                    <span class="status-badge status-badge--week">На неделе</span>
+                  } @else {
+                    <span class="status-badge">В бэклоге</span>
+                  }
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td class="table__td table__td--empty" colspan="5">Задачи не найдены</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </main>
+</app-app-shell>
+
+<!-- Add User Dialog -->
+@if (showAddUserDialog()) {
+  <div class="overlay" (click)="onAddUserBackdropClick()">
+    <div class="dialog" (click)="onAddUserDialogClick($event)">
+      <div class="dialog__icon">
+        <span class="material-symbols-outlined">person_add</span>
+      </div>
+
+      <h3 class="dialog__title">Новый пользователь</h3>
+      <p class="dialog__desc">Заполните данные для создания нового аккаунта</p>
+
+      @if (addUserError()) {
+        <div class="dialog__error">
+          <span class="material-symbols-outlined">error</span>
+          {{ addUserError() }}
+        </div>
+      }
+
+      <div class="dialog__fields">
+        <div class="dialog__field">
+          <label class="dialog__label" for="newName">Имя</label>
+          <input
+            id="newName"
+            class="dialog__input"
+            type="text"
+            [(ngModel)]="newUserName"
+            placeholder="Введите имя"
+          />
+        </div>
+
+        <div class="dialog__field">
+          <label class="dialog__label" for="newEmail">Email</label>
+          <input
+            id="newEmail"
+            class="dialog__input"
+            type="email"
+            [(ngModel)]="newUserEmail"
+            placeholder="Введите email"
+          />
+        </div>
+
+        <div class="dialog__field">
+          <label class="dialog__label" for="newPassword">Пароль</label>
+          <input
+            id="newPassword"
+            class="dialog__input"
+            type="password"
+            [(ngModel)]="newUserPassword"
+            placeholder="Минимум 6 символов"
+          />
+        </div>
+
+        <div class="dialog__field">
+          <label class="dialog__label" for="newRole">Роль</label>
+          <select id="newRole" class="dialog__input dialog__select" [(ngModel)]="newUserRole">
+            <option value="User">Пользователь</option>
+            <option value="Admin">Администратор</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="dialog__actions">
+        <button
+          class="dialog__btn dialog__btn--secondary"
+          type="button"
+          (click)="cancelAddUser()"
+          [disabled]="addUserLoading()"
+        >
+          Отмена
+        </button>
+        <button
+          class="dialog__btn dialog__btn--primary"
+          type="button"
+          (click)="saveNewUser()"
+          [disabled]="addUserLoading()"
+        >
+          {{ addUserLoading() ? 'Создание...' : 'Создать' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
