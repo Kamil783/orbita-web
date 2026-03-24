@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, RouterLinkActive } from '@angular/router';
+import { UserService } from '../../../features/user/data/user.service';
 
 type NavItem = { icon: string; label: string; route: string };
 
@@ -12,6 +13,8 @@ type NavItem = { icon: string; label: string; route: string };
   styleUrl: './slim-sidebar.component.scss',
 })
 export class SlimSidebarComponent {
+  protected readonly userService = inject(UserService);
+
   items: NavItem[] = [
     { icon: 'check_circle', label: 'Задачи', route: '/tasks' },
     { icon: 'calendar_month', label: 'Календарь', route: '/calendar' },

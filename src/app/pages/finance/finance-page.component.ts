@@ -8,6 +8,7 @@ import {
   signal,
   computed,
   inject,
+  effect,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { AppShellComponent } from '../../shared/ui/app-shell/app-shell.component';
@@ -40,8 +41,19 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   @ViewChild('spendingChart') chartCanvas!: ElementRef<HTMLCanvasElement>;
   private chart: Chart | null = null;
+  private viewReady = false;
 
   readonly activeChartTab = signal<'weekly' | 'monthly'>('weekly');
+
+  private chartEffect = effect(() => {
+    // Track signals so the effect re-runs when data or limits change
+    this.financeService.chartData();
+    this.financeService.limits();
+    if (this.viewReady) {
+      this.chart?.destroy();
+      this.createChart();
+    }
+  });
 
   // ─── State (delegated to service) ───
 
@@ -289,11 +301,23 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
   goalName = '';
   goalTarget = '';
 
+  // Fund goal form
+  readonly showFundGoalDialog = signal(false);
+  fundGoalId = '';
+  fundGoalName = '';
+  fundGoalAmount = '';
+
+  // Delete goal confirmation
+  readonly showDeleteGoalDialog = signal(false);
+  deleteGoalId = '';
+  deleteGoalName = '';
+
   // Transaction form
   txTitle = '';
   txAmount = '';
   txType: 'expense' | 'income' = 'expense';
   txCategoryId = '';
+  txFromBalance = true;
 
   // Limit form
   limitMonthly = '';
@@ -312,6 +336,8 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
+    this.viewReady = true;
+    this.chart?.destroy();
     this.createChart();
   }
 
@@ -330,8 +356,6 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
   setChartTab(tab: 'weekly' | 'monthly'): void {
     this.activeChartTab.set(tab);
     this.financeService.loadChartData(tab);
-    this.chart?.destroy();
-    this.createChart();
   }
 
   // ─── Formatters ───
@@ -340,12 +364,13 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
     const abs = Math.abs(kopecks);
     const rub = Math.floor(abs / 100);
     const kop = abs % 100;
-    return rub.toLocaleString('ru-RU') + ',' + kop.toString().padStart(2, '0') + ' \u20BD';
+    const formatted = rub.toLocaleString('ru-RU') + ',' + kop.toString().padStart(2, '0') + ' \u20BD';
+    return kopecks < 0 ? '\u2212' + formatted : formatted;
   }
 
   formatAmount(amount: number): string {
     const sign = amount < 0 ? '\u2212' : '+';
-    return sign + this.formatRub(amount);
+    return sign + this.formatRub(Math.abs(amount));
   }
 
   goalPercent(goal: SavingsGoal): number {
@@ -414,6 +439,35 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
     this.showGoalDialog.set(false);
   }
 
+  // ─── Fund goal dialog ───
+
+  openFundGoalDialog(goal: SavingsGoal): void {
+    this.fundGoalId = goal.id;
+    this.fundGoalName = goal.name;
+    this.fundGoalAmount = '';
+    this.showFundGoalDialog.set(true);
+  }
+
+  saveFundGoal(): void {
+    const val = parseFloat(this.fundGoalAmount.replace(',', '.'));
+    if (isNaN(val) || val <= 0) return;
+    this.financeService.fundSavingsGoal(this.fundGoalId, Math.round(val * 100));
+    this.showFundGoalDialog.set(false);
+  }
+
+  // ─── Delete goal dialog ───
+
+  openDeleteGoalDialog(goal: SavingsGoal): void {
+    this.deleteGoalId = goal.id;
+    this.deleteGoalName = goal.name;
+    this.showDeleteGoalDialog.set(true);
+  }
+
+  confirmDeleteGoal(): void {
+    this.financeService.deleteSavingsGoal(this.deleteGoalId);
+    this.showDeleteGoalDialog.set(false);
+  }
+
   // ─── Transaction dialog ───
 
   openTransactionDialog(): void {
@@ -421,6 +475,7 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
     this.txAmount = '';
     this.txType = 'expense';
     this.txCategoryId = this.categories()[0]?.id ?? '';
+    this.txFromBalance = true;
     this.showTransactionDialog.set(true);
   }
 
@@ -436,6 +491,7 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
       categoryId: this.txCategoryId,
       title,
       amount,
+      fromBalance: this.txFromBalance,
     });
     this.showTransactionDialog.set(false);
   }
@@ -458,8 +514,6 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
       weeklyLimit: !isNaN(wl) && wl > 0 ? Math.round(wl * 100) : 0,
     });
     this.showLimitDialog.set(false);
-    this.chart?.destroy();
-    this.createChart();
   }
 
   // ─── History dialog ───
@@ -480,11 +534,13 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   // ─── Dialog backdrop ───
 
-  onBackdropClick(dialog: 'balance' | 'category' | 'goal' | 'transaction' | 'limit' | 'history'): void {
+  onBackdropClick(dialog: 'balance' | 'category' | 'goal' | 'fundGoal' | 'deleteGoal' | 'transaction' | 'limit' | 'history'): void {
     switch (dialog) {
       case 'balance': this.showBalanceDialog.set(false); break;
       case 'category': this.showCategoryDialog.set(false); break;
       case 'goal': this.showGoalDialog.set(false); break;
+      case 'fundGoal': this.showFundGoalDialog.set(false); break;
+      case 'deleteGoal': this.showDeleteGoalDialog.set(false); break;
       case 'transaction': this.showTransactionDialog.set(false); break;
       case 'limit': this.showLimitDialog.set(false); break;
       case 'history': this.showHistoryDialog.set(false); break;

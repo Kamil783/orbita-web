@@ -7,6 +7,7 @@ export interface UserProfile {
   name: string;
   email: string;
   avatar?: string;
+  role?: string;
 }
 
 export interface User {
@@ -22,12 +23,16 @@ export class UserService {
   private readonly _name = signal('');
   private readonly _email = signal('');
   private readonly _avatar = signal<string | null>(null);
+  private readonly _role = signal('');
   private readonly _loaded = signal(false);
 
   readonly name = this._name.asReadonly();
   readonly email = this._email.asReadonly();
   readonly avatar = this._avatar.asReadonly();
+  readonly role = this._role.asReadonly();
   readonly loaded = this._loaded.asReadonly();
+
+  readonly isAdmin = computed(() => this._role() === 'Admin');
 
   readonly avatarUrl = computed(() => {
     const bytes = this._avatar();
@@ -71,6 +76,7 @@ export class UserService {
         this._name.set(profile.name);
         this._email.set(profile.email);
         this._avatar.set(profile.avatar ?? null);
+        this._role.set(profile.role ?? '');
         this._loaded.set(true);
       }),
       catchError(err => {
@@ -137,6 +143,7 @@ export class UserService {
     this._name.set('');
     this._email.set('');
     this._avatar.set(null);
+    this._role.set('');
     this._loaded.set(false);
   }
 }
