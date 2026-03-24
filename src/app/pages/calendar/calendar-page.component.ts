@@ -50,6 +50,14 @@ export class CalendarPageComponent implements OnInit {
     return this.calendarService.weekLabel();
   });
 
+  readonly isSelectedDateToday = computed(() => {
+    const sel = this.calendarService.selectedDate();
+    const now = new Date();
+    return sel.getFullYear() === now.getFullYear()
+      && sel.getMonth() === now.getMonth()
+      && sel.getDate() === now.getDate();
+  });
+
   readonly currentTimeOffset = computed(() => {
     const now = new Date();
     const minutes = now.getHours() * 60 + now.getMinutes();

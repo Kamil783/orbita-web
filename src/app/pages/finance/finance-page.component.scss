@@ -1153,6 +1153,38 @@ $finance-accent-border: rgba(250, 204, 21, 0.30);
     padding: 24px 16px;
   }
 
+  .actions-bar {
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+
+  .action-btn {
+    padding: 0;
+    width: 42px;
+    height: 42px;
+    justify-content: center;
+    border-radius: 12px;
+
+    span:not(.action-btn__icon) {
+      display: none;
+    }
+
+    &__icon {
+      font-size: 22px;
+      margin: 0;
+    }
+
+    &--primary {
+      width: auto;
+      padding: 0 16px;
+      gap: 6px;
+
+      span:not(.action-btn__icon) {
+        display: inline;
+      }
+    }
+  }
+
   .goals-grid {
     grid-template-columns: 1fr;
   }

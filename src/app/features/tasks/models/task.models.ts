@@ -1,30 +1,31 @@
-export type TaskPriority = 'high' | 'medium' | 'low';
+export type TaskPriority = 'critical' | 'high' | 'medium' | 'low';
 export type TaskStatus = 'todo' | 'inprogress' | 'done';
 export type TasksTab = 'board' | 'backlog';
-
-export interface TaskAssignee {
-  id: string;
-  avatar: string;
-  name?: string;
-}
 
 export interface TaskCardVm {
   id: string;
   title: string;
-  status: TaskStatus;
+  /** Column ID the card belongs to (e.g. 'todo', 'inprogress', 'done', or a custom column ID) */
+  status: string;
   priority: TaskPriority;
   deadlineText?: string;
   completedText?: string;
   progressPct?: number;
-  assignees?: TaskAssignee[];
+  assigneeIds?: string[];
   backlogId?: string;
+  /** Latest week label this task belongs to (e.g. "23 марта — 29 марта") */
+  weekLabel?: string;
 }
+
+/** Роль колонки на доске. Дефолтные три — всегда присутствуют, custom — пользовательские */
+export type ColumnType = 'todo' | 'inprogress' | 'done' | 'custom';
 
 export interface KanbanColumnVm {
   id: string;
   title: string;
   /** Общее число задач на сервере (может не совпадать с cards.length при пагинации) */
   totalCount: number;
+  columnType: ColumnType;
   headerActionIcon: string;
   muted?: boolean;
   cards: TaskCardVm[];
@@ -33,13 +34,18 @@ export interface KanbanColumnVm {
 export interface BacklogTask {
   id: string;
   title: string;
+  description?: string;
   priority: TaskPriority;
   dueDate?: string;
+  dueDisplayText?: string;
   estimateMinutes?: number;
-  assignees?: TaskAssignee[];
-  description?: string;
+  estimateDisplayText?: string;
+  isCompleted: boolean;
   inWeek: boolean;
-  done: boolean;
+  assigneeIds?: string[];
+  progressPct?: number;
+  /** Labels of weeks this task has been assigned to (e.g. ["17 марта — 23 марта", "24 марта — 30 марта"]) */
+  weekLabels?: string[];
 }
 
 export interface TasksFilterItemVm {
@@ -51,10 +57,10 @@ export interface TasksFilterItemVm {
 
 export type TaskMenuAction =
   | { type: 'edit'; taskId: string }
-  | { type: 'moveTo'; taskId: string; targetStatus: TaskStatus }
+  | { type: 'moveTo'; taskId: string; targetColumnId: string }
   | { type: 'delete'; taskId: string };
 
-export type ColumnHeaderAction = { columnId: string; icon: string };
+export type ColumnHeaderAction = { columnId: string; columnType: ColumnType; icon: string };
 
 export interface TaskCreatePayload {
   title: string;
@@ -62,19 +68,23 @@ export interface TaskCreatePayload {
   dueDate: string;
   assigneeId: string;
   description: string;
-}
-
-export interface AssigneeOption {
-  id: string;
-  name: string;
-  avatar?: string;
+  trackProgress: boolean;
 }
 
 export interface TaskDropEvent {
+  taskId: string;
   fromColumnId: string;
   toColumnId: string;
   fromIndex: number;
   toIndex: number;
+}
+
+export interface WeekArchive {
+  id: string;
+  label: string;
+  startDate: string;
+  endDate: string;
+  tasks: BacklogTask[];
 }
 
 export const TASK_STATUS_LABELS: Record<TaskStatus, string> = {
@@ -84,6 +94,7 @@ export const TASK_STATUS_LABELS: Record<TaskStatus, string> = {
 };
 
 export const PRIORITY_LABELS: Record<TaskPriority, string> = {
+  critical: 'Критичный',
   high: 'Высокий',
   medium: 'Средний',
   low: 'Низкий',

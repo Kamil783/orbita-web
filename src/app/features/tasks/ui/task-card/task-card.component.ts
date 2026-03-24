@@ -1,11 +1,11 @@
-import { Component, ElementRef, HostListener, input, output, signal } from '@angular/core';
+import { Component, ElementRef, HostListener, inject, input, output, signal } from '@angular/core';
 import { NgClass } from '@angular/common';
 import { AvatarPipe } from '../../../../shared/ui/avatar-pipe/avatar.pipe';
+import { User, UserService } from '../../../user/data/user.service';
 import {
+  KanbanColumnVm,
   TaskCardVm,
   TaskMenuAction,
-  TaskStatus,
-  TASK_STATUS_LABELS,
 } from '../../models/task.models';
 
 @Component({
@@ -16,19 +16,28 @@ import {
   styleUrl: './task-card.component.scss',
 })
 export class TaskCardComponent {
+  private readonly userService = inject(UserService);
+
   task = input.required<TaskCardVm>();
+  allColumns = input<KanbanColumnVm[]>([]);
 
   readonly menuAction = output<TaskMenuAction>();
+  readonly cardClick = output<TaskCardVm>();
 
   readonly menuOpen = signal(false);
 
   constructor(private readonly elRef: ElementRef<HTMLElement>) {}
 
+  get assignees(): User[] {
+    return this.userService.resolveUsers(this.task().assigneeIds);
+  }
+
   get badgeText(): string {
     switch (this.task().priority) {
-      case 'high':   return 'Высокий приоритет';
-      case 'medium': return 'Средний';
-      case 'low':    return 'Низкий';
+      case 'critical': return 'Критичный';
+      case 'high':     return 'Высокий приоритет';
+      case 'medium':   return 'Средний';
+      case 'low':      return 'Низкий';
     }
   }
 
@@ -36,11 +45,16 @@ export class TaskCardComponent {
     return `badge--${this.task().priority}`;
   }
 
-  get moveTargets(): { status: TaskStatus; label: string }[] {
+  get isDone(): boolean {
+    const col = this.allColumns().find(c => c.id === this.task().status);
+    return col?.columnType === 'done';
+  }
+
+  get moveTargets(): { columnId: string; label: string }[] {
     const current = this.task().status;
-    return (['todo', 'inprogress', 'done'] as TaskStatus[])
-      .filter(s => s !== current)
-      .map(s => ({ status: s, label: TASK_STATUS_LABELS[s] }));
+    return this.allColumns()
+      .filter(col => col.id !== current)
+      .map(col => ({ columnId: col.id, label: col.title }));
   }
 
   toggleMenu(event: MouseEvent): void {
@@ -54,10 +68,10 @@ export class TaskCardComponent {
     this.menuAction.emit({ type: 'edit', taskId: this.task().id });
   }
 
-  onMoveTo(event: MouseEvent, targetStatus: TaskStatus): void {
+  onMoveTo(event: MouseEvent, targetColumnId: string): void {
     event.stopPropagation();
     this.menuOpen.set(false);
-    this.menuAction.emit({ type: 'moveTo', taskId: this.task().id, targetStatus });
+    this.menuAction.emit({ type: 'moveTo', taskId: this.task().id, targetColumnId });
   }
 
   onDelete(event: MouseEvent): void {

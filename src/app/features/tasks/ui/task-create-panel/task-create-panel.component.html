@@ -51,7 +51,18 @@
         </div>
       </div>
 
-      <!-- ВАЖНО: добавили field--grow, чтобы “Описание” заполняло низ -->
+      <div class="field">
+        <label class="field__checkbox">
+          <input
+            type="checkbox"
+            [checked]="trackProgress"
+            (change)="trackProgress = $any($event.target).checked"
+          />
+          <span>Учитывать прогресс</span>
+        </label>
+      </div>
+
+      <!-- ВАЖНО: добавили field--grow, чтобы "Описание" заполняло низ -->
       <div class="field field--grow">
         <label class="field__label">Описание</label>
         <textarea

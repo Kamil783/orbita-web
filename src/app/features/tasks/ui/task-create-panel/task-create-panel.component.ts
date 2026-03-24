@@ -2,8 +2,8 @@ import { Component, computed, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DatePickerComponent } from '../../../../shared/ui/date-picker/date-picker.component';
 import { SelectComponent } from '../../../../shared/ui/select/select.component';
+import { User } from '../../../user/data/user.service';
 import {
-  AssigneeOption,
   TaskCreatePayload,
   TaskPriority,
 } from '../../models/task.models';
@@ -16,7 +16,7 @@ import {
   styleUrl: './task-create-panel.component.scss',
 })
 export class TaskCreatePanelComponent {
-  readonly assignees = input<AssigneeOption[]>([]);
+  readonly assignees = input<User[]>([]);
 
   readonly assigneeOptions = computed(() =>
     this.assignees().map(a => ({ value: a.id, label: a.name })),
@@ -30,11 +30,13 @@ export class TaskCreatePanelComponent {
   dueDate = '';
   assigneeId = '';
   description = '';
+  trackProgress = false;
 
   readonly priorities: { value: TaskPriority; label: string }[] = [
     { value: 'low', label: 'Низкий' },
     { value: 'medium', label: 'Средний' },
     { value: 'high', label: 'Высокий' },
+    { value: 'critical', label: 'Критичный' },
   ];
 
   selectPriority(value: TaskPriority): void {
@@ -50,6 +52,7 @@ export class TaskCreatePanelComponent {
       dueDate: this.dueDate,
       assigneeId: this.assigneeId,
       description: this.description.trim(),
+      trackProgress: this.trackProgress,
     });
   }
 

@@ -126,6 +126,22 @@
   line-height: 1.5;
 }
 
+.field__checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--text-main);
+  cursor: pointer;
+
+  input[type='checkbox'] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--color-primary);
+    cursor: pointer;
+  }
+}
+
 /* ── Делаем "Описание" растягивающимся ── */
 .field--grow {
   flex: 1 1 auto;
@@ -210,4 +226,32 @@
   color: var(--btn-secondary-text);
 
   &:hover { background: var(--btn-secondary-hover); }
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .overlay {
+    justify-content: stretch;
+  }
+
+  .panel {
+    max-width: 100%;
+    border-left: 0;
+  }
+
+  .panel__header {
+    padding: 16px;
+  }
+
+  .panel__body {
+    padding: 16px;
+  }
+
+  .panel__footer {
+    padding: 16px;
+  }
+
+  .field-row {
+    grid-template-columns: 1fr;
+  }
 }

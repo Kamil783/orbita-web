@@ -1,7 +1,7 @@
 import { Injectable, Injector, signal, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { Observable, tap, switchMap, map, catchError, throwError } from 'rxjs';
+import { Observable, tap, switchMap, map, catchError, throwError, of } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { UserService } from '../../user/data/user.service';
 import { NotificationService } from '../../notifications/data/notification.service';
@@ -14,6 +14,11 @@ export interface AuthResponse {
 export interface LoginRequest {
   email: string;
   password: string;
+}
+
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
 }
 
 interface JwtPayload {
@@ -111,6 +116,10 @@ export class AuthService {
     if (!payload.exp || payload.exp <= now) return false;
 
     return true;
+  }
+
+  changePassword(request: ChangePasswordRequest): Observable<void> {
+    return this.http.put<void>(`${this.apiUrl}/api/Auth/change-password`, request);
   }
 
   private decodeToken(token: string): JwtPayload | null {

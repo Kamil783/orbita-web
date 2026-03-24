@@ -26,11 +26,22 @@
 
   <main class="page">
     @if (activeTab() === 'board') {
+      <div class="week-bar">
+        <div class="week-bar__info">
+          <span class="material-symbols-outlined week-bar__icon">date_range</span>
+          <span class="week-bar__label">{{ weekLabel() }}</span>
+        </div>
+        <button class="week-bar__btn" type="button" (click)="onNewWeek()">
+          <span class="material-symbols-outlined">restart_alt</span>
+          Новая неделя
+        </button>
+      </div>
       <app-kanban-board
         [columns]="filteredColumns()"
         (menuAction)="onMenuAction($event)"
         (taskDrop)="onTaskDrop($event)"
         (headerAction)="onHeaderAction($event)"
+        (cardClick)="onCardClick($event)"
         (newColumn)="onNewColumn()"
       ></app-kanban-board>
 
@@ -74,6 +85,25 @@
 @if (showCompletedDialog()) {
   <app-completed-tasks-dialog
     (close)="onCloseCompletedDialog()"
+  />
+}
+
+@if (detailCard(); as card) {
+  <app-task-detail-dialog
+    [card]="card"
+    [assigneeOptions]="assigneeOptions()"
+    (close)="onCloseDetail()"
+  />
+}
+
+@if (showNewWeekConfirm()) {
+  <app-confirm-dialog
+    title="Новая неделя"
+    message="Задачи из колонки «Готово» будут архивированы. Начать новую неделю?"
+    confirmText="Начать"
+    cancelText="Отмена"
+    (confirm)="onConfirmNewWeek()"
+    (cancel)="showNewWeekConfirm.set(false)"
   />
 }
 

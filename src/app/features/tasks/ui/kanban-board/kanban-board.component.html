@@ -1,6 +1,7 @@
+<!-- Desktop: classic kanban (hidden on mobile via CSS) -->
 <div class="board" cdkDropListGroup>
   @for (c of columns(); track c.id; let last = $last) {
-    <app-kanban-column [column]="c" [showDivider]="true" (menuAction)="menuAction.emit($event)" (taskDrop)="taskDrop.emit($event)" (headerAction)="headerAction.emit($event)"></app-kanban-column>
+    <app-kanban-column [column]="c" [allColumns]="columns()" [showDivider]="true" (menuAction)="menuAction.emit($event)" (taskDrop)="taskDrop.emit($event)" (headerAction)="headerAction.emit($event)" (cardClick)="cardClick.emit($event)"></app-kanban-column>
   }
 
   <section class="newcol">
@@ -13,4 +14,31 @@
       <span class="newcol__text">Добавить секцию</span>
     </button>
   </section>
+</div>
+
+<!-- Mobile: tab selector + single column (hidden on desktop via CSS) -->
+<div class="mobile-board">
+  <div class="mobile-tabs">
+    @for (c of columns(); track c.id; let i = $index) {
+      <button
+        class="mobile-tabs__btn"
+        [class.mobile-tabs__btn--active]="activeColumnIndex() === i"
+        (click)="selectColumn(i)"
+      >
+        {{ c.title }}
+        <span class="mobile-tabs__count">{{ c.totalCount }}</span>
+      </button>
+    }
+  </div>
+
+  @if (activeColumn(); as col) {
+    <div class="mobile-column" cdkDropListGroup>
+      <app-kanban-column
+        [column]="col"
+        (menuAction)="menuAction.emit($event)"
+        (taskDrop)="taskDrop.emit($event)"
+        (headerAction)="headerAction.emit($event)"
+      ></app-kanban-column>
+    </div>
+  }
 </div>

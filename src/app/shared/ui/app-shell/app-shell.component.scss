@@ -13,3 +13,14 @@
   min-width: 0;
   min-height: 0;
 }
+
+@media (max-width: 768px) {
+  .shell {
+    flex-direction: column;
+  }
+
+  .main {
+    // Leave room for bottom nav
+    padding-bottom: 64px;
+  }
+}

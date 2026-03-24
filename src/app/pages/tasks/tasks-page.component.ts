@@ -3,6 +3,7 @@ import { AppShellComponent } from '../../shared/ui/app-shell/app-shell.component
 import { KanbanBoardComponent } from '../../features/tasks/ui/kanban-board/kanban-board.component';
 import { TopbarComponent } from '../../shared/ui/topbar/topbar.component';
 import { TasksService } from '../../features/tasks/data/tasks.service';
+import { UserService } from '../../features/user/data/user.service';
 import { TasksFilterComponent } from '../../features/tasks/ui/tasks-filter/tasks-filter.component';
 import { ConfirmDialogComponent } from '../../shared/ui/confirm-dialog/confirm-dialog.component';
 import { TaskCreatePanelComponent } from '../../features/tasks/ui/task-create-panel/task-create-panel.component';
@@ -10,9 +11,10 @@ import { BacklogViewComponent } from '../../features/tasks/ui/backlog-view/backl
 import { BacklogPickerDialogComponent } from '../../features/tasks/ui/backlog-picker-dialog/backlog-picker-dialog.component';
 import { CompletedTasksDialogComponent } from '../../features/tasks/ui/completed-tasks-dialog/completed-tasks-dialog.component';
 import { ColumnCreateDialogComponent } from '../../features/tasks/ui/column-create-dialog/column-create-dialog.component';
+import { TaskDetailDialogComponent } from '../../features/tasks/ui/task-detail-dialog/task-detail-dialog.component';
 import {
-  ColumnHeaderAction, TaskCreatePayload,
-  TaskDropEvent, TasksTab, TaskMenuAction, TaskStatus,
+  ColumnHeaderAction, TaskCardVm, TaskCreatePayload,
+  TaskDropEvent, TasksTab, TaskMenuAction,
 } from '../../features/tasks/models/task.models';
 
 @Component({
@@ -22,24 +24,26 @@ import {
     AppShellComponent, KanbanBoardComponent, TopbarComponent,
     TasksFilterComponent, ConfirmDialogComponent, TaskCreatePanelComponent,
     BacklogViewComponent, BacklogPickerDialogComponent, CompletedTasksDialogComponent,
-    ColumnCreateDialogComponent,
+    ColumnCreateDialogComponent, TaskDetailDialogComponent,
   ],
   templateUrl: './tasks-page.component.html',
   styleUrl: './tasks-page.component.scss',
 })
 export class TasksPageComponent implements OnInit {
   private readonly tasksService = inject(TasksService);
+  private readonly userService = inject(UserService);
 
   readonly title = 'Задачи';
   readonly activeTab = signal<TasksTab>('board');
 
   readonly filterItems = this.tasksService.filterItems;
-  readonly assigneeOptions = this.tasksService.members;
+  readonly assigneeOptions = this.userService.members;
 
   ngOnInit(): void {
     this.tasksService.loadWeeklyBoard();
     this.tasksService.loadBacklog();
-    this.tasksService.loadMembers();
+    this.tasksService.loadWeekArchives();
+    this.userService.loadMembers();
   }
 
   readonly selectedFilterId = signal('all');
@@ -56,7 +60,7 @@ export class TasksPageComponent implements OnInit {
       .map(col => ({
         ...col,
         cards: col.cards.filter(
-          card => card.assignees?.some(a => a.id === filterId),
+          card => card.assigneeIds?.map(String).includes(filterId),
         ),
       }))
       .map(col => ({ ...col, totalCount: col.cards.length }));
@@ -64,9 +68,12 @@ export class TasksPageComponent implements OnInit {
 
   readonly showCreatePanel = signal(false);
   readonly deleteTaskId = signal<string | null>(null);
-  readonly pickerTargetStatus = signal<TaskStatus | null>(null);
+  readonly pickerTargetStatus = signal<string | null>(null);
   readonly showCompletedDialog = signal(false);
   readonly showColumnCreateDialog = signal(false);
+  readonly showNewWeekConfirm = signal(false);
+  readonly detailCard = signal<TaskCardVm | null>(null);
+  readonly weekLabel = this.tasksService.currentWeekLabel;
 
   setTab(tab: TasksTab): void {
     this.activeTab.set(tab);
@@ -78,22 +85,41 @@ export class TasksPageComponent implements OnInit {
         this.deleteTaskId.set(action.taskId);
         break;
       case 'moveTo':
-        this.tasksService.moveTaskById(action.taskId, action.targetStatus);
+        this.tasksService.moveTaskById(action.taskId, action.targetColumnId);
         break;
-      default:
-        console.log('task menu action:', action);
+      case 'edit':
+        this.openDetailByTaskId(action.taskId);
+        break;
+    }
+  }
+
+  onCardClick(card: TaskCardVm): void {
+    this.detailCard.set(card);
+  }
+
+  onCloseDetail(): void {
+    this.detailCard.set(null);
+  }
+
+  private openDetailByTaskId(taskId: string): void {
+    for (const col of this.tasksService.columns()) {
+      const card = col.cards.find(c => c.id === taskId);
+      if (card) {
+        this.detailCard.set(card);
+        return;
+      }
     }
   }
 
   onTaskDrop(event: TaskDropEvent): void {
-    this.tasksService.moveTask(event.fromColumnId, event.toColumnId, event.fromIndex, event.toIndex);
+    this.tasksService.moveTask(event.taskId, event.fromColumnId, event.toColumnId, event.fromIndex, event.toIndex);
   }
 
   onHeaderAction(action: ColumnHeaderAction): void {
-    if (action.columnId === 'done') {
+    if (action.columnType === 'done') {
       this.showCompletedDialog.set(true);
     } else {
-      this.pickerTargetStatus.set(action.columnId as TaskStatus);
+      this.pickerTargetStatus.set(action.columnId);
     }
   }
 
@@ -114,7 +140,14 @@ export class TasksPageComponent implements OnInit {
   }
 
   onSaveTask(payload: TaskCreatePayload): void {
-    console.log('save task:', payload);
+    this.tasksService.createTaskOnBoard({
+      title: payload.title,
+      priority: payload.priority,
+      dueDate: payload.dueDate || undefined,
+      description: payload.description || undefined,
+      assigneeIds: payload.assigneeId ? [payload.assigneeId] : undefined,
+      progressPct: payload.trackProgress ? 0 : undefined,
+    });
     this.showCreatePanel.set(false);
   }
 
@@ -128,6 +161,15 @@ export class TasksPageComponent implements OnInit {
 
   onCloseCompletedDialog(): void {
     this.showCompletedDialog.set(false);
+  }
+
+  onNewWeek(): void {
+    this.showNewWeekConfirm.set(true);
+  }
+
+  onConfirmNewWeek(): void {
+    this.tasksService.startNewWeek();
+    this.showNewWeekConfirm.set(false);
   }
 
   onNewColumn(): void {
