@@ -470,6 +470,31 @@
           </div>
         </div>
 
+        <!-- Source toggle -->
+        <div class="field">
+          <label class="field__label">Источник</label>
+          <div class="type-toggle">
+            <button
+              class="type-toggle__btn"
+              [class.type-toggle__btn--active-expense]="txFromBalance"
+              type="button"
+              (click)="txFromBalance = true"
+            >
+              <span class="material-symbols-outlined">account_balance_wallet</span>
+              Из баланса
+            </button>
+            <button
+              class="type-toggle__btn"
+              [class.type-toggle__btn--active-income]="!txFromBalance"
+              type="button"
+              (click)="txFromBalance = false"
+            >
+              <span class="material-symbols-outlined">open_in_new</span>
+              Другой источник
+            </button>
+          </div>
+        </div>
+
         <div class="field">
           <label class="field__label" for="txTitle">Описание</label>
           <input

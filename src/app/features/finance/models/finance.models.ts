@@ -51,6 +51,7 @@ export interface CreateTransactionDto {
   categoryId: string;
   title: string;
   amount: number;       // kopecks, signed
+  fromBalance: boolean; // true = deduct from balance, false = external source
 }
 
 export interface CreateSavingsGoalDto {

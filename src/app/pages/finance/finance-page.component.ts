@@ -306,6 +306,7 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
   txAmount = '';
   txType: 'expense' | 'income' = 'expense';
   txCategoryId = '';
+  txFromBalance = true;
 
   // Limit form
   limitMonthly = '';
@@ -433,6 +434,7 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
     this.txAmount = '';
     this.txType = 'expense';
     this.txCategoryId = this.categories()[0]?.id ?? '';
+    this.txFromBalance = true;
     this.showTransactionDialog.set(true);
   }
 
@@ -448,6 +450,7 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
       categoryId: this.txCategoryId,
       title,
       amount,
+      fromBalance: this.txFromBalance,
     });
     this.showTransactionDialog.set(false);
   }
