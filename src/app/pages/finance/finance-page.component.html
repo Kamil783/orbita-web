@@ -248,7 +248,7 @@
               </div>
               <div class="goal-card__footer">
                 <span class="goal-card__current">Накоплено: {{ formatRub(goal.current) }}</span>
-                <span class="goal-card__remaining">Осталось: {{ formatRub(goal.target - goal.current) }}</span>
+                <span class="goal-card__remaining">Осталось: {{ formatRub(goal.target - goal.current > 0 ? goal.target - goal.current : 0) }}</span>
               </div>
               <div class="goal-card__actions">
                 <button class="goal-card__btn goal-card__btn--fund" type="button" (click)="openFundGoalDialog(goal)">

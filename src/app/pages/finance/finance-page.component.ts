@@ -364,12 +364,13 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
     const abs = Math.abs(kopecks);
     const rub = Math.floor(abs / 100);
     const kop = abs % 100;
-    return rub.toLocaleString('ru-RU') + ',' + kop.toString().padStart(2, '0') + ' \u20BD';
+    const formatted = rub.toLocaleString('ru-RU') + ',' + kop.toString().padStart(2, '0') + ' \u20BD';
+    return kopecks < 0 ? '\u2212' + formatted : formatted;
   }
 
   formatAmount(amount: number): string {
     const sign = amount < 0 ? '\u2212' : '+';
-    return sign + this.formatRub(amount);
+    return sign + this.formatRub(Math.abs(amount));
   }
 
   goalPercent(goal: SavingsGoal): number {
