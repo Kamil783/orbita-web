@@ -573,6 +573,52 @@ $finance-accent-border: rgba(250, 204, 21, 0.30);
   color: var(--text-500);
 }
 
+.goal-card__actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.goal-card__btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  justify-content: center;
+  height: 34px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background: var(--surface-panel);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  .material-symbols-outlined {
+    font-size: 16px;
+  }
+
+  &--fund {
+    color: #16a34a;
+    border-color: rgba(22, 163, 74, 0.3);
+
+    &:hover {
+      background: rgba(22, 163, 74, 0.08);
+      border-color: #16a34a;
+    }
+  }
+
+  &--delete {
+    color: var(--text-500);
+
+    &:hover {
+      color: #dc2626;
+      border-color: #dc2626;
+      background: rgba(220, 38, 38, 0.06);
+    }
+  }
+}
+
 // ═══════════════════════════════════════
 // ─── Section headers ───
 // ═══════════════════════════════════════
@@ -707,6 +753,11 @@ $finance-accent-border: rgba(250, 204, 21, 0.30);
     background: rgba(22, 163, 74, 0.1);
     color: #16a34a;
   }
+
+  &--red {
+    background: rgba(220, 38, 38, 0.1);
+    color: #dc2626;
+  }
 }
 
 .dialog__title {
@@ -755,6 +806,12 @@ $finance-accent-border: rgba(250, 204, 21, 0.30);
     background: var(--color-primary);
     color: #fff;
     &:hover { background: var(--color-primary-hover); }
+  }
+
+  &--danger {
+    background: #dc2626;
+    color: #fff;
+    &:hover { background: #b91c1c; }
   }
 }
 

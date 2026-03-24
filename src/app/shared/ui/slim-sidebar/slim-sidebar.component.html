@@ -26,9 +26,11 @@
     </a>
   </nav>
 
-  <div class="bottom">
-    <button class="iconbtn" type="button" aria-label="Настройки" routerLink="/profile">
-      <span class="material-symbols-outlined">settings</span>
-    </button>
-  </div>
+  @if (userService.isAdmin()) {
+    <div class="bottom">
+      <button class="iconbtn" type="button" aria-label="Администрирование" routerLink="/admin">
+        <span class="material-symbols-outlined">settings</span>
+      </button>
+    </div>
+  }
 </aside>

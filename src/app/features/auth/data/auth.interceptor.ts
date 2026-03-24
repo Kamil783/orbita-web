@@ -8,8 +8,8 @@ let isRefreshing = false;
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
 
-  // Don't attach token to auth endpoints
-  if (req.url.includes('/api/Auth/')) {
+  // Don't attach token to auth endpoints (except registration, which is admin-protected)
+  if (req.url.includes('/api/Auth/') && !req.url.includes('/api/Auth/registration')) {
     return next(req);
   }
 

@@ -248,7 +248,17 @@
               </div>
               <div class="goal-card__footer">
                 <span class="goal-card__current">Накоплено: {{ formatRub(goal.current) }}</span>
-                <span class="goal-card__remaining">Осталось: {{ formatRub(goal.target - goal.current) }}</span>
+                <span class="goal-card__remaining">Осталось: {{ formatRub(goal.target - goal.current > 0 ? goal.target - goal.current : 0) }}</span>
+              </div>
+              <div class="goal-card__actions">
+                <button class="goal-card__btn goal-card__btn--fund" type="button" (click)="openFundGoalDialog(goal)">
+                  <span class="material-symbols-outlined">add</span>
+                  Пополнить
+                </button>
+                <button class="goal-card__btn goal-card__btn--delete" type="button" (click)="openDeleteGoalDialog(goal)">
+                  <span class="material-symbols-outlined">close</span>
+                  Закрыть цель
+                </button>
               </div>
             </div>
           }
@@ -470,6 +480,31 @@
           </div>
         </div>
 
+        <!-- Source toggle -->
+        <div class="field">
+          <label class="field__label">Источник</label>
+          <div class="type-toggle">
+            <button
+              class="type-toggle__btn"
+              [class.type-toggle__btn--active-expense]="txFromBalance"
+              type="button"
+              (click)="txFromBalance = true"
+            >
+              <span class="material-symbols-outlined">account_balance_wallet</span>
+              Из баланса
+            </button>
+            <button
+              class="type-toggle__btn"
+              [class.type-toggle__btn--active-income]="!txFromBalance"
+              type="button"
+              (click)="txFromBalance = false"
+            >
+              <span class="material-symbols-outlined">open_in_new</span>
+              Другой источник
+            </button>
+          </div>
+        </div>
+
         <div class="field">
           <label class="field__label" for="txTitle">Описание</label>
           <input
@@ -520,6 +555,64 @@
         </button>
         <button class="dialog__btn dialog__btn--primary" type="button" (click)="saveTransaction()">
           Добавить
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ═══ Dialog: Пополнить цель ═══ -->
+@if (showFundGoalDialog()) {
+  <div class="overlay" (click)="onBackdropClick('fundGoal')">
+    <div class="dialog" (click)="stopPropagation($event)">
+      <div class="dialog__icon-circle dialog__icon-circle--green">
+        <span class="material-symbols-outlined">savings</span>
+      </div>
+      <h3 class="dialog__title">Пополнить цель</h3>
+      <p class="dialog__desc">{{ fundGoalName }}</p>
+
+      <div class="dialog__fields">
+        <div class="field">
+          <label class="field__label" for="fundGoalAmt">Сумма (&#8381;)</label>
+          <input
+            id="fundGoalAmt"
+            class="field__input"
+            type="text"
+            inputmode="decimal"
+            [(ngModel)]="fundGoalAmount"
+            placeholder="0,00"
+          />
+        </div>
+      </div>
+
+      <div class="dialog__actions">
+        <button class="dialog__btn dialog__btn--secondary" type="button" (click)="showFundGoalDialog.set(false)">
+          Отмена
+        </button>
+        <button class="dialog__btn dialog__btn--primary" type="button" (click)="saveFundGoal()">
+          Пополнить
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ═══ Dialog: Закрыть цель ═══ -->
+@if (showDeleteGoalDialog()) {
+  <div class="overlay" (click)="onBackdropClick('deleteGoal')">
+    <div class="dialog" (click)="stopPropagation($event)">
+      <div class="dialog__icon-circle dialog__icon-circle--red">
+        <span class="material-symbols-outlined">delete</span>
+      </div>
+      <h3 class="dialog__title">Закрыть цель</h3>
+      <p class="dialog__desc">Вы уверены, что хотите закрыть цель «{{ deleteGoalName }}»?</p>
+
+      <div class="dialog__actions">
+        <button class="dialog__btn dialog__btn--secondary" type="button" (click)="showDeleteGoalDialog.set(false)">
+          Отмена
+        </button>
+        <button class="dialog__btn dialog__btn--danger" type="button" (click)="confirmDeleteGoal()">
+          Закрыть цель
         </button>
       </div>
     </div>
