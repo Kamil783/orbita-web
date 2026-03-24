@@ -9,6 +9,7 @@ import {
   CreateCategoryDto,
   CreateSavingsGoalDto,
   CreateTransactionDto,
+  FundSavingsGoalDto,
   PreviousMonthBalanceResponse,
   SavingsGoal,
   SpendingLimits,
@@ -31,6 +32,8 @@ import {
  *
  * GET    /api/Finance/savings-goals                  → SavingsGoal[]               Load all savings goals
  * POST   /api/Finance/savings-goals                  → SavingsGoal                 Create a savings goal. Body: CreateSavingsGoalDto
+ * PATCH  /api/Finance/savings-goals/:id              → SavingsGoal                 Fund a savings goal. Body: FundSavingsGoalDto
+ * DELETE /api/Finance/savings-goals/:id              → void                        Delete a savings goal
  *
  * GET    /api/Finance/limits                         → SpendingLimits              Load spending limits
  * PUT    /api/Finance/limits                         → SpendingLimits              Update spending limits. Body: SpendingLimits
@@ -160,6 +163,38 @@ export class FinanceService {
     this.http.post<SavingsGoal>(`${this.apiUrl}/api/Finance/savings-goals`, dto)
       .subscribe(created => {
         this.savingsGoals.update(list => [...list, created]);
+      });
+  }
+
+  fundSavingsGoal(id: string, amount: number): void {
+    // Optimistic update
+    this.savingsGoals.update(list =>
+      list.map(g => g.id === id ? { ...g, current: g.current + amount } : g),
+    );
+
+    this.http.patch<SavingsGoal>(`${this.apiUrl}/api/Finance/savings-goals/${id}`, { amount } as FundSavingsGoalDto)
+      .subscribe({
+        next: updated => {
+          this.savingsGoals.update(list => list.map(g => g.id === id ? updated : g));
+        },
+        error: () => {
+          this.savingsGoals.update(list =>
+            list.map(g => g.id === id ? { ...g, current: g.current - amount } : g),
+          );
+        },
+      });
+  }
+
+  deleteSavingsGoal(id: string): void {
+    const backup = this.savingsGoals();
+
+    this.savingsGoals.update(list => list.filter(g => g.id !== id));
+
+    this.http.delete(`${this.apiUrl}/api/Finance/savings-goals/${id}`)
+      .subscribe({
+        error: () => {
+          this.savingsGoals.set(backup);
+        },
       });
   }
 

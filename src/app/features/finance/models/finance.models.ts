@@ -59,6 +59,10 @@ export interface CreateSavingsGoalDto {
   target: number;       // kopecks
 }
 
+export interface FundSavingsGoalDto {
+  amount: number;       // kopecks, positive delta
+}
+
 export interface AdjustBalanceDto {
   amount: number;       // kopecks, signed delta
 }
