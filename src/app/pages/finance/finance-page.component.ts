@@ -8,6 +8,7 @@ import {
   signal,
   computed,
   inject,
+  effect,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { AppShellComponent } from '../../shared/ui/app-shell/app-shell.component';
@@ -40,8 +41,19 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   @ViewChild('spendingChart') chartCanvas!: ElementRef<HTMLCanvasElement>;
   private chart: Chart | null = null;
+  private viewReady = false;
 
   readonly activeChartTab = signal<'weekly' | 'monthly'>('weekly');
+
+  private chartEffect = effect(() => {
+    // Track signals so the effect re-runs when data or limits change
+    this.financeService.chartData();
+    this.financeService.limits();
+    if (this.viewReady) {
+      this.chart?.destroy();
+      this.createChart();
+    }
+  });
 
   // ─── State (delegated to service) ───
 
@@ -312,6 +324,8 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
+    this.viewReady = true;
+    this.chart?.destroy();
     this.createChart();
   }
 
@@ -330,8 +344,6 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
   setChartTab(tab: 'weekly' | 'monthly'): void {
     this.activeChartTab.set(tab);
     this.financeService.loadChartData(tab);
-    this.chart?.destroy();
-    this.createChart();
   }
 
   // ─── Formatters ───
@@ -458,8 +470,6 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
       weeklyLimit: !isNaN(wl) && wl > 0 ? Math.round(wl * 100) : 0,
     });
     this.showLimitDialog.set(false);
-    this.chart?.destroy();
-    this.createChart();
   }
 
   // ─── History dialog ───
