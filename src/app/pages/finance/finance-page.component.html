@@ -486,7 +486,7 @@
           <div class="type-toggle">
              <button
               class="type-toggle__btn"
-              [class.type-toggle__btn--active-income]="txFromBalance"
+              [class.type-toggle__btn--active-income]="!txFromBalance"
               type="button"
               (click)="txFromBalance = false"
             >
@@ -495,7 +495,7 @@
             </button>
             <button
               class="type-toggle__btn"
-              [class.type-toggle__btn--active-expense]="!txFromBalance"
+              [class.type-toggle__btn--active-expense]="txFromBalance"
               type="button"
               (click)="txFromBalance = true"
             >
