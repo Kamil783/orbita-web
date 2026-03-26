@@ -115,7 +115,7 @@ export class TaskDetailDialogComponent {
       priority: this.editPriority(),
       dueDate: this.editDueDate || undefined,
       estimateMinutes: estimateMin && !isNaN(estimateMin) ? estimateMin : undefined,
-      assigneeIds: ids.length ? ids : undefined,
+      assigneeIds: ids,
       progressPct: this.editProgress() ?? undefined,
     });
 

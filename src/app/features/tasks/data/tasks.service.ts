@@ -23,6 +23,8 @@ import {
  * PATCH  /api/Backlog/:id          → BacklogTask             Update backlog task. Body: { title?, description?, priority?, dueDate?, estimateMinutes?, assigneeIds? }
  *
  * POST   /api/Columns              → { id }                 Create a new board column. Body: { title }
+ *
+ * GET    /api/Weeks/current        → { startDate, endDate } Get the current active week
  */
 
 @Injectable({ providedIn: 'root' })
@@ -44,28 +46,25 @@ export class TasksService {
   readonly backlog = signal<BacklogTask[]>([]);
   readonly weekArchives = signal<WeekArchive[]>([]);
 
-  readonly currentWeekStart = signal<string>(TasksService.getMonday(new Date()));
+  readonly currentWeekStart = signal<string>('');
   readonly currentWeekEnd = computed(() => {
-    const d = new Date(this.currentWeekStart());
+    const start = this.currentWeekStart();
+    if (!start) return '';
+    const d = new Date(start);
     d.setDate(d.getDate() + 6);
     return d.toISOString().slice(0, 10);
   });
 
   readonly currentWeekLabel = computed(() => {
+    const start = this.currentWeekStart();
+    const end = this.currentWeekEnd();
+    if (!start || !end) return '';
     const fmt = (iso: string) => {
       const d = new Date(iso);
       return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });
     };
-    return `${fmt(this.currentWeekStart())} — ${fmt(this.currentWeekEnd())}`;
+    return `${fmt(start)} — ${fmt(end)}`;
   });
-
-  private static getMonday(d: Date): string {
-    const date = new Date(d);
-    const day = date.getDay();
-    const diff = day === 0 ? -6 : 1 - day;
-    date.setDate(date.getDate() + diff);
-    return date.toISOString().slice(0, 10);
-  }
 
   readonly availableBacklogTasks = computed(() =>
     this.backlog().filter(t => !t.inWeek && !t.isCompleted),
@@ -294,6 +293,12 @@ export class TasksService {
 
   // ── Week operations ──
 
+  loadCurrentWeek(): void {
+    this.http.get<{ startDate: string; endDate: string }>(`${this.apiUrl}/api/Weeks/current`).subscribe(week => {
+      this.currentWeekStart.set(week.startDate);
+    });
+  }
+
   loadWeekArchives(): void {
     this.http.get<WeekArchive[]>(`${this.apiUrl}/api/Weeks/archives`).subscribe(archives => {
       this.weekArchives.set(archives);
@@ -334,15 +339,14 @@ export class TasksService {
       list.map(t => doneBacklogIds.has(t.id) ? { ...t, inWeek: false } : t),
     );
 
-    // Advance week start to next Monday
-    const nextMonday = new Date(this.currentWeekStart());
-    nextMonday.setDate(nextMonday.getDate() + 7);
-    this.currentWeekStart.set(nextMonday.toISOString().slice(0, 10));
-
-    this.http.post(`${this.apiUrl}/api/Weeks/new`, {
+    this.http.post<{ startDate: string; endDate: string }>(`${this.apiUrl}/api/Weeks/new`, {
       startDate: archive.startDate,
       endDate: archive.endDate,
-    }).subscribe();
+    }).subscribe(newWeek => {
+      if (newWeek?.startDate) {
+        this.currentWeekStart.set(newWeek.startDate);
+      }
+    });
   }
 
   // ── Column operations ──

@@ -40,6 +40,7 @@ export class TasksPageComponent implements OnInit {
   readonly assigneeOptions = this.userService.members;
 
   ngOnInit(): void {
+    this.tasksService.loadCurrentWeek();
     this.tasksService.loadWeeklyBoard();
     this.tasksService.loadBacklog();
     this.tasksService.loadWeekArchives();
@@ -145,7 +146,7 @@ export class TasksPageComponent implements OnInit {
       priority: payload.priority,
       dueDate: payload.dueDate || undefined,
       description: payload.description || undefined,
-      assigneeIds: payload.assigneeId ? [payload.assigneeId] : undefined,
+      assigneeIds: payload.assigneeIds.length ? payload.assigneeIds : undefined,
       progressPct: payload.trackProgress ? 0 : undefined,
     });
     this.showCreatePanel.set(false);
