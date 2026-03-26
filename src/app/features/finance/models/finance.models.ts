@@ -54,6 +54,12 @@ export interface CreateTransactionDto {
   fromBalance: boolean; // true = deduct from balance, false = external source
 }
 
+export interface UpdateTransactionDto {
+  categoryId?: string;
+  title?: string;
+  amount?: number;      // kopecks, signed
+}
+
 export interface CreateSavingsGoalDto {
   name: string;
   target: number;       // kopecks

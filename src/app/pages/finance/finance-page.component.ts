@@ -319,6 +319,19 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
   txCategoryId = '';
   txFromBalance = true;
 
+  // Edit transaction
+  readonly showEditTransactionDialog = signal(false);
+  editTxId = '';
+  editTxTitle = '';
+  editTxAmount = '';
+  editTxType: 'expense' | 'income' = 'expense';
+  editTxCategoryId = '';
+
+  // Delete transaction confirmation
+  readonly showDeleteTransactionDialog = signal(false);
+  deleteTxId = '';
+  deleteTxTitle = '';
+
   // Limit form
   limitMonthly = '';
   limitWeekly = '';
@@ -474,7 +487,7 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
     this.txTitle = '';
     this.txAmount = '';
     this.txType = 'expense';
-    this.txCategoryId = this.categories()[0]?.id ?? '';
+    this.txCategoryId = '';
     this.txFromBalance = true;
     this.showTransactionDialog.set(true);
   }
@@ -482,18 +495,59 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
   saveTransaction(): void {
     const title = this.txTitle.trim();
     const val = parseFloat(this.txAmount.replace(',', '.'));
-    if (!title || isNaN(val) || val <= 0 || !this.txCategoryId) return;
+    if (!title || isNaN(val) || val <= 0) return;
 
     const kopecks = Math.round(val * 100);
     const amount = this.txType === 'expense' ? -kopecks : kopecks;
 
     this.financeService.createTransaction({
-      categoryId: this.txCategoryId,
+      categoryId: this.txCategoryId || '',
       title,
       amount,
       fromBalance: this.txFromBalance,
     });
     this.showTransactionDialog.set(false);
+  }
+
+  // ─── Edit transaction dialog ───
+
+  openEditTransactionDialog(tx: Transaction): void {
+    this.editTxId = tx.id;
+    this.editTxTitle = tx.title;
+    const absKopecks = Math.abs(tx.amount);
+    this.editTxAmount = (absKopecks / 100).toString().replace('.', ',');
+    this.editTxType = tx.amount < 0 ? 'expense' : 'income';
+    this.editTxCategoryId = tx.categoryId;
+    this.showEditTransactionDialog.set(true);
+  }
+
+  saveEditTransaction(): void {
+    const title = this.editTxTitle.trim();
+    const val = parseFloat(this.editTxAmount.replace(',', '.'));
+    if (!title || isNaN(val) || val <= 0) return;
+
+    const kopecks = Math.round(val * 100);
+    const amount = this.editTxType === 'expense' ? -kopecks : kopecks;
+
+    this.financeService.updateTransaction(this.editTxId, {
+      title,
+      amount,
+      categoryId: this.editTxCategoryId || undefined,
+    });
+    this.showEditTransactionDialog.set(false);
+  }
+
+  // ─── Delete transaction dialog ───
+
+  openDeleteTransactionDialog(tx: Transaction): void {
+    this.deleteTxId = tx.id;
+    this.deleteTxTitle = tx.title;
+    this.showDeleteTransactionDialog.set(true);
+  }
+
+  confirmDeleteTransaction(): void {
+    this.financeService.deleteTransaction(this.deleteTxId);
+    this.showDeleteTransactionDialog.set(false);
   }
 
   // ─── Limit dialog ───
@@ -534,7 +588,7 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   // ─── Dialog backdrop ───
 
-  onBackdropClick(dialog: 'balance' | 'category' | 'goal' | 'fundGoal' | 'deleteGoal' | 'transaction' | 'limit' | 'history'): void {
+  onBackdropClick(dialog: 'balance' | 'category' | 'goal' | 'fundGoal' | 'deleteGoal' | 'transaction' | 'editTransaction' | 'deleteTransaction' | 'limit' | 'history'): void {
     switch (dialog) {
       case 'balance': this.showBalanceDialog.set(false); break;
       case 'category': this.showCategoryDialog.set(false); break;
@@ -542,6 +596,8 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
       case 'fundGoal': this.showFundGoalDialog.set(false); break;
       case 'deleteGoal': this.showDeleteGoalDialog.set(false); break;
       case 'transaction': this.showTransactionDialog.set(false); break;
+      case 'editTransaction': this.showEditTransactionDialog.set(false); break;
+      case 'deleteTransaction': this.showDeleteTransactionDialog.set(false); break;
       case 'limit': this.showLimitDialog.set(false); break;
       case 'history': this.showHistoryDialog.set(false); break;
     }

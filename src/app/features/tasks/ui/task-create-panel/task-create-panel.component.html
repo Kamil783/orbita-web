@@ -41,13 +41,45 @@
         </div>
 
         <div class="field">
-          <label class="field__label">Исполнитель</label>
-          <app-select
-            [(ngModel)]="assigneeId"
-            [options]="assigneeOptions()"
-            placeholder="Выбрать"
-            icon="person"
-          />
+          <label class="field__label">Исполнители</label>
+          <div class="assignee-dropdown" (click)="$event.stopPropagation()">
+            <div
+              class="assignee-dropdown__trigger"
+              [class.assignee-dropdown__trigger--open]="assigneeDropdownOpen()"
+              [class.assignee-dropdown__trigger--filled]="assigneeIds().length"
+              (click)="toggleAssigneeDropdown()"
+            >
+              <span class="material-symbols-outlined assignee-dropdown__icon">group</span>
+              @if (assigneeDropdownLabel()) {
+                <span class="assignee-dropdown__value">{{ assigneeDropdownLabel() }}</span>
+              } @else {
+                <span class="assignee-dropdown__placeholder">Выбрать</span>
+              }
+              <span class="material-symbols-outlined assignee-dropdown__chevron">expand_more</span>
+            </div>
+            @if (assigneeDropdownOpen()) {
+              <div class="assignee-dropdown__list">
+                @for (a of assignees(); track a.id) {
+                  <button
+                    class="assignee-dropdown__option"
+                    [class.assignee-dropdown__option--selected]="isAssigneeSelected(a.id)"
+                    type="button"
+                    (click)="toggleAssignee(a.id)"
+                  >
+                    @if (a.avatar) {
+                      <img class="assignee-dropdown__avatar" [src]="a.avatar | avatar" [alt]="a.name" />
+                    } @else {
+                      <span class="assignee-dropdown__initial">{{ a.name.charAt(0).toUpperCase() }}</span>
+                    }
+                    <span class="assignee-dropdown__name">{{ a.name }}</span>
+                    @if (isAssigneeSelected(a.id)) {
+                      <span class="material-symbols-outlined assignee-dropdown__check">check</span>
+                    }
+                  </button>
+                }
+              </div>
+            }
+          </div>
         </div>
       </div>
 
