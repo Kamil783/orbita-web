@@ -255,6 +255,46 @@ $finance-accent-border: rgba(250, 204, 21, 0.30);
   }
 }
 
+.transaction__actions {
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  flex-shrink: 0;
+
+  .transaction:hover & {
+    opacity: 1;
+  }
+}
+
+.transaction__action-btn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-400);
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  .material-symbols-outlined {
+    font-size: 18px;
+  }
+
+  &:hover {
+    background: var(--surface-muted);
+    color: var(--text-700);
+  }
+
+  &--delete:hover {
+    background: #fef2f2;
+    color: #dc2626;
+  }
+}
+
 .transactions-card__more {
   display: block;
   width: 100%;

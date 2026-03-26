@@ -14,6 +14,7 @@ import {
   SavingsGoal,
   SpendingLimits,
   Transaction,
+  UpdateTransactionDto,
 } from '../models/finance.models';
 
 /**
@@ -28,6 +29,7 @@ import {
  *
  * GET    /api/Finance/transactions                   → Transaction[]               Load all transactions
  * POST   /api/Finance/transactions                   → Transaction                 Create a transaction. Body: CreateTransactionDto
+ * PATCH  /api/Finance/transactions/:id               → Transaction                 Update a transaction. Body: UpdateTransactionDto
  * DELETE /api/Finance/transactions/:id               → void                        Delete a transaction
  *
  * GET    /api/Finance/savings-goals                  → SavingsGoal[]               Load all savings goals
@@ -136,6 +138,28 @@ export class FinanceService {
       });
   }
 
+  updateTransaction(id: string, dto: UpdateTransactionDto): void {
+    const backup = this.transactions();
+
+    // Optimistic update
+    this.transactions.update(list =>
+      list.map(t => t.id === id ? { ...t, ...dto } : t),
+    );
+
+    this.http.patch<Transaction>(`${this.apiUrl}/api/Finance/transactions/${id}`, dto)
+      .subscribe({
+        next: updated => {
+          this.transactions.update(list =>
+            list.map(t => t.id === id ? updated : t),
+          );
+          this.loadBalance();
+        },
+        error: () => {
+          this.transactions.set(backup);
+        },
+      });
+  }
+
   deleteTransaction(id: string): void {
     const backup = this.transactions();
 
@@ -144,6 +168,9 @@ export class FinanceService {
 
     this.http.delete(`${this.apiUrl}/api/Finance/transactions/${id}`)
       .subscribe({
+        next: () => {
+          this.loadBalance();
+        },
         error: () => {
           this.transactions.set(backup);
         },
