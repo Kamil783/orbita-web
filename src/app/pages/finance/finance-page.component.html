@@ -113,7 +113,7 @@
               </div>
               <div class="transaction__info">
                 <p class="transaction__title">{{ tx.title }}</p>
-                <p class="transaction__date">{{ tx.date }}</p>
+                <p class="transaction__date">{{ tx.categoryName }} &middot; {{ tx.date }}</p>
               </div>
               <p
                 class="transaction__amount"
@@ -122,6 +122,24 @@
               >
                 {{ formatAmount(tx.amount) }}
               </p>
+              <div class="transaction__actions">
+                <button
+                  class="transaction__action-btn"
+                  type="button"
+                  (click)="openEditTransactionDialog(tx); $event.stopPropagation()"
+                  title="Редактировать"
+                >
+                  <span class="material-symbols-outlined">edit</span>
+                </button>
+                <button
+                  class="transaction__action-btn transaction__action-btn--delete"
+                  type="button"
+                  (click)="openDeleteTransactionDialog(tx); $event.stopPropagation()"
+                  title="Удалить"
+                >
+                  <span class="material-symbols-outlined">delete</span>
+                </button>
+              </div>
             </div>
           } @empty {
             <div class="transactions-card__empty">
@@ -529,25 +547,36 @@
           />
         </div>
 
-        <div class="field">
-          <label class="field__label">Категория</label>
-          <div class="category-select">
-            @for (cat of categories(); track cat.id) {
+        @if (categories().length > 0) {
+          <div class="field">
+            <label class="field__label">Категория</label>
+            <div class="category-select">
               <button
                 class="category-select__item"
-                [class.category-select__item--active]="txCategoryId === cat.id"
+                [class.category-select__item--active]="txCategoryId === ''"
                 type="button"
-                (click)="txCategoryId = cat.id"
+                (click)="txCategoryId = ''"
               >
-                <span
-                  class="material-symbols-outlined category-select__icon"
-                  [style.color]="cat.color"
-                >{{ cat.icon }}</span>
-                <span>{{ cat.name }}</span>
+                <span class="material-symbols-outlined category-select__icon" style="color: #6b7280">receipt</span>
+                <span>Без категории</span>
               </button>
-            }
+              @for (cat of categories(); track cat.id) {
+                <button
+                  class="category-select__item"
+                  [class.category-select__item--active]="txCategoryId === cat.id"
+                  type="button"
+                  (click)="txCategoryId = cat.id"
+                >
+                  <span
+                    class="material-symbols-outlined category-select__icon"
+                    [style.color]="cat.color"
+                  >{{ cat.icon }}</span>
+                  <span>{{ cat.name }}</span>
+                </button>
+              }
+            </div>
           </div>
-        </div>
+        }
       </div>
 
       <div class="dialog__actions">
@@ -614,6 +643,131 @@
         </button>
         <button class="dialog__btn dialog__btn--danger" type="button" (click)="confirmDeleteGoal()">
           Закрыть цель
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ═══ Dialog: Редактировать операцию ═══ -->
+@if (showEditTransactionDialog()) {
+  <div class="overlay" (click)="onBackdropClick('editTransaction')">
+    <div class="dialog dialog--wide" (click)="stopPropagation($event)">
+      <div class="dialog__icon-circle dialog__icon-circle--accent">
+        <span class="material-symbols-outlined">edit</span>
+      </div>
+      <h3 class="dialog__title">Редактировать операцию</h3>
+      <p class="dialog__desc">Измените данные операции</p>
+
+      <div class="dialog__fields">
+        <!-- Type toggle -->
+        <div class="field">
+          <label class="field__label">Тип операции</label>
+          <div class="type-toggle">
+            <button
+              class="type-toggle__btn"
+              [class.type-toggle__btn--active-expense]="editTxType === 'expense'"
+              type="button"
+              (click)="editTxType = 'expense'"
+            >
+              <span class="material-symbols-outlined">remove</span>
+              Расход
+            </button>
+            <button
+              class="type-toggle__btn"
+              [class.type-toggle__btn--active-income]="editTxType === 'income'"
+              type="button"
+              (click)="editTxType = 'income'"
+            >
+              <span class="material-symbols-outlined">add</span>
+              Доход
+            </button>
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="editTxTitle">Описание</label>
+          <input
+            id="editTxTitle"
+            class="field__input"
+            type="text"
+            [(ngModel)]="editTxTitle"
+            placeholder="Например: Обед в кафе"
+          />
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="editTxAmount">Сумма (&#8381;)</label>
+          <input
+            id="editTxAmount"
+            class="field__input"
+            type="text"
+            inputmode="decimal"
+            [(ngModel)]="editTxAmount"
+            placeholder="0,00"
+          />
+        </div>
+
+        @if (categories().length > 0) {
+          <div class="field">
+            <label class="field__label">Категория</label>
+            <div class="category-select">
+              <button
+                class="category-select__item"
+                [class.category-select__item--active]="editTxCategoryId === ''"
+                type="button"
+                (click)="editTxCategoryId = ''"
+              >
+                <span class="material-symbols-outlined category-select__icon" style="color: #6b7280">receipt</span>
+                <span>Без категории</span>
+              </button>
+              @for (cat of categories(); track cat.id) {
+                <button
+                  class="category-select__item"
+                  [class.category-select__item--active]="editTxCategoryId === cat.id"
+                  type="button"
+                  (click)="editTxCategoryId = cat.id"
+                >
+                  <span
+                    class="material-symbols-outlined category-select__icon"
+                    [style.color]="cat.color"
+                  >{{ cat.icon }}</span>
+                  <span>{{ cat.name }}</span>
+                </button>
+              }
+            </div>
+          </div>
+        }
+      </div>
+
+      <div class="dialog__actions">
+        <button class="dialog__btn dialog__btn--secondary" type="button" (click)="showEditTransactionDialog.set(false)">
+          Отмена
+        </button>
+        <button class="dialog__btn dialog__btn--primary" type="button" (click)="saveEditTransaction()">
+          Сохранить
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ═══ Dialog: Удалить операцию ═══ -->
+@if (showDeleteTransactionDialog()) {
+  <div class="overlay" (click)="onBackdropClick('deleteTransaction')">
+    <div class="dialog" (click)="stopPropagation($event)">
+      <div class="dialog__icon-circle dialog__icon-circle--red">
+        <span class="material-symbols-outlined">delete</span>
+      </div>
+      <h3 class="dialog__title">Удалить операцию</h3>
+      <p class="dialog__desc">Вы уверены, что хотите удалить операцию «{{ deleteTxTitle }}»?</p>
+
+      <div class="dialog__actions">
+        <button class="dialog__btn dialog__btn--secondary" type="button" (click)="showDeleteTransactionDialog.set(false)">
+          Отмена
+        </button>
+        <button class="dialog__btn dialog__btn--danger" type="button" (click)="confirmDeleteTransaction()">
+          Удалить
         </button>
       </div>
     </div>
