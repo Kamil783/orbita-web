@@ -20,6 +20,8 @@
   position: relative;
   width: 100%;
   max-width: 420px;
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
   background: var(--surface-panel);
   border-radius: 16px;
   padding: 40px 32px 32px;
@@ -121,6 +123,31 @@
 }
 
 /* ── Responsive ── */
+@media (max-height: 500px) {
+  .overlay {
+    align-items: flex-start;
+  }
+
+  .dialog {
+    padding: 20px 16px 16px;
+    border-radius: 12px;
+  }
+
+  .dialog__icon {
+    width: 48px;
+    height: 48px;
+    margin-bottom: 16px;
+
+    .material-symbols-outlined {
+      font-size: 28px;
+    }
+  }
+
+  .dialog__message {
+    margin-bottom: 20px;
+  }
+}
+
 @media (max-width: 768px) {
   .dialog {
     padding: 28px 20px 24px;
