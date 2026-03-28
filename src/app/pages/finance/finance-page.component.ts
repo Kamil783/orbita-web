@@ -317,7 +317,7 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
   txAmount = '';
   txType: 'expense' | 'income' = 'expense';
   txCategoryId = '';
-  txFromBalance = true;
+  txFromBalance = false;
 
   // Edit transaction
   readonly showEditTransactionDialog = signal(false);
@@ -488,7 +488,7 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
     this.txAmount = '';
     this.txType = 'expense';
     this.txCategoryId = '';
-    this.txFromBalance = true;
+    this.txFromBalance = false;
     this.showTransactionDialog.set(true);
   }
 
