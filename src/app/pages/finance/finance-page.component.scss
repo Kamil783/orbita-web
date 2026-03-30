@@ -659,6 +659,135 @@ $finance-accent-border: rgba(250, 204, 21, 0.30);
   }
 }
 
+// ─── Shopping list detail dialog ───
+.shopping-detail__items {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 320px;
+  overflow-y: auto;
+  margin-bottom: 16px;
+  text-align: left;
+}
+
+.shopping-detail__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 32px 0;
+  color: var(--text-400);
+
+  .material-symbols-outlined {
+    font-size: 32px;
+    margin-bottom: 4px;
+  }
+
+  p {
+    margin: 0;
+    font-size: 13px;
+  }
+}
+
+.shopping-detail__totals {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-500);
+  padding: 8px 4px;
+  margin-bottom: 12px;
+  border-top: 1px solid var(--border-light);
+}
+
+.shopping-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+
+  &:hover {
+    background: var(--surface-hover);
+  }
+
+  &--bought {
+    .shopping-item__name {
+      text-decoration: line-through;
+      color: var(--text-400);
+    }
+
+    .shopping-item__price {
+      text-decoration: line-through;
+      color: var(--text-400);
+    }
+
+    .shopping-item__check {
+      color: #16a34a;
+    }
+  }
+}
+
+.shopping-item__check {
+  font-size: 22px;
+  color: var(--text-400);
+  flex-shrink: 0;
+  transition: color 0.15s ease;
+}
+
+.shopping-item__name {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-900);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.shopping-item__price {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-700);
+  white-space: nowrap;
+
+  &--unknown {
+    color: var(--text-400);
+    font-style: italic;
+  }
+}
+
+.shopping-item__remove {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-400);
+  cursor: pointer;
+  opacity: 0;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+
+  .material-symbols-outlined {
+    font-size: 16px;
+  }
+
+  .shopping-item:hover & {
+    opacity: 1;
+  }
+
+  &:hover {
+    background: #fef2f2;
+    color: #dc2626;
+  }
+}
+
 // ═══════════════════════════════════════
 // ─── Section headers ───
 // ═══════════════════════════════════════

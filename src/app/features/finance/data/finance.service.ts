@@ -8,11 +8,16 @@ import {
   ChartDataPoint,
   CreateCategoryDto,
   CreateSavingsGoalDto,
+  CreateShoppingListDto,
+  CreateShoppingListItemDto,
   CreateTransactionDto,
   FundSavingsGoalDto,
   PreviousMonthBalanceResponse,
   SavingsGoal,
+  ShoppingList,
+  ShoppingListItem,
   SpendingLimits,
+  ToggleShoppingListItemDto,
   Transaction,
   UpdateTransactionDto,
 } from '../models/finance.models';
@@ -223,6 +228,97 @@ export class FinanceService {
           this.savingsGoals.set(backup);
         },
       });
+  }
+
+  // ─── Shopping lists ───
+
+  readonly shoppingLists = signal<ShoppingList[]>([]);
+
+  loadShoppingLists(): void {
+    this.http.get<ShoppingList[]>(`${this.apiUrl}/api/Finance/shopping-lists`)
+      .subscribe(lists => {
+        this.shoppingLists.set(lists);
+      });
+  }
+
+  createShoppingList(name: string): void {
+    this.http.post<ShoppingList>(`${this.apiUrl}/api/Finance/shopping-lists`, { name } as CreateShoppingListDto)
+      .subscribe(created => {
+        this.shoppingLists.update(lists => [...lists, created]);
+      });
+  }
+
+  deleteShoppingList(id: string): void {
+    const backup = this.shoppingLists();
+    this.shoppingLists.update(lists => lists.filter(l => l.id !== id));
+
+    this.http.delete(`${this.apiUrl}/api/Finance/shopping-lists/${id}`)
+      .subscribe({
+        error: () => {
+          this.shoppingLists.set(backup);
+        },
+      });
+  }
+
+  addShoppingListItem(listId: string, name: string, price: number | null): void {
+    this.http.post<ShoppingListItem>(
+      `${this.apiUrl}/api/Finance/shopping-lists/${listId}/items`,
+      { name, price } as CreateShoppingListItemDto,
+    ).subscribe(created => {
+      this.shoppingLists.update(lists =>
+        lists.map(l => l.id === listId ? { ...l, items: [...l.items, created] } : l),
+      );
+    });
+  }
+
+  removeShoppingListItem(listId: string, itemId: string): void {
+    const backup = this.shoppingLists();
+    this.shoppingLists.update(lists =>
+      lists.map(l => l.id === listId ? { ...l, items: l.items.filter(i => i.id !== itemId) } : l),
+    );
+
+    this.http.delete(`${this.apiUrl}/api/Finance/shopping-lists/${listId}/items/${itemId}`)
+      .subscribe({
+        error: () => {
+          this.shoppingLists.set(backup);
+        },
+      });
+  }
+
+  toggleShoppingListItem(listId: string, itemId: string): void {
+    const list = this.shoppingLists().find(l => l.id === listId);
+    const item = list?.items.find(i => i.id === itemId);
+    if (!item) return;
+
+    const newBought = !item.bought;
+
+    // Optimistic update
+    this.shoppingLists.update(lists =>
+      lists.map(l => l.id === listId
+        ? { ...l, items: l.items.map(i => i.id === itemId ? { ...i, bought: newBought } : i) }
+        : l),
+    );
+
+    this.http.patch<ShoppingListItem>(
+      `${this.apiUrl}/api/Finance/shopping-lists/${listId}/items/${itemId}`,
+      { bought: newBought } as ToggleShoppingListItemDto,
+    ).subscribe({
+      next: updated => {
+        this.shoppingLists.update(lists =>
+          lists.map(l => l.id === listId
+            ? { ...l, items: l.items.map(i => i.id === itemId ? updated : i) }
+            : l),
+        );
+      },
+      error: () => {
+        // Rollback
+        this.shoppingLists.update(lists =>
+          lists.map(l => l.id === listId
+            ? { ...l, items: l.items.map(i => i.id === itemId ? { ...i, bought: !newBought } : i) }
+            : l),
+        );
+      },
+    });
   }
 
   // ─── Limits ───

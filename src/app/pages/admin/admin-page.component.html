@@ -27,6 +27,15 @@
         Задачи бэклога
         <span class="tabs__count">{{ adminService.backlogTasks().length }}</span>
       </button>
+      <button
+        class="tabs__btn"
+        [class.tabs__btn--active]="activeTab() === 'teams'"
+        (click)="setTab('teams')"
+      >
+        <span class="material-symbols-outlined tabs__icon">groups</span>
+        Команды
+        <span class="tabs__count">{{ adminService.teams().length }}</span>
+      </button>
     </div>
 
     <!-- Toolbar -->
@@ -36,7 +45,7 @@
         <input
           class="toolbar__search-input"
           type="text"
-          [placeholder]="activeTab() === 'users' ? 'Найти пользователя...' : 'Найти задачу...'"
+          [placeholder]="activeTab() === 'users' ? 'Найти пользователя...' : activeTab() === 'teams' ? 'Найти команду...' : 'Найти задачу...'"
           [value]="searchQuery()"
           (input)="onSearch($event)"
         />
@@ -46,6 +55,12 @@
         <button class="toolbar__action-btn" type="button" (click)="openAddUser()">
           <span class="material-symbols-outlined">person_add</span>
           Добавить пользователя
+        </button>
+      }
+      @if (activeTab() === 'teams') {
+        <button class="toolbar__action-btn" type="button" (click)="openCreateTeam()">
+          <span class="material-symbols-outlined">group_add</span>
+          Создать команду
         </button>
       }
     </div>
@@ -135,6 +150,49 @@
             }
           </tbody>
         </table>
+      </div>
+    }
+
+    <!-- Teams tab -->
+    @if (activeTab() === 'teams') {
+      <div class="teams-grid">
+        @for (team of filteredTeams(); track team.id) {
+          <div class="team-card">
+            <div class="team-card__header">
+              <div class="team-card__icon">
+                <span class="material-symbols-outlined">groups</span>
+              </div>
+              <div class="team-card__info">
+                <p class="team-card__name">{{ team.name }}</p>
+                <p class="team-card__count">{{ team.members.length }} участник{{ team.members.length === 1 ? '' : team.members.length >= 2 && team.members.length <= 4 ? 'а' : 'ов' }}</p>
+              </div>
+            </div>
+
+            <div class="team-card__members">
+              @for (member of team.members; track member.id) {
+                <div class="team-member">
+                  <span class="team-member__avatar">{{ userInitial(member.name) }}</span>
+                  <span class="team-member__name">{{ member.name }}</span>
+                </div>
+              } @empty {
+                <div class="team-card__empty">
+                  <span class="material-symbols-outlined">person_off</span>
+                  <p>Нет участников</p>
+                </div>
+              }
+            </div>
+
+            <button class="team-card__add-btn" type="button" (click)="openAddMember(team)">
+              <span class="material-symbols-outlined">person_add</span>
+              Добавить участника
+            </button>
+          </div>
+        } @empty {
+          <div class="teams-empty">
+            <span class="material-symbols-outlined">groups</span>
+            <p>Команды не найдены</p>
+          </div>
+        }
       </div>
     }
   </main>
@@ -242,6 +300,89 @@
           [disabled]="addUserLoading()"
         >
           {{ addUserLoading() ? 'Создание...' : 'Создать' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Create Team Dialog -->
+@if (showCreateTeamDialog()) {
+  <div class="overlay" (click)="showCreateTeamDialog.set(false)">
+    <div class="dialog" (click)="$event.stopPropagation()">
+      <div class="dialog__icon">
+        <span class="material-symbols-outlined">group_add</span>
+      </div>
+
+      <h3 class="dialog__title">Новая команда</h3>
+      <p class="dialog__desc">Введите название команды</p>
+
+      <div class="dialog__fields">
+        <div class="dialog__field">
+          <label class="dialog__label" for="teamName">Название</label>
+          <input
+            id="teamName"
+            class="dialog__input"
+            type="text"
+            [(ngModel)]="newTeamName"
+            placeholder="Например: Фронтенд"
+          />
+        </div>
+      </div>
+
+      <div class="dialog__actions">
+        <button class="dialog__btn dialog__btn--secondary" type="button" (click)="showCreateTeamDialog.set(false)">
+          Отмена
+        </button>
+        <button class="dialog__btn dialog__btn--primary" type="button" (click)="saveNewTeam()">
+          Создать
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Add Member Dialog -->
+@if (showAddMemberDialog()) {
+  <div class="overlay" (click)="showAddMemberDialog.set(false)">
+    <div class="dialog" (click)="$event.stopPropagation()">
+      <div class="dialog__icon">
+        <span class="material-symbols-outlined">person_add</span>
+      </div>
+
+      <h3 class="dialog__title">Добавить участника</h3>
+      <p class="dialog__desc">Команда: {{ addMemberTeamName }}</p>
+
+      <div class="dialog__fields">
+        <div class="dialog__field">
+          <label class="dialog__label">Пользователь</label>
+          <div class="member-select">
+            @for (user of availableUsersForTeam(); track user.id) {
+              <button
+                class="member-select__item"
+                [class.member-select__item--active]="addMemberUserId === user.id"
+                type="button"
+                (click)="addMemberUserId = user.id"
+              >
+                <span class="member-select__avatar">{{ userInitial(user.name) }}</span>
+                <span class="member-select__name">{{ user.name }}</span>
+                @if (addMemberUserId === user.id) {
+                  <span class="material-symbols-outlined member-select__check">check</span>
+                }
+              </button>
+            } @empty {
+              <div class="member-select__empty">Все пользователи уже в команде</div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="dialog__actions">
+        <button class="dialog__btn dialog__btn--secondary" type="button" (click)="showAddMemberDialog.set(false)">
+          Отмена
+        </button>
+        <button class="dialog__btn dialog__btn--primary" type="button" (click)="saveAddMember()">
+          Добавить
         </button>
       </div>
     </div>
