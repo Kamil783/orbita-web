@@ -174,7 +174,7 @@ export class AdminPageComponent implements OnInit {
 
   saveAddMember(): void {
     if (!this.addMemberUserId) return;
-    this.adminService.addTeamMember(this.addMemberUserId);
+    this.adminService.addTeamMember(this.addMemberTeamId, this.addMemberUserId);
     this.showAddMemberDialog.set(false);
   }
 

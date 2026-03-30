@@ -52,8 +52,8 @@ export class AdminService {
       });
   }
 
-  addTeamMember(userId: string): void {
-    this.http.post(`${this.apiUrl}/api/Team/members`, { userId } as AddTeamMemberRequest)
+  addTeamMember(teamId: string, userId: string): void {
+    this.http.post(`${this.apiUrl}/api/Team/members`, { teamId, userId } as AddTeamMemberRequest)
       .subscribe(() => {
         this.loadTeams();
       });

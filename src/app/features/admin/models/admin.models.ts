@@ -47,5 +47,6 @@ export interface CreateTeamRequest {
 }
 
 export interface AddTeamMemberRequest {
+  teamId: string;
   userId: string;
 }
