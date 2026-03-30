@@ -308,7 +308,7 @@
                 <div class="goal-card__progress-bar">
                   <div
                     class="goal-card__progress-fill"
-                    [style.width.%]="(shoppingListBoughtCount(list) / list.items.length) * 100"
+                    [style.width.%]="shoppingListPercent(list)"
                   ></div>
                 </div>
                 <div class="goal-card__footer">

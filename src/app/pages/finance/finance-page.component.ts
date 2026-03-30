@@ -498,6 +498,12 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
     return list.items.filter(i => !i.bought).reduce((sum, i) => sum + (i.price ?? 0), 0);
   }
 
+  shoppingListPercent(list: ShoppingList): number {
+    const total = this.shoppingListTotal(list);
+    if (total <= 0) return 0;
+    return Math.min(100, Math.round((this.shoppingListBoughtTotal(list) / total) * 100));
+  }
+
   shoppingListBoughtCount(list: ShoppingList): number {
     return list.items.filter(i => i.bought).length;
   }
