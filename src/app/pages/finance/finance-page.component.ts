@@ -18,6 +18,7 @@ import { FinanceService } from '../../features/finance/data/finance.service';
 import {
   Category,
   SavingsGoal,
+  ShoppingList,
   Transaction,
   ICON_OPTIONS,
   COLOR_OPTIONS,
@@ -61,6 +62,7 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly categories = this.financeService.categories;
   readonly transactions = this.financeService.transactions;
   readonly savingsGoals = this.financeService.savingsGoals;
+  readonly shoppingLists = this.financeService.shoppingLists;
 
   // ─── Limits (delegated to service) ───
 
@@ -298,8 +300,20 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
   categoryMonthlyLimit = '';
 
   // Goal form
+  goalType: 'goal' | 'shoppingList' = 'goal';
   goalName = '';
   goalTarget = '';
+
+  // Shopping list item form
+  readonly showAddItemDialog = signal(false);
+  addItemListId = '';
+  addItemName = '';
+  addItemPrice = '';
+
+  // Delete shopping list confirmation
+  readonly showDeleteListDialog = signal(false);
+  deleteListId = '';
+  deleteListName = '';
 
   // Fund goal form
   readonly showFundGoalDialog = signal(false);
@@ -344,6 +358,7 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
     this.financeService.loadCategories();
     this.financeService.loadTransactions();
     this.financeService.loadSavingsGoals();
+    this.financeService.loadShoppingLists();
     this.financeService.loadLimits();
     this.financeService.loadChartData(this.activeChartTab());
   }
@@ -436,6 +451,7 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
   // ─── Goal dialog ───
 
   openGoalDialog(): void {
+    this.goalType = 'goal';
     this.goalName = '';
     this.goalTarget = '';
     this.showGoalDialog.set(true);
@@ -443,13 +459,74 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   saveGoal(): void {
     const name = this.goalName.trim();
+    if (!name) return;
+
+    if (this.goalType === 'shoppingList') {
+      this.financeService.createShoppingList(name);
+      this.showGoalDialog.set(false);
+      return;
+    }
+
     const target = parseFloat(this.goalTarget.replace(',', '.'));
-    if (!name || isNaN(target) || target <= 0) return;
+    if (isNaN(target) || target <= 0) return;
     this.financeService.createSavingsGoal({
       name,
       target: Math.round(target * 100),
     });
     this.showGoalDialog.set(false);
+  }
+
+  // ─── Shopping list dialogs ───
+
+  shoppingListTotal(list: ShoppingList): number {
+    return list.items.reduce((sum, i) => sum + (i.price ?? 0), 0);
+  }
+
+  shoppingListBoughtTotal(list: ShoppingList): number {
+    return list.items.filter(i => i.bought).reduce((sum, i) => sum + (i.price ?? 0), 0);
+  }
+
+  shoppingListRemainingTotal(list: ShoppingList): number {
+    return list.items.filter(i => !i.bought).reduce((sum, i) => sum + (i.price ?? 0), 0);
+  }
+
+  shoppingListBoughtCount(list: ShoppingList): number {
+    return list.items.filter(i => i.bought).length;
+  }
+
+  toggleShoppingItem(listId: string, itemId: string): void {
+    this.financeService.toggleShoppingListItem(listId, itemId);
+  }
+
+  removeShoppingItem(listId: string, itemId: string): void {
+    this.financeService.removeShoppingListItem(listId, itemId);
+  }
+
+  openAddItemDialog(list: ShoppingList): void {
+    this.addItemListId = list.id;
+    this.addItemName = '';
+    this.addItemPrice = '';
+    this.showAddItemDialog.set(true);
+  }
+
+  saveAddItem(): void {
+    const name = this.addItemName.trim();
+    if (!name) return;
+    const val = parseFloat(this.addItemPrice.replace(',', '.'));
+    const price = !isNaN(val) && val > 0 ? Math.round(val * 100) : null;
+    this.financeService.addShoppingListItem(this.addItemListId, name, price);
+    this.showAddItemDialog.set(false);
+  }
+
+  openDeleteListDialog(list: ShoppingList): void {
+    this.deleteListId = list.id;
+    this.deleteListName = list.name;
+    this.showDeleteListDialog.set(true);
+  }
+
+  confirmDeleteList(): void {
+    this.financeService.deleteShoppingList(this.deleteListId);
+    this.showDeleteListDialog.set(false);
   }
 
   // ─── Fund goal dialog ───
@@ -588,7 +665,7 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   // ─── Dialog backdrop ───
 
-  onBackdropClick(dialog: 'balance' | 'category' | 'goal' | 'fundGoal' | 'deleteGoal' | 'transaction' | 'editTransaction' | 'deleteTransaction' | 'limit' | 'history'): void {
+  onBackdropClick(dialog: 'balance' | 'category' | 'goal' | 'fundGoal' | 'deleteGoal' | 'transaction' | 'editTransaction' | 'deleteTransaction' | 'limit' | 'history' | 'addItem' | 'deleteList'): void {
     switch (dialog) {
       case 'balance': this.showBalanceDialog.set(false); break;
       case 'category': this.showCategoryDialog.set(false); break;
@@ -600,6 +677,8 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
       case 'deleteTransaction': this.showDeleteTransactionDialog.set(false); break;
       case 'limit': this.showLimitDialog.set(false); break;
       case 'history': this.showHistoryDialog.set(false); break;
+      case 'addItem': this.showAddItemDialog.set(false); break;
+      case 'deleteList': this.showDeleteListDialog.set(false); break;
     }
   }
 

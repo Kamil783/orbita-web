@@ -12,6 +12,8 @@ import {
   FundSavingsGoalDto,
   PreviousMonthBalanceResponse,
   SavingsGoal,
+  ShoppingList,
+  ShoppingListItem,
   SpendingLimits,
   Transaction,
   UpdateTransactionDto,
@@ -223,6 +225,65 @@ export class FinanceService {
           this.savingsGoals.set(backup);
         },
       });
+  }
+
+  // ─── Shopping lists (localStorage) ───
+
+  private readonly SHOPPING_LISTS_KEY = 'orbita_shopping_lists';
+  readonly shoppingLists = signal<ShoppingList[]>([]);
+
+  loadShoppingLists(): void {
+    const raw = localStorage.getItem(this.SHOPPING_LISTS_KEY);
+    this.shoppingLists.set(raw ? JSON.parse(raw) : []);
+  }
+
+  private persistShoppingLists(): void {
+    localStorage.setItem(this.SHOPPING_LISTS_KEY, JSON.stringify(this.shoppingLists()));
+  }
+
+  createShoppingList(name: string): void {
+    const list: ShoppingList = {
+      id: `sl-${Date.now()}`,
+      name,
+      items: [],
+      createdAt: Date.now(),
+    };
+    this.shoppingLists.update(lists => [...lists, list]);
+    this.persistShoppingLists();
+  }
+
+  deleteShoppingList(id: string): void {
+    this.shoppingLists.update(lists => lists.filter(l => l.id !== id));
+    this.persistShoppingLists();
+  }
+
+  addShoppingListItem(listId: string, name: string, price: number | null): void {
+    const item: ShoppingListItem = {
+      id: `sli-${Date.now()}`,
+      name,
+      price,
+      bought: false,
+    };
+    this.shoppingLists.update(lists =>
+      lists.map(l => l.id === listId ? { ...l, items: [...l.items, item] } : l),
+    );
+    this.persistShoppingLists();
+  }
+
+  removeShoppingListItem(listId: string, itemId: string): void {
+    this.shoppingLists.update(lists =>
+      lists.map(l => l.id === listId ? { ...l, items: l.items.filter(i => i.id !== itemId) } : l),
+    );
+    this.persistShoppingLists();
+  }
+
+  toggleShoppingListItem(listId: string, itemId: string): void {
+    this.shoppingLists.update(lists =>
+      lists.map(l => l.id === listId
+        ? { ...l, items: l.items.map(i => i.id === itemId ? { ...i, bought: !i.bought } : i) }
+        : l),
+    );
+    this.persistShoppingLists();
   }
 
   // ─── Limits ───

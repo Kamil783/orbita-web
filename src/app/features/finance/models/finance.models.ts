@@ -36,6 +36,22 @@ export interface ChartDataPoint {
   value: number;        // rubles
 }
 
+// ─── Shopping list ───
+
+export interface ShoppingListItem {
+  id: string;
+  name: string;
+  price: number | null;  // kopecks, null = unknown
+  bought: boolean;
+}
+
+export interface ShoppingList {
+  id: string;
+  name: string;
+  items: ShoppingListItem[];
+  createdAt: number;     // ms since epoch
+}
+
 // ─── Request DTOs ───
 
 export interface CreateCategoryDto {
