@@ -113,7 +113,7 @@
               </div>
               <div class="transaction__info">
                 <p class="transaction__title">{{ tx.title }}</p>
-                <p class="transaction__date">{{ tx.date }}</p>
+                <p class="transaction__date">{{ tx.categoryName }} &middot; {{ tx.date }}</p>
               </div>
               <p
                 class="transaction__amount"
@@ -122,6 +122,24 @@
               >
                 {{ formatAmount(tx.amount) }}
               </p>
+              <div class="transaction__actions">
+                <button
+                  class="transaction__action-btn"
+                  type="button"
+                  (click)="openEditTransactionDialog(tx); $event.stopPropagation()"
+                  title="Редактировать"
+                >
+                  <span class="material-symbols-outlined">edit</span>
+                </button>
+                <button
+                  class="transaction__action-btn transaction__action-btn--delete"
+                  type="button"
+                  (click)="openDeleteTransactionDialog(tx); $event.stopPropagation()"
+                  title="Удалить"
+                >
+                  <span class="material-symbols-outlined">delete</span>
+                </button>
+              </div>
             </div>
           } @empty {
             <div class="transactions-card__empty">
@@ -223,14 +241,15 @@
       </div>
     </div>
 
-    <!-- ═══ Bottom zone: savings goals ═══ -->
-    @if (savingsGoals().length > 0) {
+    <!-- ═══ Bottom zone: savings goals & shopping lists ═══ -->
+    @if (savingsGoals().length > 0 || shoppingLists().length > 0) {
       <hr class="divider" />
       <div class="goals-section">
         <div class="section-header">
           <h3 class="section-header__title">Цели накоплений</h3>
         </div>
         <div class="goals-grid">
+          <!-- Savings goals -->
           @for (goal of savingsGoals(); track goal.id) {
             <div class="goal-card">
               <div class="goal-card__header">
@@ -258,6 +277,53 @@
                 <button class="goal-card__btn goal-card__btn--delete" type="button" (click)="openDeleteGoalDialog(goal)">
                   <span class="material-symbols-outlined">close</span>
                   Закрыть цель
+                </button>
+              </div>
+            </div>
+          }
+
+          <!-- Shopping lists -->
+          @for (list of shoppingLists(); track list.id) {
+            <div class="goal-card" (click)="openShoppingListDetail(list)" style="cursor: pointer">
+              <div class="goal-card__header">
+                <div class="goal-card__icon">
+                  <span class="material-symbols-outlined">shopping_cart</span>
+                </div>
+                <div class="goal-card__info">
+                  <p class="goal-card__name">{{ list.name }}</p>
+                  <p class="goal-card__target">
+                    {{ shoppingListBoughtCount(list) }} из {{ list.items.length }} куплено
+                    @if (shoppingListTotal(list) > 0) {
+                      &middot; Итого: {{ formatRub(shoppingListTotal(list)) }}
+                    }
+                  </p>
+                </div>
+                @if (list.items.length > 0) {
+                  <p class="goal-card__percent">
+                    {{ shoppingListBoughtCount(list) === list.items.length ? '&#10003;' : shoppingListBoughtCount(list) + '/' + list.items.length }}
+                  </p>
+                }
+              </div>
+              @if (list.items.length > 0) {
+                <div class="goal-card__progress-bar">
+                  <div
+                    class="goal-card__progress-fill"
+                    [style.width.%]="shoppingListPercent(list)"
+                  ></div>
+                </div>
+                <div class="goal-card__footer">
+                  <span class="goal-card__current">Куплено на: {{ formatRub(shoppingListBoughtTotal(list)) }}</span>
+                  <span class="goal-card__remaining">Осталось на: {{ formatRub(shoppingListRemainingTotal(list)) }}</span>
+                </div>
+              }
+              <div class="goal-card__actions">
+                <button class="goal-card__btn goal-card__btn--fund" type="button" (click)="openAddItemDialog(list); $event.stopPropagation()">
+                  <span class="material-symbols-outlined">add</span>
+                  Добавить
+                </button>
+                <button class="goal-card__btn goal-card__btn--delete" type="button" (click)="openDeleteListDialog(list); $event.stopPropagation()">
+                  <span class="material-symbols-outlined">close</span>
+                  Удалить список
                 </button>
               </div>
             </div>
@@ -398,17 +464,42 @@
   </div>
 }
 
-<!-- ═══ Dialog: Новая цель накопления ═══ -->
+<!-- ═══ Dialog: Новая цель / список покупок ═══ -->
 @if (showGoalDialog()) {
   <div class="overlay" (click)="onBackdropClick('goal')">
     <div class="dialog" (click)="stopPropagation($event)">
       <div class="dialog__icon-circle dialog__icon-circle--green">
-        <span class="material-symbols-outlined">flag</span>
+        <span class="material-symbols-outlined">{{ goalType === 'goal' ? 'flag' : 'shopping_cart' }}</span>
       </div>
-      <h3 class="dialog__title">Новая цель</h3>
-      <p class="dialog__desc">Установите цель накоплений</p>
+      <h3 class="dialog__title">{{ goalType === 'goal' ? 'Новая цель' : 'Новый список покупок' }}</h3>
+      <p class="dialog__desc">{{ goalType === 'goal' ? 'Установите цель накоплений' : 'Создайте список того, что нужно купить' }}</p>
 
       <div class="dialog__fields">
+        <!-- Type toggle -->
+        <div class="field">
+          <label class="field__label">Тип</label>
+          <div class="type-toggle">
+            <button
+              class="type-toggle__btn"
+              [class.type-toggle__btn--active-income]="goalType === 'goal'"
+              type="button"
+              (click)="goalType = 'goal'"
+            >
+              <span class="material-symbols-outlined">flag</span>
+              Цель
+            </button>
+            <button
+              class="type-toggle__btn"
+              [class.type-toggle__btn--active-income]="goalType === 'shoppingList'"
+              type="button"
+              (click)="goalType = 'shoppingList'"
+            >
+              <span class="material-symbols-outlined">shopping_cart</span>
+              Список покупок
+            </button>
+          </div>
+        </div>
+
         <div class="field">
           <label class="field__label" for="goalName">Название</label>
           <input
@@ -416,20 +507,22 @@
             class="field__input"
             type="text"
             [(ngModel)]="goalName"
-            placeholder="Например: Новый ноутбук"
+            [placeholder]="goalType === 'goal' ? 'Например: Новый ноутбук' : 'Например: Покупки на неделю'"
           />
         </div>
-        <div class="field">
-          <label class="field__label" for="goalTarget">Целевая сумма (&#8381;)</label>
-          <input
-            id="goalTarget"
-            class="field__input"
-            type="text"
-            inputmode="decimal"
-            [(ngModel)]="goalTarget"
-            placeholder="0,00"
-          />
-        </div>
+        @if (goalType === 'goal') {
+          <div class="field">
+            <label class="field__label" for="goalTarget">Целевая сумма (&#8381;)</label>
+            <input
+              id="goalTarget"
+              class="field__input"
+              type="text"
+              inputmode="decimal"
+              [(ngModel)]="goalTarget"
+              placeholder="0,00"
+            />
+          </div>
+        }
       </div>
 
       <div class="dialog__actions">
@@ -486,7 +579,7 @@
           <div class="type-toggle">
              <button
               class="type-toggle__btn"
-              [class.type-toggle__btn--active-income]="txFromBalance"
+              [class.type-toggle__btn--active-income]="!txFromBalance"
               type="button"
               (click)="txFromBalance = false"
             >
@@ -495,7 +588,7 @@
             </button>
             <button
               class="type-toggle__btn"
-              [class.type-toggle__btn--active-expense]="!txFromBalance"
+              [class.type-toggle__btn--active-expense]="txFromBalance"
               type="button"
               (click)="txFromBalance = true"
             >
@@ -529,25 +622,36 @@
           />
         </div>
 
-        <div class="field">
-          <label class="field__label">Категория</label>
-          <div class="category-select">
-            @for (cat of categories(); track cat.id) {
+        @if (categories().length > 0) {
+          <div class="field">
+            <label class="field__label">Категория</label>
+            <div class="category-select">
               <button
                 class="category-select__item"
-                [class.category-select__item--active]="txCategoryId === cat.id"
+                [class.category-select__item--active]="txCategoryId === ''"
                 type="button"
-                (click)="txCategoryId = cat.id"
+                (click)="txCategoryId = ''"
               >
-                <span
-                  class="material-symbols-outlined category-select__icon"
-                  [style.color]="cat.color"
-                >{{ cat.icon }}</span>
-                <span>{{ cat.name }}</span>
+                <span class="material-symbols-outlined category-select__icon" style="color: #6b7280">receipt</span>
+                <span>Без категории</span>
               </button>
-            }
+              @for (cat of categories(); track cat.id) {
+                <button
+                  class="category-select__item"
+                  [class.category-select__item--active]="txCategoryId === cat.id"
+                  type="button"
+                  (click)="txCategoryId = cat.id"
+                >
+                  <span
+                    class="material-symbols-outlined category-select__icon"
+                    [style.color]="cat.color"
+                  >{{ cat.icon }}</span>
+                  <span>{{ cat.name }}</span>
+                </button>
+              }
+            </div>
           </div>
-        </div>
+        }
       </div>
 
       <div class="dialog__actions">
@@ -614,6 +718,131 @@
         </button>
         <button class="dialog__btn dialog__btn--danger" type="button" (click)="confirmDeleteGoal()">
           Закрыть цель
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ═══ Dialog: Редактировать операцию ═══ -->
+@if (showEditTransactionDialog()) {
+  <div class="overlay" (click)="onBackdropClick('editTransaction')">
+    <div class="dialog dialog--wide" (click)="stopPropagation($event)">
+      <div class="dialog__icon-circle dialog__icon-circle--accent">
+        <span class="material-symbols-outlined">edit</span>
+      </div>
+      <h3 class="dialog__title">Редактировать операцию</h3>
+      <p class="dialog__desc">Измените данные операции</p>
+
+      <div class="dialog__fields">
+        <!-- Type toggle -->
+        <div class="field">
+          <label class="field__label">Тип операции</label>
+          <div class="type-toggle">
+            <button
+              class="type-toggle__btn"
+              [class.type-toggle__btn--active-expense]="editTxType === 'expense'"
+              type="button"
+              (click)="editTxType = 'expense'"
+            >
+              <span class="material-symbols-outlined">remove</span>
+              Расход
+            </button>
+            <button
+              class="type-toggle__btn"
+              [class.type-toggle__btn--active-income]="editTxType === 'income'"
+              type="button"
+              (click)="editTxType = 'income'"
+            >
+              <span class="material-symbols-outlined">add</span>
+              Доход
+            </button>
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="editTxTitle">Описание</label>
+          <input
+            id="editTxTitle"
+            class="field__input"
+            type="text"
+            [(ngModel)]="editTxTitle"
+            placeholder="Например: Обед в кафе"
+          />
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="editTxAmount">Сумма (&#8381;)</label>
+          <input
+            id="editTxAmount"
+            class="field__input"
+            type="text"
+            inputmode="decimal"
+            [(ngModel)]="editTxAmount"
+            placeholder="0,00"
+          />
+        </div>
+
+        @if (categories().length > 0) {
+          <div class="field">
+            <label class="field__label">Категория</label>
+            <div class="category-select">
+              <button
+                class="category-select__item"
+                [class.category-select__item--active]="editTxCategoryId === ''"
+                type="button"
+                (click)="editTxCategoryId = ''"
+              >
+                <span class="material-symbols-outlined category-select__icon" style="color: #6b7280">receipt</span>
+                <span>Без категории</span>
+              </button>
+              @for (cat of categories(); track cat.id) {
+                <button
+                  class="category-select__item"
+                  [class.category-select__item--active]="editTxCategoryId === cat.id"
+                  type="button"
+                  (click)="editTxCategoryId = cat.id"
+                >
+                  <span
+                    class="material-symbols-outlined category-select__icon"
+                    [style.color]="cat.color"
+                  >{{ cat.icon }}</span>
+                  <span>{{ cat.name }}</span>
+                </button>
+              }
+            </div>
+          </div>
+        }
+      </div>
+
+      <div class="dialog__actions">
+        <button class="dialog__btn dialog__btn--secondary" type="button" (click)="showEditTransactionDialog.set(false)">
+          Отмена
+        </button>
+        <button class="dialog__btn dialog__btn--primary" type="button" (click)="saveEditTransaction()">
+          Сохранить
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ═══ Dialog: Удалить операцию ═══ -->
+@if (showDeleteTransactionDialog()) {
+  <div class="overlay" (click)="onBackdropClick('deleteTransaction')">
+    <div class="dialog" (click)="stopPropagation($event)">
+      <div class="dialog__icon-circle dialog__icon-circle--red">
+        <span class="material-symbols-outlined">delete</span>
+      </div>
+      <h3 class="dialog__title">Удалить операцию</h3>
+      <p class="dialog__desc">Вы уверены, что хотите удалить операцию «{{ deleteTxTitle }}»?</p>
+
+      <div class="dialog__actions">
+        <button class="dialog__btn dialog__btn--secondary" type="button" (click)="showDeleteTransactionDialog.set(false)">
+          Отмена
+        </button>
+        <button class="dialog__btn dialog__btn--danger" type="button" (click)="confirmDeleteTransaction()">
+          Удалить
         </button>
       </div>
     </div>
@@ -774,6 +1003,143 @@
           (click)="showHistoryDialog.set(false)"
         >
           Закрыть
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ═══ Dialog: Добавить товар в список ═══ -->
+@if (showAddItemDialog()) {
+  <div class="overlay" (click)="onBackdropClick('addItem')">
+    <div class="dialog" (click)="stopPropagation($event)">
+      <div class="dialog__icon-circle dialog__icon-circle--green">
+        <span class="material-symbols-outlined">add_shopping_cart</span>
+      </div>
+      <h3 class="dialog__title">Добавить в список</h3>
+      <p class="dialog__desc">Укажите название и цену (необязательно)</p>
+
+      <div class="dialog__fields">
+        <div class="field">
+          <label class="field__label" for="addItemName">Название</label>
+          <input
+            id="addItemName"
+            class="field__input"
+            type="text"
+            [(ngModel)]="addItemName"
+            placeholder="Например: Молоко"
+          />
+        </div>
+        <div class="field">
+          <label class="field__label" for="addItemPrice">Цена (&#8381;, необязательно)</label>
+          <input
+            id="addItemPrice"
+            class="field__input"
+            type="text"
+            inputmode="decimal"
+            [(ngModel)]="addItemPrice"
+            placeholder="Не указана"
+          />
+        </div>
+      </div>
+
+      <div class="dialog__actions">
+        <button class="dialog__btn dialog__btn--secondary" type="button" (click)="showAddItemDialog.set(false)">
+          Отмена
+        </button>
+        <button class="dialog__btn dialog__btn--primary" type="button" (click)="saveAddItem()">
+          Добавить
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ═══ Dialog: Удалить список покупок ═══ -->
+@if (showDeleteListDialog()) {
+  <div class="overlay" (click)="onBackdropClick('deleteList')">
+    <div class="dialog" (click)="stopPropagation($event)">
+      <div class="dialog__icon-circle dialog__icon-circle--red">
+        <span class="material-symbols-outlined">delete</span>
+      </div>
+      <h3 class="dialog__title">Удалить список</h3>
+      <p class="dialog__desc">Вы уверены, что хотите удалить список «{{ deleteListName }}»?</p>
+
+      <div class="dialog__actions">
+        <button class="dialog__btn dialog__btn--secondary" type="button" (click)="showDeleteListDialog.set(false)">
+          Отмена
+        </button>
+        <button class="dialog__btn dialog__btn--danger" type="button" (click)="confirmDeleteList()">
+          Удалить
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ═══ Dialog: Детали списка покупок ═══ -->
+@if (showShoppingListDetail()) {
+  <div class="overlay" (click)="onBackdropClick('shoppingListDetail')">
+    <div class="dialog dialog--wide" (click)="stopPropagation($event)">
+      <div class="dialog__icon-circle dialog__icon-circle--accent">
+        <span class="material-symbols-outlined">shopping_cart</span>
+      </div>
+      <h3 class="dialog__title">{{ detailList()?.name }}</h3>
+      @if (detailList(); as list) {
+        <p class="dialog__desc">
+          {{ shoppingListBoughtCount(list) }} из {{ list.items.length }} куплено
+          @if (shoppingListTotal(list) > 0) {
+            &middot; Итого: {{ formatRub(shoppingListTotal(list)) }}
+          }
+        </p>
+
+        <div class="shopping-detail__items">
+          @for (item of list.items; track item.id) {
+            <div
+              class="shopping-item"
+              [class.shopping-item--bought]="item.bought"
+              (click)="toggleShoppingItem(list.id, item.id)"
+            >
+              <span class="shopping-item__check material-symbols-outlined">
+                {{ item.bought ? 'check_box' : 'check_box_outline_blank' }}
+              </span>
+              <span class="shopping-item__name">{{ item.name }}</span>
+              @if (item.price !== null) {
+                <span class="shopping-item__price">{{ formatRub(item.price) }}</span>
+              } @else {
+                <span class="shopping-item__price shopping-item__price--unknown">? &#8381;</span>
+              }
+              <button
+                class="shopping-item__remove"
+                type="button"
+                (click)="removeShoppingItem(list.id, item.id); $event.stopPropagation()"
+                title="Удалить"
+              >
+                <span class="material-symbols-outlined">close</span>
+              </button>
+            </div>
+          } @empty {
+            <div class="shopping-detail__empty">
+              <span class="material-symbols-outlined">playlist_add</span>
+              <p>Список пуст &mdash; добавьте первый товар</p>
+            </div>
+          }
+        </div>
+
+        @if (list.items.length > 0) {
+          <div class="shopping-detail__totals">
+            <span>Куплено на: {{ formatRub(shoppingListBoughtTotal(list)) }}</span>
+            <span>Осталось на: {{ formatRub(shoppingListRemainingTotal(list)) }}</span>
+          </div>
+        }
+      }
+
+      <div class="dialog__actions">
+        <button class="dialog__btn dialog__btn--secondary" type="button" (click)="showShoppingListDetail.set(false)">
+          Закрыть
+        </button>
+        <button class="dialog__btn dialog__btn--primary" type="button" (click)="openAddItemFromDetail()">
+          Добавить товар
         </button>
       </div>
     </div>

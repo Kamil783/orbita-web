@@ -27,3 +27,26 @@ export interface AdminBacklogTask {
   dueDate?: string;
   createdAt?: string;
 }
+
+// ─── Teams ───
+
+export interface TeamMember {
+  id: string;
+  name: string;
+  avatar?: string;
+}
+
+export interface Team {
+  id: string;
+  name: string;
+  members: TeamMember[];
+}
+
+export interface CreateTeamRequest {
+  name: string;
+}
+
+export interface AddTeamMemberRequest {
+  teamId: string;
+  userId: string;
+}

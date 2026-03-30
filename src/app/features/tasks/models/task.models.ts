@@ -66,7 +66,7 @@ export interface TaskCreatePayload {
   title: string;
   priority: TaskPriority;
   dueDate: string;
-  assigneeId: string;
+  assigneeIds: string[];
   description: string;
   trackProgress: boolean;
 }
