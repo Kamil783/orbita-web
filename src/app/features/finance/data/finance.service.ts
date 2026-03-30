@@ -8,6 +8,8 @@ import {
   ChartDataPoint,
   CreateCategoryDto,
   CreateSavingsGoalDto,
+  CreateShoppingListDto,
+  CreateShoppingListItemDto,
   CreateTransactionDto,
   FundSavingsGoalDto,
   PreviousMonthBalanceResponse,
@@ -15,6 +17,7 @@ import {
   ShoppingList,
   ShoppingListItem,
   SpendingLimits,
+  ToggleShoppingListItemDto,
   Transaction,
   UpdateTransactionDto,
 } from '../models/finance.models';
@@ -227,63 +230,95 @@ export class FinanceService {
       });
   }
 
-  // ─── Shopping lists (localStorage) ───
+  // ─── Shopping lists ───
 
-  private readonly SHOPPING_LISTS_KEY = 'orbita_shopping_lists';
   readonly shoppingLists = signal<ShoppingList[]>([]);
 
   loadShoppingLists(): void {
-    const raw = localStorage.getItem(this.SHOPPING_LISTS_KEY);
-    this.shoppingLists.set(raw ? JSON.parse(raw) : []);
-  }
-
-  private persistShoppingLists(): void {
-    localStorage.setItem(this.SHOPPING_LISTS_KEY, JSON.stringify(this.shoppingLists()));
+    this.http.get<ShoppingList[]>(`${this.apiUrl}/api/Finance/shopping-lists`)
+      .subscribe(lists => {
+        this.shoppingLists.set(lists);
+      });
   }
 
   createShoppingList(name: string): void {
-    const list: ShoppingList = {
-      id: `sl-${Date.now()}`,
-      name,
-      items: [],
-      createdAt: Date.now(),
-    };
-    this.shoppingLists.update(lists => [...lists, list]);
-    this.persistShoppingLists();
+    this.http.post<ShoppingList>(`${this.apiUrl}/api/Finance/shopping-lists`, { name } as CreateShoppingListDto)
+      .subscribe(created => {
+        this.shoppingLists.update(lists => [...lists, created]);
+      });
   }
 
   deleteShoppingList(id: string): void {
+    const backup = this.shoppingLists();
     this.shoppingLists.update(lists => lists.filter(l => l.id !== id));
-    this.persistShoppingLists();
+
+    this.http.delete(`${this.apiUrl}/api/Finance/shopping-lists/${id}`)
+      .subscribe({
+        error: () => {
+          this.shoppingLists.set(backup);
+        },
+      });
   }
 
   addShoppingListItem(listId: string, name: string, price: number | null): void {
-    const item: ShoppingListItem = {
-      id: `sli-${Date.now()}`,
-      name,
-      price,
-      bought: false,
-    };
-    this.shoppingLists.update(lists =>
-      lists.map(l => l.id === listId ? { ...l, items: [...l.items, item] } : l),
-    );
-    this.persistShoppingLists();
+    this.http.post<ShoppingListItem>(
+      `${this.apiUrl}/api/Finance/shopping-lists/${listId}/items`,
+      { name, price } as CreateShoppingListItemDto,
+    ).subscribe(created => {
+      this.shoppingLists.update(lists =>
+        lists.map(l => l.id === listId ? { ...l, items: [...l.items, created] } : l),
+      );
+    });
   }
 
   removeShoppingListItem(listId: string, itemId: string): void {
+    const backup = this.shoppingLists();
     this.shoppingLists.update(lists =>
       lists.map(l => l.id === listId ? { ...l, items: l.items.filter(i => i.id !== itemId) } : l),
     );
-    this.persistShoppingLists();
+
+    this.http.delete(`${this.apiUrl}/api/Finance/shopping-lists/${listId}/items/${itemId}`)
+      .subscribe({
+        error: () => {
+          this.shoppingLists.set(backup);
+        },
+      });
   }
 
   toggleShoppingListItem(listId: string, itemId: string): void {
+    const list = this.shoppingLists().find(l => l.id === listId);
+    const item = list?.items.find(i => i.id === itemId);
+    if (!item) return;
+
+    const newBought = !item.bought;
+
+    // Optimistic update
     this.shoppingLists.update(lists =>
       lists.map(l => l.id === listId
-        ? { ...l, items: l.items.map(i => i.id === itemId ? { ...i, bought: !i.bought } : i) }
+        ? { ...l, items: l.items.map(i => i.id === itemId ? { ...i, bought: newBought } : i) }
         : l),
     );
-    this.persistShoppingLists();
+
+    this.http.patch<ShoppingListItem>(
+      `${this.apiUrl}/api/Finance/shopping-lists/${listId}/items/${itemId}`,
+      { bought: newBought } as ToggleShoppingListItemDto,
+    ).subscribe({
+      next: updated => {
+        this.shoppingLists.update(lists =>
+          lists.map(l => l.id === listId
+            ? { ...l, items: l.items.map(i => i.id === itemId ? updated : i) }
+            : l),
+        );
+      },
+      error: () => {
+        // Rollback
+        this.shoppingLists.update(lists =>
+          lists.map(l => l.id === listId
+            ? { ...l, items: l.items.map(i => i.id === itemId ? { ...i, bought: !newBought } : i) }
+            : l),
+        );
+      },
+    });
   }
 
   // ─── Limits ───

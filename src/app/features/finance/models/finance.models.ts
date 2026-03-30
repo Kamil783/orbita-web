@@ -85,6 +85,19 @@ export interface FundSavingsGoalDto {
   amount: number;       // kopecks, positive delta
 }
 
+export interface CreateShoppingListDto {
+  name: string;
+}
+
+export interface CreateShoppingListItemDto {
+  name: string;
+  price: number | null;   // kopecks, null = unknown
+}
+
+export interface ToggleShoppingListItemDto {
+  bought: boolean;
+}
+
 export interface AdjustBalanceDto {
   amount: number;       // kopecks, signed delta
 }
