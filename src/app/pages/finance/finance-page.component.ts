@@ -310,6 +310,14 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
   addItemName = '';
   addItemPrice = '';
 
+  // Shopping list detail dialog
+  readonly showShoppingListDetail = signal(false);
+  readonly detailList = computed(() => {
+    const lists = this.shoppingLists();
+    return lists.find(l => l.id === this.detailListId()) ?? null;
+  });
+  private readonly detailListId = signal('');
+
   // Delete shopping list confirmation
   readonly showDeleteListDialog = signal(false);
   deleteListId = '';
@@ -502,6 +510,18 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
     this.financeService.removeShoppingListItem(listId, itemId);
   }
 
+  openShoppingListDetail(list: ShoppingList): void {
+    this.detailListId.set(list.id);
+    this.showShoppingListDetail.set(true);
+  }
+
+  openAddItemFromDetail(): void {
+    const list = this.detailList();
+    if (!list) return;
+    this.showShoppingListDetail.set(false);
+    this.openAddItemDialog(list);
+  }
+
   openAddItemDialog(list: ShoppingList): void {
     this.addItemListId = list.id;
     this.addItemName = '';
@@ -665,7 +685,7 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   // ─── Dialog backdrop ───
 
-  onBackdropClick(dialog: 'balance' | 'category' | 'goal' | 'fundGoal' | 'deleteGoal' | 'transaction' | 'editTransaction' | 'deleteTransaction' | 'limit' | 'history' | 'addItem' | 'deleteList'): void {
+  onBackdropClick(dialog: 'balance' | 'category' | 'goal' | 'fundGoal' | 'deleteGoal' | 'transaction' | 'editTransaction' | 'deleteTransaction' | 'limit' | 'history' | 'addItem' | 'deleteList' | 'shoppingListDetail'): void {
     switch (dialog) {
       case 'balance': this.showBalanceDialog.set(false); break;
       case 'category': this.showCategoryDialog.set(false); break;
@@ -679,6 +699,7 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
       case 'history': this.showHistoryDialog.set(false); break;
       case 'addItem': this.showAddItemDialog.set(false); break;
       case 'deleteList': this.showDeleteListDialog.set(false); break;
+      case 'shoppingListDetail': this.showShoppingListDetail.set(false); break;
     }
   }
 

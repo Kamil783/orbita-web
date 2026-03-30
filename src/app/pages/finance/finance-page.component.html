@@ -284,9 +284,9 @@
 
           <!-- Shopping lists -->
           @for (list of shoppingLists(); track list.id) {
-            <div class="goal-card shopping-card">
+            <div class="goal-card" (click)="openShoppingListDetail(list)" style="cursor: pointer">
               <div class="goal-card__header">
-                <div class="goal-card__icon shopping-card__icon">
+                <div class="goal-card__icon">
                   <span class="material-symbols-outlined">shopping_cart</span>
                 </div>
                 <div class="goal-card__info">
@@ -299,70 +299,29 @@
                   </p>
                 </div>
                 @if (list.items.length > 0) {
-                  <p class="goal-card__percent shopping-card__percent">
+                  <p class="goal-card__percent">
                     {{ shoppingListBoughtCount(list) === list.items.length ? '&#10003;' : shoppingListBoughtCount(list) + '/' + list.items.length }}
                   </p>
                 }
               </div>
-
-              <!-- Progress bar -->
               @if (list.items.length > 0) {
                 <div class="goal-card__progress-bar">
                   <div
-                    class="goal-card__progress-fill shopping-card__progress-fill"
-                    [style.width.%]="list.items.length > 0 ? (shoppingListBoughtCount(list) / list.items.length) * 100 : 0"
+                    class="goal-card__progress-fill"
+                    [style.width.%]="(shoppingListBoughtCount(list) / list.items.length) * 100"
                   ></div>
                 </div>
-              }
-
-              <!-- Items list -->
-              <div class="shopping-card__items">
-                @for (item of list.items; track item.id) {
-                  <div
-                    class="shopping-item"
-                    [class.shopping-item--bought]="item.bought"
-                    (click)="toggleShoppingItem(list.id, item.id)"
-                  >
-                    <span class="shopping-item__check material-symbols-outlined">
-                      {{ item.bought ? 'check_box' : 'check_box_outline_blank' }}
-                    </span>
-                    <span class="shopping-item__name">{{ item.name }}</span>
-                    @if (item.price !== null) {
-                      <span class="shopping-item__price">{{ formatRub(item.price) }}</span>
-                    } @else {
-                      <span class="shopping-item__price shopping-item__price--unknown">? &#8381;</span>
-                    }
-                    <button
-                      class="shopping-item__remove"
-                      type="button"
-                      (click)="removeShoppingItem(list.id, item.id); $event.stopPropagation()"
-                      title="Удалить"
-                    >
-                      <span class="material-symbols-outlined">close</span>
-                    </button>
-                  </div>
-                } @empty {
-                  <div class="shopping-card__empty">
-                    <span class="material-symbols-outlined">playlist_add</span>
-                    <p>Список пуст</p>
-                  </div>
-                }
-              </div>
-
-              <!-- Footer totals -->
-              @if (list.items.length > 0) {
                 <div class="goal-card__footer">
                   <span class="goal-card__current">Куплено на: {{ formatRub(shoppingListBoughtTotal(list)) }}</span>
                   <span class="goal-card__remaining">Осталось на: {{ formatRub(shoppingListRemainingTotal(list)) }}</span>
                 </div>
               }
-
               <div class="goal-card__actions">
-                <button class="goal-card__btn goal-card__btn--fund" type="button" (click)="openAddItemDialog(list)">
+                <button class="goal-card__btn goal-card__btn--fund" type="button" (click)="openAddItemDialog(list); $event.stopPropagation()">
                   <span class="material-symbols-outlined">add</span>
                   Добавить
                 </button>
-                <button class="goal-card__btn goal-card__btn--delete" type="button" (click)="openDeleteListDialog(list)">
+                <button class="goal-card__btn goal-card__btn--delete" type="button" (click)="openDeleteListDialog(list); $event.stopPropagation()">
                   <span class="material-symbols-outlined">close</span>
                   Удалить список
                 </button>
@@ -1112,6 +1071,75 @@
         </button>
         <button class="dialog__btn dialog__btn--danger" type="button" (click)="confirmDeleteList()">
           Удалить
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ═══ Dialog: Детали списка покупок ═══ -->
+@if (showShoppingListDetail()) {
+  <div class="overlay" (click)="onBackdropClick('shoppingListDetail')">
+    <div class="dialog dialog--wide" (click)="stopPropagation($event)">
+      <div class="dialog__icon-circle dialog__icon-circle--accent">
+        <span class="material-symbols-outlined">shopping_cart</span>
+      </div>
+      <h3 class="dialog__title">{{ detailList()?.name }}</h3>
+      @if (detailList(); as list) {
+        <p class="dialog__desc">
+          {{ shoppingListBoughtCount(list) }} из {{ list.items.length }} куплено
+          @if (shoppingListTotal(list) > 0) {
+            &middot; Итого: {{ formatRub(shoppingListTotal(list)) }}
+          }
+        </p>
+
+        <div class="shopping-detail__items">
+          @for (item of list.items; track item.id) {
+            <div
+              class="shopping-item"
+              [class.shopping-item--bought]="item.bought"
+              (click)="toggleShoppingItem(list.id, item.id)"
+            >
+              <span class="shopping-item__check material-symbols-outlined">
+                {{ item.bought ? 'check_box' : 'check_box_outline_blank' }}
+              </span>
+              <span class="shopping-item__name">{{ item.name }}</span>
+              @if (item.price !== null) {
+                <span class="shopping-item__price">{{ formatRub(item.price) }}</span>
+              } @else {
+                <span class="shopping-item__price shopping-item__price--unknown">? &#8381;</span>
+              }
+              <button
+                class="shopping-item__remove"
+                type="button"
+                (click)="removeShoppingItem(list.id, item.id); $event.stopPropagation()"
+                title="Удалить"
+              >
+                <span class="material-symbols-outlined">close</span>
+              </button>
+            </div>
+          } @empty {
+            <div class="shopping-detail__empty">
+              <span class="material-symbols-outlined">playlist_add</span>
+              <p>Список пуст &mdash; добавьте первый товар</p>
+            </div>
+          }
+        </div>
+
+        @if (list.items.length > 0) {
+          <div class="shopping-detail__totals">
+            <span>Куплено на: {{ formatRub(shoppingListBoughtTotal(list)) }}</span>
+            <span>Осталось на: {{ formatRub(shoppingListRemainingTotal(list)) }}</span>
+          </div>
+        }
+      }
+
+      <div class="dialog__actions">
+        <button class="dialog__btn dialog__btn--secondary" type="button" (click)="showShoppingListDetail.set(false)">
+          Закрыть
+        </button>
+        <button class="dialog__btn dialog__btn--primary" type="button" (click)="openAddItemFromDetail()">
+          Добавить товар
         </button>
       </div>
     </div>
