@@ -4,7 +4,7 @@ import { AppShellComponent } from '../../shared/ui/app-shell/app-shell.component
 import { TopbarComponent } from '../../shared/ui/topbar/topbar.component';
 import { AdminService } from '../../features/admin/data/admin.service';
 import { UserService } from '../../features/user/data/user.service';
-import { CreateUserRequest } from '../../features/admin/models/admin.models';
+import { CreateUserRequest, Team } from '../../features/admin/models/admin.models';
 
 @Component({
   selector: 'app-admin-page',
@@ -19,7 +19,7 @@ export class AdminPageComponent implements OnInit {
   protected readonly adminService = inject(AdminService);
   protected readonly userService = inject(UserService);
 
-  readonly activeTab = signal<'users' | 'tasks'>('users');
+  readonly activeTab = signal<'users' | 'tasks' | 'teams'>('users');
   readonly searchQuery = signal('');
 
   // Add user dialog
@@ -57,13 +57,38 @@ export class AdminPageComponent implements OnInit {
     return tasks.filter(t => t.title.toLowerCase().includes(q));
   });
 
+  readonly filteredTeams = computed(() => {
+    const q = this.searchQuery().toLowerCase().trim();
+    const teams = this.adminService.teams();
+    if (!q) return teams;
+    return teams.filter(t => t.name.toLowerCase().includes(q));
+  });
+
+  // Create team dialog
+  readonly showCreateTeamDialog = signal(false);
+  newTeamName = '';
+
+  // Add member dialog
+  readonly showAddMemberDialog = signal(false);
+  addMemberTeamId = '';
+  addMemberTeamName = '';
+  addMemberUserId = '';
+
+  readonly availableUsersForTeam = computed(() => {
+    const teams = this.adminService.teams();
+    const team = teams.find(t => t.id === this.addMemberTeamId);
+    const memberIds = new Set(team?.members.map(m => m.id) ?? []);
+    return this.adminService.users().filter(u => !memberIds.has(u.id));
+  });
+
   ngOnInit(): void {
     this.adminService.loadUsers();
     this.adminService.loadBacklogTasks();
+    this.adminService.loadTeams();
     this.userService.loadMembers();
   }
 
-  setTab(tab: 'users' | 'tasks'): void {
+  setTab(tab: 'users' | 'tasks' | 'teams'): void {
     this.activeTab.set(tab);
     this.searchQuery.set('');
   }
@@ -122,6 +147,35 @@ export class AdminPageComponent implements OnInit {
     this.adminService.createUser(request);
     this.addUserLoading.set(false);
     this.showAddUserDialog.set(false);
+  }
+
+  // ── Create team dialog ──
+
+  openCreateTeam(): void {
+    this.newTeamName = '';
+    this.showCreateTeamDialog.set(true);
+  }
+
+  saveNewTeam(): void {
+    const name = this.newTeamName.trim();
+    if (!name) return;
+    this.adminService.createTeam(name);
+    this.showCreateTeamDialog.set(false);
+  }
+
+  // ── Add member dialog ──
+
+  openAddMember(team: Team): void {
+    this.addMemberTeamId = team.id;
+    this.addMemberTeamName = team.name;
+    this.addMemberUserId = '';
+    this.showAddMemberDialog.set(true);
+  }
+
+  saveAddMember(): void {
+    if (!this.addMemberUserId) return;
+    this.adminService.addTeamMember(this.addMemberUserId);
+    this.showAddMemberDialog.set(false);
   }
 
   resolveUserName(userId: string): string {
