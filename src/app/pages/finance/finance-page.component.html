@@ -188,6 +188,14 @@
           <div class="category-chips">
             @for (cs of categorySpending(); track cs.id) {
               <div class="category-chip" [class.category-chip--over]="cs.isOverLimit">
+                <button
+                  class="category-chip__edit-btn"
+                  type="button"
+                  title="Редактировать категорию"
+                  (click)="openEditCategoryDialog(cs)"
+                >
+                  <span class="material-symbols-outlined">edit</span>
+                </button>
                 <div class="category-chip__icon" [style.background]="cs.bg" [style.color]="cs.color">
                   <span class="material-symbols-outlined">{{ cs.icon }}</span>
                 </div>
@@ -377,8 +385,8 @@
       <div class="dialog__icon-circle dialog__icon-circle--blue">
         <span class="material-symbols-outlined">category</span>
       </div>
-      <h3 class="dialog__title">Новая категория</h3>
-      <p class="dialog__desc">Создайте категорию для отслеживания расходов</p>
+      <h3 class="dialog__title">{{ editCategoryId ? 'Редактировать категорию' : 'Новая категория' }}</h3>
+      <p class="dialog__desc">{{ editCategoryId ? 'Измените параметры категории' : 'Создайте категорию для отслеживания расходов' }}</p>
 
       <div class="dialog__fields">
         <div class="field">
@@ -457,7 +465,7 @@
           Отмена
         </button>
         <button class="dialog__btn dialog__btn--primary" type="button" (click)="saveCategory()">
-          Создать
+          {{ editCategoryId ? 'Сохранить' : 'Создать' }}
         </button>
       </div>
     </div>
