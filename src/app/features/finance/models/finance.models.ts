@@ -63,6 +63,15 @@ export interface CreateCategoryDto {
   monthlyLimit?: number;
 }
 
+export interface UpdateCategoryDto {
+  name?: string;
+  icon?: string;
+  bg?: string;
+  color?: string;
+  weeklyLimit?: number;
+  monthlyLimit?: number;
+}
+
 export interface CreateTransactionDto {
   categoryId: string;
   title: string;

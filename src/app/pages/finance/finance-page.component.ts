@@ -298,6 +298,7 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
   categorySelectedColorIdx = 0;
   categoryWeeklyLimit = '';
   categoryMonthlyLimit = '';
+  editCategoryId: string | null = null;
 
   // Goal form
   goalType: 'goal' | 'shoppingList' = 'goal';
@@ -431,11 +432,23 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
   // ─── Category dialog ───
 
   openCategoryDialog(): void {
+    this.editCategoryId = null;
     this.categoryName = '';
     this.categorySelectedIcon = 'restaurant';
     this.categorySelectedColorIdx = 0;
     this.categoryWeeklyLimit = '';
     this.categoryMonthlyLimit = '';
+    this.showCategoryDialog.set(true);
+  }
+
+  openEditCategoryDialog(cat: Category): void {
+    this.editCategoryId = cat.id;
+    this.categoryName = cat.name;
+    this.categorySelectedIcon = cat.icon;
+    this.categorySelectedColorIdx = this.colorOptions.findIndex(c => c.bg === cat.bg && c.color === cat.color);
+    if (this.categorySelectedColorIdx < 0) this.categorySelectedColorIdx = 0;
+    this.categoryWeeklyLimit = cat.weeklyLimit ? (cat.weeklyLimit / 100).toString() : '';
+    this.categoryMonthlyLimit = cat.monthlyLimit ? (cat.monthlyLimit / 100).toString() : '';
     this.showCategoryDialog.set(true);
   }
 
@@ -445,14 +458,19 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
     const c = this.colorOptions[this.categorySelectedColorIdx];
     const wl = parseFloat(this.categoryWeeklyLimit.replace(',', '.'));
     const ml = parseFloat(this.categoryMonthlyLimit.replace(',', '.'));
-    this.financeService.createCategory({
+    const data = {
       name,
       icon: this.categorySelectedIcon,
       bg: c.bg,
       color: c.color,
       weeklyLimit: !isNaN(wl) && wl > 0 ? Math.round(wl * 100) : undefined,
       monthlyLimit: !isNaN(ml) && ml > 0 ? Math.round(ml * 100) : undefined,
-    });
+    };
+    if (this.editCategoryId) {
+      this.financeService.updateCategory(this.editCategoryId, data);
+    } else {
+      this.financeService.createCategory(data);
+    }
     this.showCategoryDialog.set(false);
   }
 
