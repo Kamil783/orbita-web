@@ -78,12 +78,21 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
   // ─── Computed ───
 
   readonly monthlySpend = computed(() => {
-    const now = Date.now();
-    const cutoff = now - 30 * 86400000;
+    const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+    const nextMonthStart = new Date(now.getFullYear(), now.getMonth() + 1, 1).getTime();
+
     return this.transactions()
-      .filter((t) => t.amount < 0 && t.timestamp >= cutoff)
+      .filter(
+        (t) =>
+          t.amount < 0 &&
+          t.timestamp >= monthStart &&
+          t.timestamp < nextMonthStart
+      )
       .reduce((sum, t) => sum + Math.abs(t.amount), 0);
   });
+
+
 
   readonly weeklySpend = computed(() => {
     const now = Date.now();
@@ -96,9 +105,19 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
   /** Transactions filtered by active period (weekly / monthly) */
   private readonly periodTransactions = computed(() => {
     const tab = this.activeChartTab();
-    const now = Date.now();
-    const cutoff = tab === 'weekly' ? now - 7 * 86400000 : now - 30 * 86400000;
-    return this.transactions().filter((t) => t.timestamp >= cutoff);
+
+    if (tab === 'weekly') {
+      const cutoff = Date.now() - 7 * 86400000;
+      return this.transactions().filter((t) => t.timestamp >= cutoff);
+    }
+
+    const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+    const nextMonthStart = new Date(now.getFullYear(), now.getMonth() + 1, 1).getTime();
+
+    return this.transactions().filter(
+      (t) => t.timestamp >= monthStart && t.timestamp < nextMonthStart
+    );
   });
 
   readonly periodSpend = computed(() => {
