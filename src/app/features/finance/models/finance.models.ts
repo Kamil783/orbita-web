@@ -17,6 +17,7 @@ export interface Transaction {
   date: string;
   amount: number;       // kopecks, negative = expense, positive = income
   timestamp: number;    // ms since epoch
+  fromBalance: boolean; // true = shared (общий), false = personal (личный)
 }
 
 export interface SavingsGoal {

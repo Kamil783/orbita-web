@@ -15,6 +15,7 @@ import { AppShellComponent } from '../../shared/ui/app-shell/app-shell.component
 import { TopbarComponent } from '../../shared/ui/topbar/topbar.component';
 import { Chart, registerables } from 'chart.js';
 import { FinanceService } from '../../features/finance/data/finance.service';
+import { ModalOverlayComponent } from '../../shared/ui/modal-overlay/modal-overlay.component';
 import {
   Category,
   SavingsGoal,
@@ -29,7 +30,7 @@ Chart.register(...registerables);
 @Component({
   selector: 'app-finance-page',
   standalone: true,
-  imports: [AppShellComponent, TopbarComponent, FormsModule],
+  imports: [AppShellComponent, TopbarComponent, FormsModule, ModalOverlayComponent],
   templateUrl: './finance-page.component.html',
   styleUrl: './finance-page.component.scss',
 })
@@ -71,8 +72,7 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   // ─── View state ───
 
-  readonly showAllTransactions = signal(false);
-  readonly RECENT_LIMIT = 5;
+  readonly txFilter = signal<'all' | 'personal' | 'shared'>('all');
 
   // ─── Computed ───
 
@@ -173,13 +173,12 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   });
 
-  readonly visibleTransactions = computed(() => {
+  readonly filteredTransactions = computed(() => {
     const all = this.transactionsWithCategory();
-    return this.showAllTransactions() ? all : all.slice(0, this.RECENT_LIMIT);
-  });
-
-  readonly hasMoreTransactions = computed(() => {
-    return this.transactionsWithCategory().length > this.RECENT_LIMIT;
+    const filter = this.txFilter();
+    if (filter === 'personal') return all.filter(tx => !tx.fromBalance);
+    if (filter === 'shared') return all.filter(tx => tx.fromBalance);
+    return all;
   });
 
   // ─── History ───
@@ -380,12 +379,6 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.chart?.destroy();
-  }
-
-  // ─── Transactions view ───
-
-  toggleAllTransactions(): void {
-    this.showAllTransactions.update((v) => !v);
   }
 
   // ─── Chart ───
@@ -709,27 +702,6 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   // ─── Dialog backdrop ───
 
-  onBackdropClick(dialog: 'balance' | 'category' | 'goal' | 'fundGoal' | 'deleteGoal' | 'transaction' | 'editTransaction' | 'deleteTransaction' | 'limit' | 'history' | 'addItem' | 'deleteList' | 'shoppingListDetail'): void {
-    switch (dialog) {
-      case 'balance': this.showBalanceDialog.set(false); break;
-      case 'category': this.showCategoryDialog.set(false); break;
-      case 'goal': this.showGoalDialog.set(false); break;
-      case 'fundGoal': this.showFundGoalDialog.set(false); break;
-      case 'deleteGoal': this.showDeleteGoalDialog.set(false); break;
-      case 'transaction': this.showTransactionDialog.set(false); break;
-      case 'editTransaction': this.showEditTransactionDialog.set(false); break;
-      case 'deleteTransaction': this.showDeleteTransactionDialog.set(false); break;
-      case 'limit': this.showLimitDialog.set(false); break;
-      case 'history': this.showHistoryDialog.set(false); break;
-      case 'addItem': this.showAddItemDialog.set(false); break;
-      case 'deleteList': this.showDeleteListDialog.set(false); break;
-      case 'shoppingListDetail': this.showShoppingListDetail.set(false); break;
-    }
-  }
-
-  stopPropagation(event: MouseEvent): void {
-    event.stopPropagation();
-  }
 
   // ─── Date helpers ───
 

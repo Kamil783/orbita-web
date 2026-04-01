@@ -1,5 +1,4 @@
-<div class="overlay" (click)="onBackdropClick()">
-  <div class="dialog" (click)="onDialogClick($event)">
+<app-modal-overlay size="lg" (close)="close.emit()">
     <header class="dialog__header">
       <div class="dialog__header-left">
         <div class="dialog__icon-wrap">
@@ -219,5 +218,4 @@
         <button class="btn btn--secondary" type="button" (click)="close.emit()">Закрыть</button>
       </footer>
     }
-  </div>
-</div>
+</app-modal-overlay>

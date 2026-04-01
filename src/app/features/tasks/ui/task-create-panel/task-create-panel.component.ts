@@ -2,6 +2,7 @@ import { Component, computed, HostListener, input, output, signal } from '@angul
 import { FormsModule } from '@angular/forms';
 import { DatePickerComponent } from '../../../../shared/ui/date-picker/date-picker.component';
 import { AvatarPipe } from '../../../../shared/ui/avatar-pipe/avatar.pipe';
+import { ModalOverlayComponent } from '../../../../shared/ui/modal-overlay/modal-overlay.component';
 import { User } from '../../../user/data/user.service';
 import {
   TaskCreatePayload,
@@ -11,7 +12,7 @@ import {
 @Component({
   selector: 'app-task-create-panel',
   standalone: true,
-  imports: [FormsModule, DatePickerComponent, AvatarPipe],
+  imports: [FormsModule, DatePickerComponent, AvatarPipe, ModalOverlayComponent],
   templateUrl: './task-create-panel.component.html',
   styleUrl: './task-create-panel.component.scss',
 })
@@ -87,11 +88,4 @@ export class TaskCreatePanelComponent {
     this.cancel.emit();
   }
 
-  onBackdropClick(): void {
-    this.cancel.emit();
-  }
-
-  onPanelClick(event: MouseEvent): void {
-    event.stopPropagation();
-  }
 }

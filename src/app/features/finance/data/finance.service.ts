@@ -32,7 +32,7 @@ import {
  *
  * GET    /api/Finance/categories                     → Category[]                  Load all categories
  * POST   /api/Finance/categories                     → Category                    Create a category. Body: CreateCategoryDto
- * PUT    /api/Finance/categories/:id                 → Category                    Update a category. Body: UpdateCategoryDto
+ * PATCH    /api/Finance/categories/:id                 → Category                    Update a category. Body: UpdateCategoryDto
  *
  * GET    /api/Finance/transactions                   → Transaction[]               Load all transactions
  * POST   /api/Finance/transactions                   → Transaction                 Create a transaction. Body: CreateTransactionDto
@@ -135,7 +135,7 @@ export class FinanceService {
       list.map(c => c.id === id ? { ...c, ...dto } : c),
     );
 
-    this.http.put<Category>(`${this.apiUrl}/api/Finance/categories/${id}`, dto)
+    this.http.patch<Category>(`${this.apiUrl}/api/Finance/categories/${id}`, dto)
       .subscribe({
         next: updated => {
           this.categories.update(list =>

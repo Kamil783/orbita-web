@@ -1,5 +1,4 @@
-<div class="overlay" (click)="onBackdropClick()">
-  <div class="panel" (click)="onPanelClick($event)">
+<app-modal-overlay mode="panel" (close)="cancel.emit()">
     <header class="panel__header">
       <h3 class="panel__title">Новая задача</h3>
       <button class="panel__close" type="button" (click)="onCancel()">
@@ -110,5 +109,4 @@
       <button class="btn btn--primary" type="button" (click)="onSave()">Сохранить</button>
       <button class="btn btn--secondary" type="button" (click)="onCancel()">Отмена</button>
     </footer>
-  </div>
-</div>
+</app-modal-overlay>

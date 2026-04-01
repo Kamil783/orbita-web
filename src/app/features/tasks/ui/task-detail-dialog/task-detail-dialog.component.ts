@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { DatePickerComponent } from '../../../../shared/ui/date-picker/date-picker.component';
 import { SelectComponent, SelectOption } from '../../../../shared/ui/select/select.component';
 import { AvatarPipe } from '../../../../shared/ui/avatar-pipe/avatar.pipe';
+import { ModalOverlayComponent } from '../../../../shared/ui/modal-overlay/modal-overlay.component';
 import { User, UserService } from '../../../user/data/user.service';
 import { TasksService } from '../../data/tasks.service';
 import { TaskCardVm, TaskPriority, BacklogTask } from '../../models/task.models';
@@ -10,7 +11,7 @@ import { TaskCardVm, TaskPriority, BacklogTask } from '../../models/task.models'
 @Component({
   selector: 'app-task-detail-dialog',
   standalone: true,
-  imports: [FormsModule, DatePickerComponent, SelectComponent, AvatarPipe],
+  imports: [FormsModule, DatePickerComponent, SelectComponent, AvatarPipe, ModalOverlayComponent],
   templateUrl: './task-detail-dialog.component.html',
   styleUrl: './task-detail-dialog.component.scss',
 })
@@ -145,11 +146,4 @@ export class TaskDetailDialogComponent {
     this.assigneeDropdownOpen.update(v => !v);
   }
 
-  onBackdropClick(): void {
-    this.close.emit();
-  }
-
-  onDialogClick(event: MouseEvent): void {
-    event.stopPropagation();
-  }
 }
