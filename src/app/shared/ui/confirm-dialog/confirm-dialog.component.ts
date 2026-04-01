@@ -1,8 +1,10 @@
 import { Component, input, output } from '@angular/core';
+import { ModalOverlayComponent } from '../modal-overlay/modal-overlay.component';
 
 @Component({
   selector: 'app-confirm-dialog',
   standalone: true,
+  imports: [ModalOverlayComponent],
   templateUrl: './confirm-dialog.component.html',
   styleUrl: './confirm-dialog.component.scss',
 })
@@ -16,12 +18,4 @@ export class ConfirmDialogComponent {
 
   readonly confirm = output<void>();
   readonly cancel = output<void>();
-
-  onBackdropClick(): void {
-    this.cancel.emit();
-  }
-
-  onDialogClick(event: MouseEvent): void {
-    event.stopPropagation();
-  }
 }

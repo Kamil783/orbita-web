@@ -1,10 +1,11 @@
 import { Component, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { ModalOverlayComponent } from '../../../../shared/ui/modal-overlay/modal-overlay.component';
 
 @Component({
   selector: 'app-column-create-dialog',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, ModalOverlayComponent],
   templateUrl: './column-create-dialog.component.html',
   styleUrl: './column-create-dialog.component.scss',
 })
@@ -23,13 +24,5 @@ export class ColumnCreateDialogComponent {
 
   onCancel(): void {
     this.cancel.emit();
-  }
-
-  onBackdropClick(): void {
-    this.cancel.emit();
-  }
-
-  onDialogClick(event: MouseEvent): void {
-    event.stopPropagation();
   }
 }

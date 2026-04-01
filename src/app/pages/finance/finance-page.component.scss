@@ -184,6 +184,73 @@ $finance-accent-border: rgba(250, 204, 21, 0.30);
   border-radius: var(--radius-md);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   overflow: hidden;
+  // stretch to fill the grid cell, but cap at a viewport-friendly height
+  flex: 1;
+  min-height: 0;
+  max-height: 520px;
+}
+
+// ─── Tabs: Все / Личные / Общие ───
+.tx-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 12px 16px 0;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.tx-tabs__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 14px;
+  margin-bottom: -1px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: none;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-500);
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease;
+  white-space: nowrap;
+
+  &:hover {
+    color: var(--text-700);
+  }
+
+  &--active {
+    color: var(--color-primary);
+    border-bottom-color: var(--color-primary);
+  }
+}
+
+.tx-tabs__icon {
+  font-size: 16px;
+}
+
+// ─── Scrollable transactions list ───
+.transactions-card__list {
+  flex: 1;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-color) transparent;
+
+  &::-webkit-scrollbar {
+    width: 5px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 3px;
+
+    &:hover {
+      background: var(--text-400);
+    }
+  }
 }
 
 .transaction {
@@ -238,6 +305,15 @@ $finance-accent-border: rgba(250, 204, 21, 0.30);
   margin: 2px 0 0;
   font-size: 12px;
   color: var(--text-500);
+}
+
+.transaction__source {
+  font-weight: 600;
+  color: var(--color-primary);
+
+  &--shared {
+    color: #8b5cf6;
+  }
 }
 
 .transaction__amount {
@@ -295,23 +371,6 @@ $finance-accent-border: rgba(250, 204, 21, 0.30);
   }
 }
 
-.transactions-card__more {
-  display: block;
-  width: 100%;
-  padding: 14px;
-  border: 0;
-  border-top: 1px solid var(--border-light);
-  background: var(--surface-hover);
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--text-500);
-  cursor: pointer;
-  transition: color 0.15s ease;
-
-  &:hover {
-    color: var(--color-primary);
-  }
-}
 
 .transactions-card__empty {
   flex: 1;
@@ -375,6 +434,39 @@ $finance-accent-border: rgba(250, 204, 21, 0.30);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  position: relative;
+
+  &:hover .category-chip__edit-btn {
+    opacity: 1;
+  }
+}
+
+.category-chip__edit-btn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: 6px;
+  background: var(--surface-hover);
+  color: var(--text-400);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.15s ease, background 0.15s ease;
+  padding: 0;
+
+  .material-symbols-outlined {
+    font-size: 14px;
+  }
+
+  &:hover {
+    background: var(--border-color);
+    color: var(--text-600);
+  }
 }
 
 .category-chip__icon {
@@ -853,47 +945,8 @@ $finance-accent-border: rgba(250, 204, 21, 0.30);
 }
 
 // ═══════════════════════════════════════
-// ─── Dialog system ───
+// ─── Dialog content ───
 // ═══════════════════════════════════════
-
-.overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 100;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 16px;
-  background: var(--overlay-bg);
-  backdrop-filter: blur(4px);
-  animation: overlayIn 0.15s ease-out;
-}
-
-@keyframes overlayIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-
-@keyframes dialogIn {
-  from { opacity: 0; transform: scale(0.95) translateY(8px); }
-  to   { opacity: 1; transform: scale(1) translateY(0); }
-}
-
-.dialog {
-  width: 100%;
-  max-width: 440px;
-  background: var(--surface-panel);
-  border-radius: 16px;
-  padding: 40px 32px 32px;
-  text-align: center;
-  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.16);
-  border: 1px solid var(--border-color);
-  animation: dialogIn 0.2s ease-out;
-
-  &--wide {
-    max-width: 520px;
-  }
-}
 
 .dialog__icon-circle {
   width: 64px;
@@ -985,6 +1038,12 @@ $finance-accent-border: rgba(250, 204, 21, 0.30);
 }
 
 // ─── Field ───
+.field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
 .field__label {
   display: block;
   font-size: 13px;
@@ -1166,13 +1225,6 @@ $finance-accent-border: rgba(250, 204, 21, 0.30);
 // ─── History dialog ───
 // ═══════════════════════════════════════
 
-.dialog--history {
-  max-width: 600px;
-  max-height: 80vh;
-  display: flex;
-  flex-direction: column;
-  padding-bottom: 24px;
-}
 
 .tab-toggle--centered {
   margin: 0 auto 20px;

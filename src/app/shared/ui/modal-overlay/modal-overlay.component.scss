@@ -1,0 +1,117 @@
+// ── Overlay ──
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: var(--overlay-bg);
+  backdrop-filter: blur(4px);
+  animation: overlayIn 0.15s ease-out;
+
+  &--panel {
+    z-index: 50;
+    padding: 0;
+    justify-content: flex-end;
+    overflow: hidden;
+    animation-duration: 0.2s;
+  }
+}
+
+@keyframes overlayIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+// ── Dialog (centered modal) ──
+.dialog {
+  position: relative;
+  width: 100%;
+  max-width: 440px;
+  max-height: calc(100vh - 32px);
+  background: var(--surface-panel);
+  border-radius: 16px;
+  padding: 40px 32px 32px;
+  text-align: center;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.16);
+  border: 1px solid var(--border-color);
+  animation: dialogIn 0.2s ease-out;
+
+  &--md {
+    max-width: 520px;
+  }
+
+  &--lg {
+    max-width: 600px;
+  }
+}
+
+// ── Custom scrollbar for dialogs ──
+.dialog__scroll {
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-color) transparent;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+    margin: 12px 0;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 3px;
+
+    &:hover {
+      background: var(--text-400);
+    }
+  }
+}
+
+@keyframes dialogIn {
+  from { opacity: 0; transform: scale(0.95) translateY(8px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+// ── Panel (side drawer) ──
+.panel {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  height: 100%;
+  background: var(--surface-panel);
+  border-left: 1px solid var(--border-color);
+  box-shadow: -8px 0 24px rgba(0, 0, 0, 0.10);
+  display: flex;
+  flex-direction: column;
+  animation: panelSlideIn 0.25s ease-out;
+}
+
+@keyframes panelSlideIn {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
+}
+
+// ── Responsive ──
+@media (max-height: 500px) {
+  .overlay:not(.overlay--panel) {
+    align-items: flex-start;
+  }
+
+  .dialog {
+    padding: 20px 16px 16px;
+    border-radius: 12px;
+  }
+}
+
+@media (max-width: 768px) {
+  .dialog {
+    padding: 28px 20px 24px;
+    border-radius: 12px;
+  }
+}

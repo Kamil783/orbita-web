@@ -17,6 +17,7 @@ export interface Transaction {
   date: string;
   amount: number;       // kopecks, negative = expense, positive = income
   timestamp: number;    // ms since epoch
+  fromBalance: boolean; // true = shared (общий), false = personal (личный)
 }
 
 export interface SavingsGoal {
@@ -63,17 +64,28 @@ export interface CreateCategoryDto {
   monthlyLimit?: number;
 }
 
+export interface UpdateCategoryDto {
+  name?: string;
+  icon?: string;
+  bg?: string;
+  color?: string;
+  weeklyLimit?: number;
+  monthlyLimit?: number;
+}
+
 export interface CreateTransactionDto {
   categoryId: string;
   title: string;
   amount: number;       // kopecks, signed
   fromBalance: boolean; // true = deduct from balance, false = external source
+  date?: string;        // ISO date 'YYYY-MM-DD', defaults to today on backend
 }
 
 export interface UpdateTransactionDto {
   categoryId?: string;
   title?: string;
   amount?: number;      // kopecks, signed
+  date?: string;        // ISO date 'YYYY-MM-DD'
 }
 
 export interface CreateSavingsGoalDto {

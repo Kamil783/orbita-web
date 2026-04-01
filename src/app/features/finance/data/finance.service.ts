@@ -7,6 +7,7 @@ import {
   Category,
   ChartDataPoint,
   CreateCategoryDto,
+  UpdateCategoryDto,
   CreateSavingsGoalDto,
   CreateShoppingListDto,
   CreateShoppingListItemDto,
@@ -31,6 +32,7 @@ import {
  *
  * GET    /api/Finance/categories                     → Category[]                  Load all categories
  * POST   /api/Finance/categories                     → Category                    Create a category. Body: CreateCategoryDto
+ * PATCH    /api/Finance/categories/:id                 → Category                    Update a category. Body: UpdateCategoryDto
  *
  * GET    /api/Finance/transactions                   → Transaction[]               Load all transactions
  * POST   /api/Finance/transactions                   → Transaction                 Create a transaction. Body: CreateTransactionDto
@@ -121,6 +123,27 @@ export class FinanceService {
         },
         error: () => {
           this.categories.update(list => list.filter(c => c.id !== tempId));
+        },
+      });
+  }
+
+  updateCategory(id: string, dto: UpdateCategoryDto): void {
+    const backup = this.categories();
+
+    // Optimistic update
+    this.categories.update(list =>
+      list.map(c => c.id === id ? { ...c, ...dto } : c),
+    );
+
+    this.http.patch<Category>(`${this.apiUrl}/api/Finance/categories/${id}`, dto)
+      .subscribe({
+        next: updated => {
+          this.categories.update(list =>
+            list.map(c => c.id === id ? updated : c),
+          );
+        },
+        error: () => {
+          this.categories.set(backup);
         },
       });
   }
