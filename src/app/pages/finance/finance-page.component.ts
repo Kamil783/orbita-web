@@ -95,10 +95,20 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
 
 
   readonly weeklySpend = computed(() => {
-    const now = Date.now();
-    const cutoff = now - 7 * 86400000;
+    const now = new Date();
+    const day = now.getDay(); // 0 = Sunday, 1 = Monday, ...
+    const diffToMonday = day === 0 ? 6 : day - 1;
+    const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - diffToMonday);
+    const mondayTs = monday.getTime();
+    const nextMondayTs = mondayTs + 7 * 86400000;
+
     return this.transactions()
-      .filter((t) => t.amount < 0 && t.timestamp >= cutoff)
+      .filter(
+        (t) =>
+          t.amount < 0 &&
+          t.timestamp >= mondayTs &&
+          t.timestamp < nextMondayTs
+      )
       .reduce((sum, t) => sum + Math.abs(t.amount), 0);
   });
 
