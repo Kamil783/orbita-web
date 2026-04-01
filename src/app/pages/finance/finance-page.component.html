@@ -633,16 +633,22 @@
         />
       </div>
 
-      <div class="field">
-        <label class="field__label" for="txAmount">Сумма (&#8381;)</label>
-        <input
-          id="txAmount"
-          class="field__input"
-          type="text"
-          inputmode="decimal"
-          [(ngModel)]="txAmount"
-          placeholder="0,00"
-        />
+      <div class="field-row">
+        <div class="field">
+          <label class="field__label" for="txAmount">Сумма (&#8381;)</label>
+          <input
+            id="txAmount"
+            class="field__input"
+            type="text"
+            inputmode="decimal"
+            [(ngModel)]="txAmount"
+            placeholder="0,00"
+          />
+        </div>
+        <div class="field">
+          <label class="field__label">Дата</label>
+          <app-date-picker [(ngModel)]="txDate" placeholder="Сегодня" dropdownAlign="right" />
+        </div>
       </div>
 
       @if (categories().length > 0) {
@@ -788,16 +794,22 @@
         />
       </div>
 
-      <div class="field">
-        <label class="field__label" for="editTxAmount">Сумма (&#8381;)</label>
-        <input
-          id="editTxAmount"
-          class="field__input"
-          type="text"
-          inputmode="decimal"
-          [(ngModel)]="editTxAmount"
-          placeholder="0,00"
-        />
+      <div class="field-row">
+        <div class="field">
+          <label class="field__label" for="editTxAmount">Сумма (&#8381;)</label>
+          <input
+            id="editTxAmount"
+            class="field__input"
+            type="text"
+            inputmode="decimal"
+            [(ngModel)]="editTxAmount"
+            placeholder="0,00"
+          />
+        </div>
+        <div class="field">
+          <label class="field__label">Дата</label>
+          <app-date-picker [(ngModel)]="editTxDate" placeholder="Без изменений" dropdownAlign="right" />
+        </div>
       </div>
 
       @if (categories().length > 0) {

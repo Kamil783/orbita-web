@@ -16,6 +16,7 @@ import { TopbarComponent } from '../../shared/ui/topbar/topbar.component';
 import { Chart, registerables } from 'chart.js';
 import { FinanceService } from '../../features/finance/data/finance.service';
 import { ModalOverlayComponent } from '../../shared/ui/modal-overlay/modal-overlay.component';
+import { DatePickerComponent } from '../../shared/ui/date-picker/date-picker.component';
 import {
   Category,
   SavingsGoal,
@@ -30,7 +31,7 @@ Chart.register(...registerables);
 @Component({
   selector: 'app-finance-page',
   standalone: true,
-  imports: [AppShellComponent, TopbarComponent, FormsModule, ModalOverlayComponent],
+  imports: [AppShellComponent, TopbarComponent, FormsModule, ModalOverlayComponent, DatePickerComponent],
   templateUrl: './finance-page.component.html',
   styleUrl: './finance-page.component.scss',
 })
@@ -340,6 +341,7 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
   txType: 'expense' | 'income' = 'expense';
   txCategoryId = '';
   txFromBalance = false;
+  txDate = '';
 
   // Edit transaction
   readonly showEditTransactionDialog = signal(false);
@@ -348,6 +350,7 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
   editTxAmount = '';
   editTxType: 'expense' | 'income' = 'expense';
   editTxCategoryId = '';
+  editTxDate = '';
 
   // Delete transaction confirmation
   readonly showDeleteTransactionDialog = signal(false);
@@ -603,6 +606,7 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
     this.txType = 'expense';
     this.txCategoryId = '';
     this.txFromBalance = false;
+    this.txDate = '';
     this.showTransactionDialog.set(true);
   }
 
@@ -619,6 +623,7 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
       title,
       amount,
       fromBalance: this.txFromBalance,
+      date: this.txDate || undefined,
     });
     this.showTransactionDialog.set(false);
   }
@@ -632,6 +637,7 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
     this.editTxAmount = (absKopecks / 100).toString().replace('.', ',');
     this.editTxType = tx.amount < 0 ? 'expense' : 'income';
     this.editTxCategoryId = tx.categoryId;
+    this.editTxDate = tx.date ?? '';
     this.showEditTransactionDialog.set(true);
   }
 
@@ -647,6 +653,7 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
       title,
       amount,
       categoryId: this.editTxCategoryId || undefined,
+      date: this.editTxDate || undefined,
     });
     this.showEditTransactionDialog.set(false);
   }

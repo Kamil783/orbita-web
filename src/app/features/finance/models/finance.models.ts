@@ -78,12 +78,14 @@ export interface CreateTransactionDto {
   title: string;
   amount: number;       // kopecks, signed
   fromBalance: boolean; // true = deduct from balance, false = external source
+  date?: string;        // ISO date 'YYYY-MM-DD', defaults to today on backend
 }
 
 export interface UpdateTransactionDto {
   categoryId?: string;
   title?: string;
   amount?: number;      // kopecks, signed
+  date?: string;        // ISO date 'YYYY-MM-DD'
 }
 
 export interface CreateSavingsGoalDto {
