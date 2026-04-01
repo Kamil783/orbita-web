@@ -60,70 +60,51 @@ $finance-accent-border: rgba(250, 204, 21, 0.30);
 }
 
 // ═══════════════════════════════════════
-// ─── Top zone: Stats + Transactions ───
+// ─── Summary bar ───
 // ═══════════════════════════════════════
 
-.top-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 32px;
+.summary-bar {
+  display: flex;
   align-items: stretch;
-}
-
-.top-grid__stats {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.top-grid__transactions {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-
-  .section-header {
-    margin-bottom: 0;
-  }
-
-  .transactions-card {
-    flex: 1;
-  }
-}
-
-.top-grid__stats .section-header {
-  margin-bottom: 0;
-}
-
-// ─── Section divider ───
-.divider {
-  border: 0;
-  border-top: 1px solid var(--border-color);
-  margin: 28px 0;
-}
-
-.stat-card {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 24px;
   background: var(--surface-panel);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  padding: 24px 32px;
+  gap: 32px;
+}
+
+.summary-bar__item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.summary-bar__top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.summary-bar__icon {
+  font-size: 20px;
+  color: var(--color-primary);
 
   &--accent {
-    border-left: 4px solid $finance-accent;
+    color: $finance-accent;
   }
 }
 
-.stat-card__label {
-  margin: 0;
-  font-size: 14px;
-  font-weight: 500;
+.summary-bar__label {
+  font-size: 13px;
+  font-weight: 600;
   color: var(--text-500);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
 }
 
-.stat-card__value {
+.summary-bar__value {
   margin: 0;
   font-size: 28px;
   font-weight: 800;
@@ -131,15 +112,15 @@ $finance-accent-border: rgba(250, 204, 21, 0.30);
   color: var(--text-900);
 }
 
-.stat-card__trend {
-  display: flex;
+.summary-bar__trend {
+  display: inline-flex;
   align-items: center;
   gap: 4px;
   font-size: 13px;
   font-weight: 600;
 
   .material-symbols-outlined {
-    font-size: 18px;
+    font-size: 16px;
   }
 
   &--up {
@@ -149,22 +130,24 @@ $finance-accent-border: rgba(250, 204, 21, 0.30);
   &--down {
     color: #e73908;
   }
-
-  &--neutral {
-    color: var(--text-400);
-  }
 }
 
-.stat-card__limit-bar {
+.summary-bar__limit {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.summary-bar__limit-bar {
   width: 100%;
-  height: 6px;
+  height: 5px;
   background: var(--surface-hover);
   border-radius: 3px;
   overflow: hidden;
-  margin-top: 4px;
 }
 
-.stat-card__limit-fill {
+.summary-bar__limit-fill {
   height: 100%;
   background: #16a34a;
   border-radius: 3px;
@@ -175,7 +158,24 @@ $finance-accent-border: rgba(250, 204, 21, 0.30);
   }
 }
 
-// ─── Transactions card (top-right) ───
+.summary-bar__divider {
+  width: 1px;
+  background: var(--border-color);
+  align-self: stretch;
+}
+
+// ─── Section divider ───
+.divider {
+  border: 0;
+  border-top: 1px solid var(--border-color);
+  margin: 28px 0;
+}
+
+// ─── Transactions section ───
+.transactions-section {
+  max-width: 720px;
+}
+
 .transactions-card {
   display: flex;
   flex-direction: column;
@@ -184,9 +184,6 @@ $finance-accent-border: rgba(250, 204, 21, 0.30);
   border-radius: var(--radius-md);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   overflow: hidden;
-  // stretch to fill the grid cell, but cap at a viewport-friendly height
-  flex: 1;
-  min-height: 0;
   max-height: 520px;
 }
 
@@ -1420,12 +1417,6 @@ $finance-accent-border: rgba(250, 204, 21, 0.30);
 }
 
 // ─── Responsive ───
-@media (max-width: 1024px) {
-  .top-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
 @media (max-width: 768px) {
   .page {
     padding: 24px 16px;
@@ -1461,6 +1452,26 @@ $finance-accent-border: rgba(250, 204, 21, 0.30);
         display: inline;
       }
     }
+  }
+
+  .summary-bar {
+    flex-direction: column;
+    padding: 20px;
+    gap: 0;
+  }
+
+  .summary-bar__divider {
+    width: 100%;
+    height: 1px;
+    margin: 16px 0;
+  }
+
+  .summary-bar__value {
+    font-size: 24px;
+  }
+
+  .transactions-section {
+    max-width: 100%;
   }
 
   .goals-grid {
