@@ -13,6 +13,7 @@ import {
   CreateShoppingListItemDto,
   CreateTransactionDto,
   FundSavingsGoalDto,
+  WithdrawSavingsGoalDto,
   PreviousMonthBalanceResponse,
   SavingsGoal,
   ShoppingList,
@@ -240,6 +241,27 @@ export class FinanceService {
       });
   }
 
+  withdrawSavingsGoal(id: string, amount: number): void {
+    // Optimistic update
+    this.savingsGoals.update(list =>
+      list.map(g => g.id === id ? { ...g, current: Math.max(0, g.current - amount) } : g),
+    );
+
+    this.http.patch<SavingsGoal>(
+      `${this.apiUrl}/api/Finance/savings-goals/${id}/withdraw`,
+      { amount } as WithdrawSavingsGoalDto,
+    ).subscribe({
+      next: updated => {
+        this.savingsGoals.update(list => list.map(g => g.id === id ? updated : g));
+      },
+      error: () => {
+        this.savingsGoals.update(list =>
+          list.map(g => g.id === id ? { ...g, current: g.current + amount } : g),
+        );
+      },
+    });
+  }
+
   deleteSavingsGoal(id: string): void {
     const backup = this.savingsGoals();
 
@@ -372,11 +394,43 @@ export class FinanceService {
 
   // ─── Chart data ───
 
-  loadChartData(period: 'weekly' | 'monthly'): void {
+  private readonly weeklyChartData = signal<ChartDataPoint[]>([]);
+  private readonly monthlyChartData = signal<ChartDataPoint[]>([]);
+  private readonly yearlyChartData = signal<ChartDataPoint[]>([]);
+
+  loadAllChartData(): void {
     this.http.get<ChartDataPoint[]>(`${this.apiUrl}/api/Finance/chart-data`, {
-      params: { period },
+      params: { period: 'weekly' },
     }).subscribe(data => {
-      this.chartData.set(data);
+      this.weeklyChartData.set(data);
+      // Initialize with weekly by default
+      if (this.chartData().length === 0) this.chartData.set(data);
     });
+
+    this.http.get<ChartDataPoint[]>(`${this.apiUrl}/api/Finance/chart-data`, {
+      params: { period: 'monthly' },
+    }).subscribe(data => {
+      this.monthlyChartData.set(data);
+    });
+
+    this.http.get<ChartDataPoint[]>(`${this.apiUrl}/api/Finance/chart-data`, {
+      params: { period: 'yearly' },
+    }).subscribe(data => {
+      this.yearlyChartData.set(data);
+    });
+  }
+
+  setChartPeriod(period: 'weekly' | 'monthly' | 'yearly'): void {
+    switch (period) {
+      case 'weekly':
+        this.chartData.set(this.weeklyChartData());
+        break;
+      case 'monthly':
+        this.chartData.set(this.monthlyChartData());
+        break;
+      case 'yearly':
+        this.chartData.set(this.yearlyChartData());
+        break;
+    }
   }
 }

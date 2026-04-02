@@ -104,6 +104,13 @@
           >
             За месяц
           </button>
+          <button
+            class="tab-toggle__btn"
+            [class.tab-toggle__btn--active]="activeChartTab() === 'yearly'"
+            (click)="setChartTab('yearly')"
+          >
+            За год
+          </button>
         </div>
       </div>
 
@@ -157,7 +164,7 @@
             <p class="chart-card__label">Динамика расходов</p>
             <p class="chart-card__amount">{{ formatRub(periodSpend()) }}</p>
             <p class="chart-card__period">
-              {{ activeChartTab() === 'weekly' ? 'Последние 7 дней' : 'Последние 30 дней' }}
+              {{ activeChartTab() === 'weekly' ? 'Текущая неделя' : activeChartTab() === 'yearly' ? 'Текущий год' : 'Текущий месяц' }}
             </p>
           </div>
           <span
@@ -173,6 +180,35 @@
           <canvas #spendingChart></canvas>
         </div>
       </div>
+
+      <!-- Category breakdown chart -->
+      @if (categoryChartDatasets().datasets.length > 0) {
+        <div class="chart-card">
+          <div class="chart-card__header">
+            <div>
+              <p class="chart-card__label">Расходы по категориям</p>
+              <p class="chart-card__period">
+                {{ activeChartTab() === 'weekly' ? 'Текущая неделя' : activeChartTab() === 'yearly' ? 'Текущий год' : 'Текущий месяц' }}
+              </p>
+            </div>
+          </div>
+          <div class="cat-chart-legend">
+            @for (ds of categoryChartDatasets().datasets; track ds.catId) {
+              <button
+                class="cat-chart-legend__item"
+                [class.cat-chart-legend__item--hidden]="ds.hidden"
+                (click)="toggleCategoryVisibility(ds.catId)"
+              >
+                <span class="cat-chart-legend__dot" [style.background]="ds.color"></span>
+                <span class="cat-chart-legend__name">{{ ds.name }}</span>
+              </button>
+            }
+          </div>
+          <div class="chart-card__canvas-wrapper">
+            <canvas #categoryChart></canvas>
+          </div>
+        </div>
+      }
     </div>
 
     <!-- ═══ Transactions section ═══ -->
@@ -303,6 +339,12 @@
                   <span class="material-symbols-outlined">add</span>
                   Пополнить
                 </button>
+                @if (goal.current > 0) {
+                  <button class="goal-card__btn goal-card__btn--withdraw" type="button" (click)="openWithdrawGoalDialog(goal)">
+                    <span class="material-symbols-outlined">remove</span>
+                    Снять
+                  </button>
+                }
                 <button class="goal-card__btn goal-card__btn--delete" type="button" (click)="openDeleteGoalDialog(goal)">
                   <span class="material-symbols-outlined">close</span>
                   Закрыть цель
@@ -352,7 +394,7 @@
                 </button>
                 <button class="goal-card__btn goal-card__btn--delete" type="button" (click)="openDeleteListDialog(list); $event.stopPropagation()">
                   <span class="material-symbols-outlined">close</span>
-                  Удалить список
+                  Удалить план
                 </button>
               </div>
             </div>
@@ -489,13 +531,13 @@
   </app-modal-overlay>
 }
 
-<!-- ═══ Dialog: Новая цель / список покупок ═══ -->
+<!-- ═══ Dialog: Новая цель / план покупок ═══ -->
 @if (showGoalDialog()) {
   <app-modal-overlay (close)="showGoalDialog.set(false)">
     <div class="dialog__icon-circle dialog__icon-circle--green">
       <span class="material-symbols-outlined">{{ goalType === 'goal' ? 'flag' : 'shopping_cart' }}</span>
     </div>
-    <h3 class="dialog__title">{{ goalType === 'goal' ? 'Новая цель' : 'Новый список покупок' }}</h3>
+    <h3 class="dialog__title">{{ goalType === 'goal' ? 'Новая цель' : 'Новый план покупок' }}</h3>
     <p class="dialog__desc">{{ goalType === 'goal' ? 'Установите цель накоплений' : 'Создайте список того, что нужно купить' }}</p>
 
     <div class="dialog__fields">
@@ -519,7 +561,7 @@
             (click)="goalType = 'shoppingList'"
           >
             <span class="material-symbols-outlined">shopping_cart</span>
-            Список покупок
+            План покупок
           </button>
         </div>
       </div>
@@ -722,6 +764,41 @@
       </button>
       <button class="dialog__btn dialog__btn--primary" type="button" (click)="saveFundGoal()">
         Пополнить
+      </button>
+    </div>
+  </app-modal-overlay>
+}
+
+<!-- ═══ Dialog: Снять с цели ═══ -->
+@if (showWithdrawGoalDialog()) {
+  <app-modal-overlay (close)="showWithdrawGoalDialog.set(false)">
+    <div class="dialog__icon-circle dialog__icon-circle--orange">
+      <span class="material-symbols-outlined">output</span>
+    </div>
+    <h3 class="dialog__title">Снять с цели</h3>
+    <p class="dialog__desc">{{ withdrawGoalName }}</p>
+    <p class="dialog__hint">Доступно: {{ formatRub(withdrawGoalMax) }}</p>
+
+    <div class="dialog__fields">
+      <div class="field">
+        <label class="field__label" for="withdrawGoalAmt">Сумма (&#8381;)</label>
+        <input
+          id="withdrawGoalAmt"
+          class="field__input"
+          type="text"
+          inputmode="decimal"
+          [(ngModel)]="withdrawGoalAmount"
+          placeholder="0,00"
+        />
+      </div>
+    </div>
+
+    <div class="dialog__actions">
+      <button class="dialog__btn dialog__btn--secondary" type="button" (click)="showWithdrawGoalDialog.set(false)">
+        Отмена
+      </button>
+      <button class="dialog__btn dialog__btn--warning" type="button" (click)="saveWithdrawGoal()">
+        Снять
       </button>
     </div>
   </app-modal-overlay>
@@ -1074,14 +1151,14 @@
   </app-modal-overlay>
 }
 
-<!-- ═══ Dialog: Удалить список покупок ═══ -->
+<!-- ═══ Dialog: Удалить план покупок ═══ -->
 @if (showDeleteListDialog()) {
   <app-modal-overlay (close)="showDeleteListDialog.set(false)">
     <div class="dialog__icon-circle dialog__icon-circle--red">
       <span class="material-symbols-outlined">delete</span>
     </div>
-    <h3 class="dialog__title">Удалить список</h3>
-    <p class="dialog__desc">Вы уверены, что хотите удалить список «{{ deleteListName }}»?</p>
+    <h3 class="dialog__title">Удалить план</h3>
+    <p class="dialog__desc">Вы уверены, что хотите удалить план «{{ deleteListName }}»?</p>
 
     <div class="dialog__actions">
       <button class="dialog__btn dialog__btn--secondary" type="button" (click)="showDeleteListDialog.set(false)">

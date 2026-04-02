@@ -43,18 +43,27 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly colorOptions = COLOR_OPTIONS;
 
   @ViewChild('spendingChart') chartCanvas!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('categoryChart') categoryChartCanvas!: ElementRef<HTMLCanvasElement>;
   private chart: Chart | null = null;
+  private categoryChart: Chart | null = null;
   private viewReady = false;
 
-  readonly activeChartTab = signal<'weekly' | 'monthly'>('weekly');
+  readonly activeChartTab = signal<'weekly' | 'monthly' | 'yearly'>('weekly');
 
-  private chartEffect = effect(() => {
-    // Track signals so the effect re-runs when data or limits change
+  private spendingChartEffect = effect(() => {
     this.financeService.chartData();
     this.financeService.limits();
     if (this.viewReady) {
       this.chart?.destroy();
       this.createChart();
+    }
+  });
+
+  private categoryChartEffect = effect(() => {
+    this.categoryChartDatasets();
+    if (this.viewReady) {
+      this.categoryChart?.destroy();
+      this.createCategoryChart();
     }
   });
 
@@ -95,26 +104,50 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
 
 
   readonly weeklySpend = computed(() => {
-    const now = Date.now();
-    const cutoff = now - 7 * 86400000;
+    const now = new Date();
+    const day = now.getDay(); // 0 = Sunday, 1 = Monday, ...
+    const diffToMonday = day === 0 ? 6 : day - 1;
+    const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - diffToMonday);
+    const mondayTs = monday.getTime();
+    const nextMondayTs = mondayTs + 7 * 86400000;
+
     return this.transactions()
-      .filter((t) => t.amount < 0 && t.timestamp >= cutoff)
+      .filter(
+        (t) =>
+          t.amount < 0 &&
+          t.timestamp >= mondayTs &&
+          t.timestamp < nextMondayTs
+      )
       .reduce((sum, t) => sum + Math.abs(t.amount), 0);
   });
 
-  /** Transactions filtered by active period (weekly / monthly) */
+  /** Transactions filtered by active period (weekly / monthly / yearly) */
   private readonly periodTransactions = computed(() => {
     const tab = this.activeChartTab();
+    const now = new Date();
 
     if (tab === 'weekly') {
-      const cutoff = Date.now() - 7 * 86400000;
-      return this.transactions().filter((t) => t.timestamp >= cutoff);
+      const day = now.getDay();
+      const diffToMonday = day === 0 ? 6 : day - 1;
+      const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - diffToMonday);
+      const mondayTs = monday.getTime();
+      const nextMondayTs = mondayTs + 7 * 86400000;
+      return this.transactions().filter(
+        (t) => t.timestamp >= mondayTs && t.timestamp < nextMondayTs
+      );
     }
 
-    const now = new Date();
+    if (tab === 'yearly') {
+      const yearStart = new Date(now.getFullYear(), 0, 1).getTime();
+      const nextYearStart = new Date(now.getFullYear() + 1, 0, 1).getTime();
+      return this.transactions().filter(
+        (t) => t.timestamp >= yearStart && t.timestamp < nextYearStart
+      );
+    }
+
+    // monthly
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
     const nextMonthStart = new Date(now.getFullYear(), now.getMonth() + 1, 1).getTime();
-
     return this.transactions().filter(
       (t) => t.timestamp >= monthStart && t.timestamp < nextMonthStart
     );
@@ -135,7 +168,11 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
         const total = txs
           .filter((t) => t.categoryId === cat.id && t.amount < 0)
           .reduce((sum, t) => sum + Math.abs(t.amount), 0);
-        const limit = tab === 'weekly' ? (cat.weeklyLimit ?? 0) : (cat.monthlyLimit ?? 0);
+        const limit = tab === 'weekly'
+          ? (cat.weeklyLimit ?? 0)
+          : tab === 'yearly'
+            ? (cat.monthlyLimit ?? 0) * 12
+            : (cat.monthlyLimit ?? 0);
         const isOverLimit = limit > 0 && total > limit;
         const limitPercent = limit > 0 ? Math.min(100, Math.round((total / limit) * 100)) : 0;
         return { ...cat, total, limit, isOverLimit, limitPercent };
@@ -144,10 +181,117 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
       .sort((a, b) => b.total - a.total);
   });
 
+  // ─── Category chart ───
+
+  readonly hiddenCategoryIds = signal<Set<string>>(new Set());
+
+  toggleCategoryVisibility(catId: string): void {
+    this.hiddenCategoryIds.update(set => {
+      const next = new Set(set);
+      if (next.has(catId)) next.delete(catId);
+      else next.add(catId);
+      return next;
+    });
+  }
+
+  /** Build time-series datasets per category for the category chart */
+  readonly categoryChartDatasets = computed(() => {
+    const tab = this.activeChartTab();
+    const txs = this.periodTransactions().filter(t => t.amount < 0);
+    const cats = this.categories();
+    const hidden = this.hiddenCategoryIds();
+
+    // Build time buckets based on period
+    const now = new Date();
+    const buckets: { key: string; label: string; start: number; end: number }[] = [];
+
+    if (tab === 'weekly') {
+      // 7 days: Mon–Sun
+      const day = now.getDay();
+      const diffToMonday = day === 0 ? 6 : day - 1;
+      const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - diffToMonday);
+      const dayNames = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + i);
+        const start = d.getTime();
+        const end = start + 86400000;
+        buckets.push({ key: `d${i}`, label: dayNames[i], start, end });
+      }
+    } else if (tab === 'monthly') {
+      // Weeks within the current month
+      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+      const nextMonthStart = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+      let weekStart = new Date(monthStart);
+      let weekNum = 1;
+      while (weekStart.getTime() < nextMonthStart.getTime()) {
+        const weekEnd = new Date(weekStart);
+        weekEnd.setDate(weekEnd.getDate() + 7);
+        const end = Math.min(weekEnd.getTime(), nextMonthStart.getTime());
+        const startDay = weekStart.getDate();
+        const endDay = new Date(end - 1).getDate();
+        buckets.push({
+          key: `w${weekNum}`,
+          label: `${startDay}–${endDay}`,
+          start: weekStart.getTime(),
+          end,
+        });
+        weekStart = weekEnd;
+        weekNum++;
+      }
+    } else {
+      // Yearly: 12 months
+      const monthNames = ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек'];
+      for (let m = 0; m < 12; m++) {
+        const start = new Date(now.getFullYear(), m, 1).getTime();
+        const end = new Date(now.getFullYear(), m + 1, 1).getTime();
+        buckets.push({ key: `m${m}`, label: monthNames[m], start, end });
+      }
+    }
+
+    // Group transactions by category
+    const catIds = new Set(txs.map(t => t.categoryId));
+    const datasets: {
+      catId: string; name: string; color: string; hidden: boolean;
+      data: number[];
+    }[] = [];
+
+    for (const catId of catIds) {
+      const cat = cats.find(c => c.id === catId);
+      const catTxs = txs.filter(t => t.categoryId === catId);
+      const data = buckets.map(b => {
+        const sum = catTxs
+          .filter(t => t.timestamp >= b.start && t.timestamp < b.end)
+          .reduce((s, t) => s + Math.abs(t.amount), 0);
+        return sum / 100; // convert kopecks to rubles
+      });
+
+      datasets.push({
+        catId,
+        name: cat?.name ?? 'Без категории',
+        color: cat?.color ?? '#6b7280',
+        hidden: hidden.has(catId),
+        data,
+      });
+    }
+
+    // Sort by total descending
+    datasets.sort((a, b) => {
+      const totalA = a.data.reduce((s, v) => s + v, 0);
+      const totalB = b.data.reduce((s, v) => s + v, 0);
+      return totalB - totalA;
+    });
+
+    return { labels: buckets.map(b => b.label), datasets };
+  });
+
   readonly chartBadgeStatus = computed(() => {
     const tab = this.activeChartTab();
-    const spend = tab === 'weekly' ? this.weeklySpend() : this.monthlySpend();
-    const limit = tab === 'weekly' ? this.weeklyLimit() : this.monthlyLimit();
+    const spend = this.periodSpend();
+    const limit = tab === 'weekly'
+      ? this.weeklyLimit()
+      : tab === 'yearly'
+        ? this.monthlyLimit() * 12
+        : this.monthlyLimit();
     if (!limit) return { text: 'ЛИМИТ НЕ ЗАДАН', status: 'neutral' as const };
     return spend > limit
       ? { text: 'ЛИМИТ ПРЕВЫШЕН', status: 'over' as const }
@@ -349,6 +493,13 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
   fundGoalName = '';
   fundGoalAmount = '';
 
+  // Withdraw goal form
+  readonly showWithdrawGoalDialog = signal(false);
+  withdrawGoalId = '';
+  withdrawGoalName = '';
+  withdrawGoalMax = 0;
+  withdrawGoalAmount = '';
+
   // Delete goal confirmation
   readonly showDeleteGoalDialog = signal(false);
   deleteGoalId = '';
@@ -390,24 +541,27 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
     this.financeService.loadSavingsGoals();
     this.financeService.loadShoppingLists();
     this.financeService.loadLimits();
-    this.financeService.loadChartData(this.activeChartTab());
+    this.financeService.loadAllChartData();
   }
 
   ngAfterViewInit(): void {
     this.viewReady = true;
     this.chart?.destroy();
     this.createChart();
+    this.categoryChart?.destroy();
+    this.createCategoryChart();
   }
 
   ngOnDestroy(): void {
     this.chart?.destroy();
+    this.categoryChart?.destroy();
   }
 
   // ─── Chart ───
 
-  setChartTab(tab: 'weekly' | 'monthly'): void {
+  setChartTab(tab: 'weekly' | 'monthly' | 'yearly'): void {
     this.activeChartTab.set(tab);
-    this.financeService.loadChartData(tab);
+    this.financeService.setChartPeriod(tab);
   }
 
   // ─── Formatters ───
@@ -604,6 +758,26 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
     this.showFundGoalDialog.set(false);
   }
 
+  // ─── Withdraw goal dialog ───
+
+  openWithdrawGoalDialog(goal: SavingsGoal): void {
+    this.withdrawGoalId = goal.id;
+    this.withdrawGoalName = goal.name;
+    this.withdrawGoalMax = goal.current;
+    this.withdrawGoalAmount = '';
+    this.showWithdrawGoalDialog.set(true);
+  }
+
+  saveWithdrawGoal(): void {
+    const val = parseFloat(this.withdrawGoalAmount.replace(',', '.'));
+    if (isNaN(val) || val <= 0) return;
+    const kopecks = Math.round(val * 100);
+    const clamped = Math.min(kopecks, this.withdrawGoalMax);
+    if (clamped <= 0) return;
+    this.financeService.withdrawSavingsGoal(this.withdrawGoalId, clamped);
+    this.showWithdrawGoalDialog.set(false);
+  }
+
   // ─── Delete goal dialog ───
 
   openDeleteGoalDialog(goal: SavingsGoal): void {
@@ -761,7 +935,7 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
     const canvas = this.chartCanvas?.nativeElement;
     if (!canvas) return;
 
-    const isWeekly = this.activeChartTab() === 'weekly';
+    const tab = this.activeChartTab();
     const chartData = this.financeService.chartData();
 
     const labels = chartData.map(p => p.label);
@@ -776,15 +950,19 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
         pointBackgroundColor: '#facc15',
         pointBorderColor: '#ffffff',
         pointBorderWidth: 2,
-        pointRadius: 5,
-        pointHoverRadius: 7,
+        pointRadius: tab === 'yearly' ? 3 : 5,
+        pointHoverRadius: tab === 'yearly' ? 5 : 7,
         tension: 0.4,
         fill: true,
       },
     ];
 
     // Add dashed limit line if limit is set
-    const limit = isWeekly ? this.weeklyLimit() : this.monthlyLimit();
+    const limit = tab === 'weekly'
+      ? this.weeklyLimit()
+      : tab === 'yearly'
+        ? this.monthlyLimit() * 12
+        : this.monthlyLimit();
     if (limit > 0) {
       const limitInRub = limit / 100;
       datasets.push({
@@ -842,5 +1020,84 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
         },
       },
     });
+  }
+
+  private createCategoryChart(): void {
+    const canvas = this.categoryChartCanvas?.nativeElement;
+    if (!canvas) return;
+
+    const { labels, datasets } = this.categoryChartDatasets();
+
+    const visibleDatasets = datasets.map(ds => ({
+      label: ds.name,
+      data: ds.data,
+      borderColor: ds.hidden ? 'transparent' : ds.color,
+      backgroundColor: ds.hidden ? 'transparent' : this.hexToRgba(ds.color, 0.08),
+      borderWidth: 2.5,
+      pointBackgroundColor: ds.hidden ? 'transparent' : ds.color,
+      pointBorderColor: ds.hidden ? 'transparent' : '#ffffff',
+      pointBorderWidth: 2,
+      pointRadius: ds.hidden ? 0 : 4,
+      pointHoverRadius: ds.hidden ? 0 : 6,
+      tension: 0.4,
+      fill: false,
+      hidden: ds.hidden,
+    }));
+
+    this.categoryChart = new Chart(canvas, {
+      type: 'line',
+      data: { labels, datasets: visibleDatasets },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: {
+          mode: 'index',
+          intersect: false,
+        },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: '#1f2937',
+            titleFont: { family: 'Inter', size: 13, weight: 600 },
+            bodyFont: { family: 'Inter', size: 12 },
+            padding: 10,
+            cornerRadius: 8,
+            filter: (item) => (item.parsed.y ?? 0) > 0,
+            callbacks: {
+              label: (ctx) => {
+                const val = ctx.parsed.y ?? 0;
+                return `${ctx.dataset.label}: ${val.toLocaleString('ru-RU')} \u20BD`;
+              },
+            },
+          },
+        },
+        scales: {
+          x: {
+            grid: { display: false },
+            ticks: {
+              font: { family: 'Inter', size: 12, weight: 600 },
+              color: '#6b7280',
+            },
+            border: { display: false },
+          },
+          y: {
+            grid: { color: 'rgba(0, 0, 0, 0.04)' },
+            ticks: {
+              font: { family: 'Inter', size: 12 },
+              color: '#9ca3af',
+              callback: (value) => value.toLocaleString('ru-RU'),
+            },
+            border: { display: false },
+          },
+        },
+      },
+    });
+  }
+
+  private hexToRgba(hex: string, alpha: number): string {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
   }
 }
