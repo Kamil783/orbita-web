@@ -97,6 +97,10 @@ export interface FundSavingsGoalDto {
   amount: number;       // kopecks, positive delta
 }
 
+export interface WithdrawSavingsGoalDto {
+  amount: number;       // kopecks, positive value to withdraw
+}
+
 export interface CreateShoppingListDto {
   name: string;
 }
