@@ -114,6 +114,30 @@
         </div>
       </div>
 
+      <div class="chart-source-filter">
+        <button
+          class="chart-source-filter__btn"
+          [class.chart-source-filter__btn--active]="chartFilter() === 'all'"
+          (click)="chartFilter.set('all')"
+        >
+          Общий
+        </button>
+        <button
+          class="chart-source-filter__btn"
+          [class.chart-source-filter__btn--active]="chartFilter() === 'personal'"
+          (click)="chartFilter.set('personal')"
+        >
+          Личные
+        </button>
+        <button
+          class="chart-source-filter__btn"
+          [class.chart-source-filter__btn--active]="chartFilter() === 'shared'"
+          (click)="chartFilter.set('shared')"
+        >
+          Командные
+        </button>
+      </div>
+
       <!-- Category spending -->
       @if (categorySpending().length > 0) {
         <div class="categories-section">
@@ -855,6 +879,31 @@
           >
             <span class="material-symbols-outlined">add</span>
             Доход
+          </button>
+        </div>
+      </div>
+
+      <!-- Source toggle -->
+      <div class="field">
+        <label class="field__label">Источник</label>
+        <div class="type-toggle">
+          <button
+            class="type-toggle__btn"
+            [class.type-toggle__btn--active-income]="!editTxFromBalance"
+            type="button"
+            (click)="editTxFromBalance = false"
+          >
+            <span class="material-symbols-outlined">open_in_new</span>
+            Личный
+          </button>
+          <button
+            class="type-toggle__btn"
+            [class.type-toggle__btn--active-expense]="editTxFromBalance"
+            type="button"
+            (click)="editTxFromBalance = true"
+          >
+            <span class="material-symbols-outlined">account_balance_wallet</span>
+            Общий
           </button>
         </div>
       </div>

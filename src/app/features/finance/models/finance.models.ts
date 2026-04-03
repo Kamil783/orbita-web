@@ -85,6 +85,7 @@ export interface UpdateTransactionDto {
   categoryId?: string;
   title?: string;
   amount?: number;      // kopecks, signed
+  fromBalance?: boolean;
   date?: string;        // ISO date 'YYYY-MM-DD'
 }
 
