@@ -232,6 +232,7 @@ export class FinanceService {
       .subscribe({
         next: updated => {
           this.savingsGoals.update(list => list.map(g => g.id === id ? updated : g));
+          this.loadBalance();
         },
         error: () => {
           this.savingsGoals.update(list =>
@@ -253,6 +254,7 @@ export class FinanceService {
     ).subscribe({
       next: updated => {
         this.savingsGoals.update(list => list.map(g => g.id === id ? updated : g));
+        this.loadBalance();
       },
       error: () => {
         this.savingsGoals.update(list =>

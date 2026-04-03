@@ -49,6 +49,7 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
   private viewReady = false;
 
   readonly activeChartTab = signal<'weekly' | 'monthly' | 'yearly'>('weekly');
+  readonly chartFilter = signal<'all' | 'personal' | 'shared'>('all');
 
   private spendingChartEffect = effect(() => {
     this.financeService.chartData();
@@ -62,8 +63,11 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
   private categoryChartEffect = effect(() => {
     this.categoryChartDatasets();
     if (this.viewReady) {
-      this.categoryChart?.destroy();
-      this.createCategoryChart();
+      // Defer to next microtask so Angular renders the @if canvas first
+      setTimeout(() => {
+        this.categoryChart?.destroy();
+        this.createCategoryChart();
+      });
     }
   });
 
@@ -121,10 +125,17 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
       .reduce((sum, t) => sum + Math.abs(t.amount), 0);
   });
 
-  /** Transactions filtered by active period (weekly / monthly / yearly) */
+  /** Transactions filtered by active period (weekly / monthly / yearly) and chart source filter */
   private readonly periodTransactions = computed(() => {
     const tab = this.activeChartTab();
+    const filter = this.chartFilter();
     const now = new Date();
+
+    let txs = this.transactions();
+
+    // Apply source filter
+    if (filter === 'personal') txs = txs.filter(t => !t.fromBalance);
+    else if (filter === 'shared') txs = txs.filter(t => t.fromBalance);
 
     if (tab === 'weekly') {
       const day = now.getDay();
@@ -132,7 +143,7 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
       const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - diffToMonday);
       const mondayTs = monday.getTime();
       const nextMondayTs = mondayTs + 7 * 86400000;
-      return this.transactions().filter(
+      return txs.filter(
         (t) => t.timestamp >= mondayTs && t.timestamp < nextMondayTs
       );
     }
@@ -140,7 +151,7 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
     if (tab === 'yearly') {
       const yearStart = new Date(now.getFullYear(), 0, 1).getTime();
       const nextYearStart = new Date(now.getFullYear() + 1, 0, 1).getTime();
-      return this.transactions().filter(
+      return txs.filter(
         (t) => t.timestamp >= yearStart && t.timestamp < nextYearStart
       );
     }
@@ -148,7 +159,7 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
     // monthly
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
     const nextMonthStart = new Date(now.getFullYear(), now.getMonth() + 1, 1).getTime();
-    return this.transactions().filter(
+    return txs.filter(
       (t) => t.timestamp >= monthStart && t.timestamp < nextMonthStart
     );
   });
@@ -520,6 +531,7 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
   editTxAmount = '';
   editTxType: 'expense' | 'income' = 'expense';
   editTxCategoryId = '';
+  editTxFromBalance = false;
   editTxDate = '';
 
   // Delete transaction confirmation
@@ -830,6 +842,7 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
     this.editTxAmount = (absKopecks / 100).toString().replace('.', ',');
     this.editTxType = tx.amount < 0 ? 'expense' : 'income';
     this.editTxCategoryId = tx.categoryId;
+    this.editTxFromBalance = tx.fromBalance;
     this.editTxDate = tx.date ?? '';
     this.showEditTransactionDialog.set(true);
   }
@@ -846,6 +859,7 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
       title,
       amount,
       categoryId: this.editTxCategoryId || undefined,
+      fromBalance: this.editTxFromBalance,
       date: this.editTxDate || undefined,
     });
     this.showEditTransactionDialog.set(false);
