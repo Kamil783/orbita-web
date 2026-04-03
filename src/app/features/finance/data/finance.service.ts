@@ -356,6 +356,7 @@ export class FinanceService {
             ? { ...l, items: l.items.map(i => i.id === itemId ? updated : i) }
             : l),
         );
+        this.loadBalance();
       },
       error: () => {
         // Rollback
