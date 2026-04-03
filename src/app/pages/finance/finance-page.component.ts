@@ -62,8 +62,11 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
   private categoryChartEffect = effect(() => {
     this.categoryChartDatasets();
     if (this.viewReady) {
-      this.categoryChart?.destroy();
-      this.createCategoryChart();
+      // Defer to next microtask so Angular renders the @if canvas first
+      setTimeout(() => {
+        this.categoryChart?.destroy();
+        this.createCategoryChart();
+      });
     }
   });
 
