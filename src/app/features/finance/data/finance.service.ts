@@ -9,6 +9,7 @@ import {
   CreateCategoryDto,
   UpdateCategoryDto,
   CreateSavingsGoalDto,
+  UpdateSavingsGoalDto,
   CreateShoppingListDto,
   CreateShoppingListItemDto,
   CreateTransactionDto,
@@ -20,6 +21,8 @@ import {
   ShoppingListItem,
   SpendingLimits,
   ToggleShoppingListItemDto,
+  UpdateShoppingListDto,
+  UpdateShoppingListItemDto,
   Transaction,
   UpdateTransactionDto,
 } from '../models/finance.models';
@@ -264,6 +267,24 @@ export class FinanceService {
     });
   }
 
+  updateSavingsGoal(id: string, dto: UpdateSavingsGoalDto): void {
+    const backup = this.savingsGoals();
+
+    this.savingsGoals.update(list =>
+      list.map(g => g.id === id ? { ...g, ...dto } : g),
+    );
+
+    this.http.patch<SavingsGoal>(`${this.apiUrl}/api/Finance/savings-goals/${id}/details`, dto)
+      .subscribe({
+        next: updated => {
+          this.savingsGoals.update(list => list.map(g => g.id === id ? updated : g));
+        },
+        error: () => {
+          this.savingsGoals.set(backup);
+        },
+      });
+  }
+
   deleteSavingsGoal(id: string): void {
     const backup = this.savingsGoals();
 
@@ -295,6 +316,24 @@ export class FinanceService {
       });
   }
 
+  updateShoppingList(id: string, dto: UpdateShoppingListDto): void {
+    const backup = this.shoppingLists();
+
+    this.shoppingLists.update(lists =>
+      lists.map(l => l.id === id ? { ...l, ...dto } : l),
+    );
+
+    this.http.patch<ShoppingList>(`${this.apiUrl}/api/Finance/shopping-lists/${id}`, dto)
+      .subscribe({
+        next: updated => {
+          this.shoppingLists.update(lists => lists.map(l => l.id === id ? updated : l));
+        },
+        error: () => {
+          this.shoppingLists.set(backup);
+        },
+      });
+  }
+
   deleteShoppingList(id: string): void {
     const backup = this.shoppingLists();
     this.shoppingLists.update(lists => lists.filter(l => l.id !== id));
@@ -315,6 +354,32 @@ export class FinanceService {
       this.shoppingLists.update(lists =>
         lists.map(l => l.id === listId ? { ...l, items: [...l.items, created] } : l),
       );
+    });
+  }
+
+  updateShoppingListItem(listId: string, itemId: string, dto: UpdateShoppingListItemDto): void {
+    const backup = this.shoppingLists();
+
+    this.shoppingLists.update(lists =>
+      lists.map(l => l.id === listId
+        ? { ...l, items: l.items.map(i => i.id === itemId ? { ...i, ...dto } : i) }
+        : l),
+    );
+
+    this.http.patch<ShoppingListItem>(
+      `${this.apiUrl}/api/Finance/shopping-lists/${listId}/items/${itemId}/details`,
+      dto,
+    ).subscribe({
+      next: updated => {
+        this.shoppingLists.update(lists =>
+          lists.map(l => l.id === listId
+            ? { ...l, items: l.items.map(i => i.id === itemId ? updated : i) }
+            : l),
+        );
+      },
+      error: () => {
+        this.shoppingLists.set(backup);
+      },
     });
   }
 

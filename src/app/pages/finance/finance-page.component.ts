@@ -21,6 +21,7 @@ import {
   Category,
   SavingsGoal,
   ShoppingList,
+  ShoppingListItem,
   Transaction,
   ICON_OPTIONS,
   COLOR_OPTIONS,
@@ -102,6 +103,26 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
           t.timestamp >= monthStart &&
           t.timestamp < nextMonthStart
       )
+      .reduce((sum, t) => sum + Math.abs(t.amount), 0);
+  });
+
+  readonly monthlySpendShared = computed(() => {
+    const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+    const nextMonthStart = new Date(now.getFullYear(), now.getMonth() + 1, 1).getTime();
+
+    return this.transactions()
+      .filter(t => t.amount < 0 && t.fromBalance && t.timestamp >= monthStart && t.timestamp < nextMonthStart)
+      .reduce((sum, t) => sum + Math.abs(t.amount), 0);
+  });
+
+  readonly monthlySpendPersonal = computed(() => {
+    const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+    const nextMonthStart = new Date(now.getFullYear(), now.getMonth() + 1, 1).getTime();
+
+    return this.transactions()
+      .filter(t => t.amount < 0 && !t.fromBalance && t.timestamp >= monthStart && t.timestamp < nextMonthStart)
       .reduce((sum, t) => sum + Math.abs(t.amount), 0);
   });
 
@@ -203,6 +224,20 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
       else next.add(catId);
       return next;
     });
+  }
+
+  readonly allCategoriesHidden = computed(() => {
+    const datasets = this.categoryChartDatasets().datasets;
+    return datasets.length > 0 && datasets.every(ds => ds.hidden);
+  });
+
+  toggleAllCategoryVisibility(): void {
+    const datasets = this.categoryChartDatasets().datasets;
+    if (this.allCategoriesHidden()) {
+      this.hiddenCategoryIds.set(new Set());
+    } else {
+      this.hiddenCategoryIds.set(new Set(datasets.map(ds => ds.catId)));
+    }
   }
 
   /** Build time-series datasets per category for the category chart */
@@ -498,6 +533,23 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
   deleteListId = '';
   deleteListName = '';
 
+  // Edit goal form
+  readonly showEditGoalDialog = signal(false);
+  editGoalId = '';
+  editGoalName = '';
+  editGoalTarget = '';
+
+  // Edit shopping list form
+  readonly showEditShoppingListDialog = signal(false);
+  editShoppingListId = '';
+  editShoppingListName = '';
+
+  // Inline edit shopping list item
+  readonly editingShoppingItemId = signal<string | null>(null);
+  editShoppingItemListId = '';
+  editShoppingItemName = '';
+  editShoppingItemPrice = '';
+
   // Fund goal form
   readonly showFundGoalDialog = signal(false);
   fundGoalId = '';
@@ -681,6 +733,66 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
       target: Math.round(target * 100),
     });
     this.showGoalDialog.set(false);
+  }
+
+  // ─── Edit goal dialog ───
+
+  openEditGoalDialog(goal: SavingsGoal): void {
+    this.editGoalId = goal.id;
+    this.editGoalName = goal.name;
+    this.editGoalTarget = (goal.target / 100).toString().replace('.', ',');
+    this.showEditGoalDialog.set(true);
+  }
+
+  saveEditGoal(): void {
+    const name = this.editGoalName.trim();
+    if (!name) return;
+    const val = parseFloat(this.editGoalTarget.replace(',', '.'));
+    if (isNaN(val) || val <= 0) return;
+    this.financeService.updateSavingsGoal(this.editGoalId, {
+      name,
+      target: Math.round(val * 100),
+    });
+    this.showEditGoalDialog.set(false);
+  }
+
+  // ─── Edit shopping list dialog ───
+
+  openEditShoppingListDialog(list: ShoppingList): void {
+    this.editShoppingListId = list.id;
+    this.editShoppingListName = list.name;
+    this.showEditShoppingListDialog.set(true);
+  }
+
+  saveEditShoppingList(): void {
+    const name = this.editShoppingListName.trim();
+    if (!name) return;
+    this.financeService.updateShoppingList(this.editShoppingListId, { name });
+    this.showEditShoppingListDialog.set(false);
+  }
+
+  // ─── Edit shopping list item dialog ───
+
+  startEditShoppingItem(listId: string, item: ShoppingListItem): void {
+    this.editShoppingItemListId = listId;
+    this.editShoppingItemName = item.name;
+    this.editShoppingItemPrice = item.price !== null ? (item.price / 100).toString().replace('.', ',') : '';
+    this.editingShoppingItemId.set(item.id);
+  }
+
+  saveEditShoppingItem(): void {
+    const itemId = this.editingShoppingItemId();
+    if (!itemId) return;
+    const name = this.editShoppingItemName.trim();
+    if (!name) return;
+    const val = parseFloat(this.editShoppingItemPrice.replace(',', '.'));
+    const price = !isNaN(val) && val > 0 ? Math.round(val * 100) : null;
+    this.financeService.updateShoppingListItem(this.editShoppingItemListId, itemId, { name, price });
+    this.editingShoppingItemId.set(null);
+  }
+
+  cancelEditShoppingItem(): void {
+    this.editingShoppingItemId.set(null);
   }
 
   // ─── Shopping list dialogs ───
