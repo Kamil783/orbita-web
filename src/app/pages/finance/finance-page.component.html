@@ -124,28 +124,24 @@
         </div>
       </div>
 
-      <div class="chart-source-filter">
-        <button
-          class="chart-source-filter__btn"
-          [class.chart-source-filter__btn--active]="chartFilter() === 'all'"
-          (click)="chartFilter.set('all')"
-        >
-          Суммарный
-        </button>
-        <button
-          class="chart-source-filter__btn"
-          [class.chart-source-filter__btn--active]="chartFilter() === 'personal'"
-          (click)="chartFilter.set('personal')"
-        >
-          Личные
-        </button>
-        <button
-          class="chart-source-filter__btn"
-          [class.chart-source-filter__btn--active]="chartFilter() === 'shared'"
-          (click)="chartFilter.set('shared')"
-        >
-          Общий
-        </button>
+      <div class="chart-controls">
+        <div class="chart-source-filter">
+          <button class="chart-source-filter__btn" [class.chart-source-filter__btn--active]="chartFilter() === 'all'" (click)="chartFilter.set('all')">Суммарный</button>
+          <button class="chart-source-filter__btn" [class.chart-source-filter__btn--active]="chartFilter() === 'personal'" (click)="chartFilter.set('personal')">Личные</button>
+          <button class="chart-source-filter__btn" [class.chart-source-filter__btn--active]="chartFilter() === 'shared'" (click)="chartFilter.set('shared')">Общий</button>
+        </div>
+        <div class="period-nav">
+          <button class="period-nav__btn" type="button" (click)="goToPreviousPeriod()" title="Назад">
+            <span class="material-symbols-outlined">chevron_left</span>
+          </button>
+          <span class="period-nav__label">{{ periodLabel() }}</span>
+          <button class="period-nav__btn" type="button" (click)="goToNextPeriod()" [disabled]="periodOffset() >= 0" title="Вперёд">
+            <span class="material-symbols-outlined">chevron_right</span>
+          </button>
+          @if (periodOffset() !== 0) {
+            <button class="period-nav__today" type="button" (click)="goToCurrentPeriod()">Сегодня</button>
+          }
+        </div>
       </div>
 
       <!-- Category spending -->
@@ -197,9 +193,7 @@
           <div>
             <p class="chart-card__label">Динамика расходов</p>
             <p class="chart-card__amount">{{ formatRub(periodSpend()) }}</p>
-            <p class="chart-card__period">
-              {{ activeChartTab() === 'weekly' ? 'Текущая неделя' : activeChartTab() === 'yearly' ? 'Текущий год' : 'Текущий месяц' }}
-            </p>
+            <p class="chart-card__period">{{ periodLabel() }}</p>
           </div>
           <span
             class="chart-card__badge"
@@ -221,9 +215,7 @@
           <div class="chart-card__header">
             <div>
               <p class="chart-card__label">Расходы по категориям</p>
-              <p class="chart-card__period">
-                {{ activeChartTab() === 'weekly' ? 'Текущая неделя' : activeChartTab() === 'yearly' ? 'Текущий год' : 'Текущий месяц' }}
-              </p>
+              <p class="chart-card__period">{{ periodLabel() }}</p>
             </div>
           </div>
           <div class="cat-chart-legend">
@@ -358,8 +350,17 @@
           </div>
 
           <div class="shopping-lists-card">
+            <div class="tx-tabs">
+              <button class="tx-tabs__btn" [class.tx-tabs__btn--active]="slFilter() === 'all'" type="button" (click)="slFilter.set('all')">Все</button>
+              <button class="tx-tabs__btn" [class.tx-tabs__btn--active]="slFilter() === 'personal'" type="button" (click)="slFilter.set('personal')">
+                <span class="material-symbols-outlined tx-tabs__icon">person</span> Личные
+              </button>
+              <button class="tx-tabs__btn" [class.tx-tabs__btn--active]="slFilter() === 'shared'" type="button" (click)="slFilter.set('shared')">
+                <span class="material-symbols-outlined tx-tabs__icon">group</span> Общие
+              </button>
+            </div>
             <div class="shopping-lists-card__list">
-              @for (list of shoppingLists(); track list.id) {
+              @for (list of filteredShoppingLists(); track list.id) {
                 <div class="sl-card" (click)="openShoppingListDetail(list)">
                   <div class="sl-card__header">
                     <div class="sl-card__icon">
@@ -371,6 +372,12 @@
                         {{ shoppingListBoughtCount(list) }} из {{ list.items.length }} куплено
                         @if (shoppingListTotal(list) > 0) {
                           &middot; {{ formatRub(shoppingListTotal(list)) }}
+                        }
+                        @if (slFilter() === 'all') {
+                          &middot;
+                          <span class="sl-card__source" [class.sl-card__source--shared]="list.fromBalance">
+                            {{ list.fromBalance ? 'Общий' : 'Личный' }}
+                          </span>
                         }
                       </p>
                     </div>
@@ -643,6 +650,19 @@
             [(ngModel)]="goalTarget"
             placeholder="0,00"
           />
+        </div>
+      }
+      @if (goalType === 'shoppingList') {
+        <div class="field">
+          <label class="field__label">Источник</label>
+          <div class="type-toggle">
+            <button class="type-toggle__btn" [class.type-toggle__btn--active-income]="!goalFromBalance" type="button" (click)="goalFromBalance = false">
+              <span class="material-symbols-outlined">person</span> Личный
+            </button>
+            <button class="type-toggle__btn" [class.type-toggle__btn--active-expense]="goalFromBalance" type="button" (click)="goalFromBalance = true">
+              <span class="material-symbols-outlined">group</span> Общий
+            </button>
+          </div>
         </div>
       }
     </div>

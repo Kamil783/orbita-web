@@ -51,6 +51,7 @@ export interface ShoppingList {
   name: string;
   items: ShoppingListItem[];
   createdAt: number;     // ms since epoch
+  fromBalance: boolean;  // true = shared (общий), false = personal (личный)
 }
 
 // ─── Request DTOs ───
@@ -109,6 +110,7 @@ export interface WithdrawSavingsGoalDto {
 
 export interface CreateShoppingListDto {
   name: string;
+  fromBalance: boolean;
 }
 
 export interface CreateShoppingListItemDto {
