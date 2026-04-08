@@ -53,7 +53,7 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly chartFilter = signal<'all' | 'personal' | 'shared'>('all');
 
   private spendingChartEffect = effect(() => {
-    this.financeService.chartData();
+    this.spendingTrendData();
     this.financeService.limits();
     if (this.viewReady) {
       this.chart?.destroy();
@@ -88,6 +88,8 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
   // ─── View state ───
 
   readonly txFilter = signal<'all' | 'personal' | 'shared'>('all');
+  readonly slFilter = signal<'all' | 'personal' | 'shared'>('all');
+  readonly periodOffset = signal(0);
 
   // ─── Computed ───
 
@@ -146,11 +148,68 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
       .reduce((sum, t) => sum + Math.abs(t.amount), 0);
   });
 
+  /** Compute the start/end of the active period taking offset into account */
+  private readonly activePeriodRange = computed(() => {
+    const tab = this.activeChartTab();
+    const offset = this.periodOffset();
+    const now = new Date();
+
+    if (tab === 'weekly') {
+      const day = now.getDay();
+      const diffToMonday = day === 0 ? 6 : day - 1;
+      const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - diffToMonday + offset * 7);
+      const start = monday.getTime();
+      const end = start + 7 * 86400000;
+      return { start, end };
+    }
+
+    if (tab === 'yearly') {
+      const year = now.getFullYear() + offset;
+      const start = new Date(year, 0, 1).getTime();
+      const end = new Date(year + 1, 0, 1).getTime();
+      return { start, end };
+    }
+
+    // monthly
+    const start = new Date(now.getFullYear(), now.getMonth() + offset, 1).getTime();
+    const end = new Date(now.getFullYear(), now.getMonth() + offset + 1, 1).getTime();
+    return { start, end };
+  });
+
+  /** Human-readable label for the active period */
+  readonly periodLabel = computed(() => {
+    const tab = this.activeChartTab();
+    const offset = this.periodOffset();
+    const now = new Date();
+    const monthNames = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь',
+      'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
+    const monthNamesShort = ['янв', 'фев', 'мар', 'апр', 'мая', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
+
+    if (tab === 'weekly') {
+      const day = now.getDay();
+      const diffToMonday = day === 0 ? 6 : day - 1;
+      const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - diffToMonday + offset * 7);
+      const sunday = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + 6);
+      if (offset === 0) return 'Текущая неделя';
+      return `${monday.getDate()} ${monthNamesShort[monday.getMonth()]} – ${sunday.getDate()} ${monthNamesShort[sunday.getMonth()]}`;
+    }
+
+    if (tab === 'yearly') {
+      const year = now.getFullYear() + offset;
+      if (offset === 0) return 'Текущий год';
+      return `${year} год`;
+    }
+
+    // monthly
+    const d = new Date(now.getFullYear(), now.getMonth() + offset, 1);
+    if (offset === 0) return 'Текущий месяц';
+    return `${monthNames[d.getMonth()]} ${d.getFullYear()}`;
+  });
+
   /** Transactions filtered by active period (weekly / monthly / yearly) and chart source filter */
   private readonly periodTransactions = computed(() => {
-    const tab = this.activeChartTab();
     const filter = this.chartFilter();
-    const now = new Date();
+    const { start, end } = this.activePeriodRange();
 
     let txs = this.transactions();
 
@@ -158,31 +217,7 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
     if (filter === 'personal') txs = txs.filter(t => !t.fromBalance);
     else if (filter === 'shared') txs = txs.filter(t => t.fromBalance);
 
-    if (tab === 'weekly') {
-      const day = now.getDay();
-      const diffToMonday = day === 0 ? 6 : day - 1;
-      const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - diffToMonday);
-      const mondayTs = monday.getTime();
-      const nextMondayTs = mondayTs + 7 * 86400000;
-      return txs.filter(
-        (t) => t.timestamp >= mondayTs && t.timestamp < nextMondayTs
-      );
-    }
-
-    if (tab === 'yearly') {
-      const yearStart = new Date(now.getFullYear(), 0, 1).getTime();
-      const nextYearStart = new Date(now.getFullYear() + 1, 0, 1).getTime();
-      return txs.filter(
-        (t) => t.timestamp >= yearStart && t.timestamp < nextYearStart
-      );
-    }
-
-    // monthly
-    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
-    const nextMonthStart = new Date(now.getFullYear(), now.getMonth() + 1, 1).getTime();
-    return txs.filter(
-      (t) => t.timestamp >= monthStart && t.timestamp < nextMonthStart
-    );
+    return txs.filter(t => t.timestamp >= start && t.timestamp < end);
   });
 
   readonly periodSpend = computed(() => {
@@ -240,22 +275,17 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  /** Build time-series datasets per category for the category chart */
-  readonly categoryChartDatasets = computed(() => {
+  /** Build time buckets (day/week/month) for the active period */
+  private readonly periodBuckets = computed(() => {
     const tab = this.activeChartTab();
-    const txs = this.periodTransactions().filter(t => t.amount < 0);
-    const cats = this.categories();
-    const hidden = this.hiddenCategoryIds();
-
-    // Build time buckets based on period
+    const offset = this.periodOffset();
     const now = new Date();
     const buckets: { key: string; label: string; start: number; end: number }[] = [];
 
     if (tab === 'weekly') {
-      // 7 days: Mon–Sun
       const day = now.getDay();
       const diffToMonday = day === 0 ? 6 : day - 1;
-      const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - diffToMonday);
+      const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - diffToMonday + offset * 7);
       const dayNames = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
       for (let i = 0; i < 7; i++) {
         const d = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + i);
@@ -264,9 +294,8 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
         buckets.push({ key: `d${i}`, label: dayNames[i], start, end });
       }
     } else if (tab === 'monthly') {
-      // Weeks within the current month
-      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-      const nextMonthStart = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+      const monthStart = new Date(now.getFullYear(), now.getMonth() + offset, 1);
+      const nextMonthStart = new Date(now.getFullYear(), now.getMonth() + offset + 1, 1);
       let weekStart = new Date(monthStart);
       let weekNum = 1;
       while (weekStart.getTime() < nextMonthStart.getTime()) {
@@ -285,14 +314,37 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
         weekNum++;
       }
     } else {
-      // Yearly: 12 months
+      const year = now.getFullYear() + offset;
       const monthNames = ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек'];
       for (let m = 0; m < 12; m++) {
-        const start = new Date(now.getFullYear(), m, 1).getTime();
-        const end = new Date(now.getFullYear(), m + 1, 1).getTime();
+        const start = new Date(year, m, 1).getTime();
+        const end = new Date(year, m + 1, 1).getTime();
         buckets.push({ key: `m${m}`, label: monthNames[m], start, end });
       }
     }
+
+    return buckets;
+  });
+
+  /** Aggregated spending per bucket for the spending-trend chart */
+  readonly spendingTrendData = computed(() => {
+    const buckets = this.periodBuckets();
+    const txs = this.periodTransactions().filter(t => t.amount < 0);
+    const labels = buckets.map(b => b.label);
+    const data = buckets.map(b =>
+      txs
+        .filter(t => t.timestamp >= b.start && t.timestamp < b.end)
+        .reduce((s, t) => s + Math.abs(t.amount), 0) / 100,
+    );
+    return { labels, data };
+  });
+
+  /** Build time-series datasets per category for the category chart */
+  readonly categoryChartDatasets = computed(() => {
+    const buckets = this.periodBuckets();
+    const txs = this.periodTransactions().filter(t => t.amount < 0);
+    const cats = this.categories();
+    const hidden = this.hiddenCategoryIds();
 
     // Group transactions by category
     const catIds = new Set(txs.map(t => t.categoryId));
@@ -388,6 +440,14 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
     const filter = this.txFilter();
     if (filter === 'personal') return all.filter(tx => !tx.fromBalance);
     if (filter === 'shared') return all.filter(tx => tx.fromBalance);
+    return all;
+  });
+
+  readonly filteredShoppingLists = computed(() => {
+    const all = this.shoppingLists();
+    const filter = this.slFilter();
+    if (filter === 'personal') return all.filter(l => !l.fromBalance);
+    if (filter === 'shared') return all.filter(l => l.fromBalance);
     return all;
   });
 
@@ -513,6 +573,7 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
   goalType: 'goal' | 'shoppingList' = 'goal';
   goalName = '';
   goalTarget = '';
+  goalFromBalance = false;
 
   // Shopping list item form
   readonly showAddItemDialog = signal(false);
@@ -605,7 +666,6 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
     this.financeService.loadSavingsGoals();
     this.financeService.loadShoppingLists();
     this.financeService.loadLimits();
-    this.financeService.loadAllChartData();
   }
 
   ngAfterViewInit(): void {
@@ -625,7 +685,20 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   setChartTab(tab: 'weekly' | 'monthly' | 'yearly'): void {
     this.activeChartTab.set(tab);
-    this.financeService.setChartPeriod(tab);
+    this.periodOffset.set(0);
+  }
+
+  goToPreviousPeriod(): void {
+    this.periodOffset.update(o => o - 1);
+  }
+
+  goToNextPeriod(): void {
+    if (this.periodOffset() >= 0) return;
+    this.periodOffset.update(o => o + 1);
+  }
+
+  goToCurrentPeriod(): void {
+    this.periodOffset.set(0);
   }
 
   // ─── Formatters ───
@@ -713,6 +786,7 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
     this.goalType = 'goal';
     this.goalName = '';
     this.goalTarget = '';
+    this.goalFromBalance = false;
     this.showGoalDialog.set(true);
   }
 
@@ -721,7 +795,7 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!name) return;
 
     if (this.goalType === 'shoppingList') {
-      this.financeService.createShoppingList(name);
+      this.financeService.createShoppingList(name, this.goalFromBalance);
       this.showGoalDialog.set(false);
       return;
     }
@@ -1062,10 +1136,7 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!canvas) return;
 
     const tab = this.activeChartTab();
-    const chartData = this.financeService.chartData();
-
-    const labels = chartData.map(p => p.label);
-    const data = chartData.map(p => p.value);
+    const { labels, data } = this.spendingTrendData();
 
     const datasets: any[] = [
       {

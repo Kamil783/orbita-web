@@ -196,14 +196,13 @@ $finance-accent-border: rgba(250, 204, 21, 0.30);
 .transactions-section {
   flex: 1;
   min-width: 0;
-  max-width: 720px;
   display: flex;
   flex-direction: column;
 }
 
 .shopping-lists-section {
-  width: 340px;
-  flex-shrink: 0;
+  flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
 }
@@ -446,30 +445,31 @@ $finance-accent-border: rgba(250, 204, 21, 0.30);
 }
 
 .sl-card {
-  padding: 16px;
+  padding: 20px;
   cursor: pointer;
   transition: background 0.15s ease;
 
   &:not(:last-of-type) { border-bottom: 1px solid var(--border-light); }
   &:hover { background: var(--surface-hover); }
 
-  &__header { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+  &__header { display: flex; align-items: center; gap: 14px; margin-bottom: 10px; }
 
   &__icon {
-    width: 36px; height: 36px; border-radius: 8px;
+    width: 42px; height: 42px; border-radius: 10px;
     background: $finance-accent-light;
     display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-    .material-symbols-outlined { font-size: 20px; color: #a16207; }
+    .material-symbols-outlined { font-size: 22px; color: #a16207; }
   }
 
   &__info { flex: 1; min-width: 0; }
-  &__name { margin: 0; font-size: 14px; font-weight: 700; color: var(--text-900); }
-  &__meta { margin: 2px 0 0; font-size: 12px; color: var(--text-500); }
-  &__badge { font-size: 13px; font-weight: 700; color: $finance-accent; flex-shrink: 0; }
+  &__name { margin: 0; font-size: 16px; font-weight: 700; color: var(--text-900); }
+  &__meta { margin: 3px 0 0; font-size: 13px; color: var(--text-500); }
+  &__badge { font-size: 16px; font-weight: 800; color: $finance-accent; flex-shrink: 0; }
+  &__source { font-weight: 600; color: var(--color-primary); &--shared { color: #8b5cf6; } }
 
   &__progress {
-    width: 100%; height: 6px; background: var(--surface-hover);
-    border-radius: 9999px; overflow: hidden; margin-bottom: 8px;
+    width: 100%; height: 8px; background: var(--surface-hover);
+    border-radius: 9999px; overflow: hidden; margin-bottom: 10px;
   }
 
   &__progress-fill {
@@ -479,18 +479,18 @@ $finance-accent-border: rgba(250, 204, 21, 0.30);
 
   &__footer {
     display: flex; justify-content: space-between;
-    font-size: 11px; font-weight: 500; color: var(--text-500); margin-bottom: 8px;
+    font-size: 13px; font-weight: 500; color: var(--text-500); margin-bottom: 10px;
   }
 
   &__actions {
-    display: flex; gap: 4px; justify-content: flex-end;
+    display: flex; gap: 6px; justify-content: flex-end;
     opacity: 0; transition: opacity 0.15s ease;
   }
 
   &:hover &__actions { opacity: 1; }
 
   &__btn {
-    width: 30px; height: 30px;
+    width: 34px; height: 34px;
     display: flex; align-items: center; justify-content: center;
     border: 1px solid var(--border-color); border-radius: 8px;
     background: var(--surface-panel); cursor: pointer; transition: all 0.15s ease;
@@ -521,10 +521,18 @@ $finance-accent-border: rgba(250, 204, 21, 0.30);
   padding: 0 4px;
 }
 
+.chart-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 4px;
+  flex-wrap: wrap;
+}
+
 .chart-source-filter {
   display: flex;
   gap: 6px;
-  padding: 0 4px;
 }
 
 .chart-source-filter__btn {
@@ -548,6 +556,37 @@ $finance-accent-border: rgba(250, 204, 21, 0.30);
     border-color: var(--color-primary);
     color: #fff;
   }
+}
+
+// ─── Period navigation ───
+.period-nav {
+  display: flex; align-items: center; gap: 8px;
+}
+
+.period-nav__btn {
+  width: 32px; height: 32px;
+  display: flex; align-items: center; justify-content: center;
+  border: 1px solid var(--border-color); border-radius: 8px;
+  background: var(--surface-panel); color: var(--text-600);
+  cursor: pointer; transition: all 0.15s ease;
+
+  .material-symbols-outlined { font-size: 20px; }
+  &:hover:not(:disabled) { border-color: var(--color-primary); color: var(--color-primary); }
+  &:disabled { opacity: 0.3; cursor: default; }
+}
+
+.period-nav__label {
+  font-size: 14px; font-weight: 600; color: var(--text-700);
+  min-width: 140px; text-align: center;
+}
+
+.period-nav__today {
+  padding: 4px 12px; font-size: 12px; font-weight: 700;
+  border: 1px solid $finance-accent-border; border-radius: 6px;
+  background: $finance-accent-light; color: #a16207;
+  cursor: pointer; transition: all 0.15s ease;
+
+  &:hover { background: $finance-accent; color: #000; }
 }
 
 // ─── Category spending section ───

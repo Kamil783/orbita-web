@@ -5,7 +5,6 @@ import {
   AdjustBalanceDto,
   BalanceResponse,
   Category,
-  ChartDataPoint,
   CreateCategoryDto,
   UpdateCategoryDto,
   CreateSavingsGoalDto,
@@ -50,8 +49,6 @@ import {
  *
  * GET    /api/Finance/limits                         → SpendingLimits              Load spending limits
  * PUT    /api/Finance/limits                         → SpendingLimits              Update spending limits. Body: SpendingLimits
- *
- * GET    /api/Finance/chart-data?period=weekly|monthly → ChartDataPoint[]          Load chart data for the given period
  */
 
 @Injectable({ providedIn: 'root' })
@@ -68,7 +65,6 @@ export class FinanceService {
   readonly transactions = signal<Transaction[]>([]);
   readonly savingsGoals = signal<SavingsGoal[]>([]);
   readonly limits = signal<SpendingLimits>({ monthlyLimit: 0, weeklyLimit: 0 });
-  readonly chartData = signal<ChartDataPoint[]>([]);
 
   // ─── Balance ───
 
@@ -309,8 +305,8 @@ export class FinanceService {
       });
   }
 
-  createShoppingList(name: string): void {
-    this.http.post<ShoppingList>(`${this.apiUrl}/api/Finance/shopping-lists`, { name } as CreateShoppingListDto)
+  createShoppingList(name: string, fromBalance: boolean): void {
+    this.http.post<ShoppingList>(`${this.apiUrl}/api/Finance/shopping-lists`, { name, fromBalance } as CreateShoppingListDto)
       .subscribe(created => {
         this.shoppingLists.update(lists => [...lists, created]);
       });
@@ -460,45 +456,4 @@ export class FinanceService {
       });
   }
 
-  // ─── Chart data ───
-
-  private readonly weeklyChartData = signal<ChartDataPoint[]>([]);
-  private readonly monthlyChartData = signal<ChartDataPoint[]>([]);
-  private readonly yearlyChartData = signal<ChartDataPoint[]>([]);
-
-  loadAllChartData(): void {
-    this.http.get<ChartDataPoint[]>(`${this.apiUrl}/api/Finance/chart-data`, {
-      params: { period: 'weekly' },
-    }).subscribe(data => {
-      this.weeklyChartData.set(data);
-      // Initialize with weekly by default
-      if (this.chartData().length === 0) this.chartData.set(data);
-    });
-
-    this.http.get<ChartDataPoint[]>(`${this.apiUrl}/api/Finance/chart-data`, {
-      params: { period: 'monthly' },
-    }).subscribe(data => {
-      this.monthlyChartData.set(data);
-    });
-
-    this.http.get<ChartDataPoint[]>(`${this.apiUrl}/api/Finance/chart-data`, {
-      params: { period: 'yearly' },
-    }).subscribe(data => {
-      this.yearlyChartData.set(data);
-    });
-  }
-
-  setChartPeriod(period: 'weekly' | 'monthly' | 'yearly'): void {
-    switch (period) {
-      case 'weekly':
-        this.chartData.set(this.weeklyChartData());
-        break;
-      case 'monthly':
-        this.chartData.set(this.monthlyChartData());
-        break;
-      case 'yearly':
-        this.chartData.set(this.yearlyChartData());
-        break;
-    }
-  }
 }
