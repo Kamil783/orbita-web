@@ -159,7 +159,7 @@
                 >
                   <span class="material-symbols-outlined">edit</span>
                 </button>
-                <div class="category-chip__icon" [style.background]="cs.bg" [style.color]="cs.color">
+                <div class="category-chip__icon" [style.color]="cs.color">
                   <span class="material-symbols-outlined">{{ cs.icon }}</span>
                 </div>
                 <div class="category-chip__info">
@@ -289,7 +289,6 @@
               <div class="transaction">
                 <div
                   class="transaction__icon"
-                  [style.background]="tx.iconBg"
                   [style.color]="tx.iconColor"
                 >
                   <span class="material-symbols-outlined">{{ tx.icon }}</span>
@@ -361,7 +360,7 @@
             </div>
             <div class="shopping-lists-card__list">
               @for (list of filteredShoppingLists(); track list.id) {
-                <div class="sl-card" (click)="openShoppingListDetail(list)">
+                <div class="sl-card" [class.sl-card--pinned]="list.pinned" (click)="openShoppingListDetail(list)">
                   <div class="sl-card__header">
                     <div class="sl-card__icon">
                       <span class="material-symbols-outlined">shopping_cart</span>
@@ -399,6 +398,15 @@
                   <div class="sl-card__actions">
                     <button class="sl-card__btn sl-card__btn--add" type="button" (click)="openAddItemDialog(list); $event.stopPropagation()">
                       <span class="material-symbols-outlined">add</span>
+                    </button>
+                    <button
+                      class="sl-card__btn sl-card__btn--pin"
+                      [class.sl-card__btn--pin-active]="list.pinned"
+                      type="button"
+                      [title]="list.pinned ? 'Открепить' : 'Закрепить'"
+                      (click)="togglePinShoppingList(list); $event.stopPropagation()"
+                    >
+                      <span class="material-symbols-outlined">{{ list.pinned ? 'keep_off' : 'keep' }}</span>
                     </button>
                     <button class="sl-card__btn sl-card__btn--edit" type="button" (click)="openEditShoppingListDialog(list); $event.stopPropagation()">
                       <span class="material-symbols-outlined">edit</span>
@@ -547,12 +555,11 @@
               <button
                 class="color-grid__item"
                 [class.color-grid__item--active]="categorySelectedColorIdx === idx"
-                [style.background]="c.bg"
-                [style.border-color]="c.color"
+                [style.color]="c.color"
                 type="button"
                 (click)="categorySelectedColorIdx = idx"
               >
-                <span class="color-grid__dot" [style.background]="c.color"></span>
+                <span class="color-grid__dot"></span>
               </button>
             }
           </div>
@@ -1161,7 +1168,7 @@
                 <div class="history-period__details">
                   @for (cat of period.categories; track cat.name) {
                     <div class="history-cat" [class.history-cat--over]="cat.isOverLimit">
-                      <div class="history-cat__icon" [style.background]="cat.bg" [style.color]="cat.color">
+                      <div class="history-cat__icon" [style.color]="cat.color">
                         <span class="material-symbols-outlined">{{ cat.icon }}</span>
                       </div>
                       <span class="history-cat__name">{{ cat.name }}</span>
@@ -1365,11 +1372,15 @@
         }
       </p>
 
-      <div class="shopping-detail__items">
+      <div
+        class="shopping-detail__items"
+        cdkDropList
+        (cdkDropListDropped)="onShoppingItemDrop(list.id, $event)"
+      >
         @for (item of list.items; track item.id) {
           @if (editingShoppingItemId() === item.id) {
             <!-- Inline edit mode -->
-            <div class="shopping-item shopping-item--editing" (click)="$event.stopPropagation()">
+            <div class="shopping-item shopping-item--editing" cdkDrag [cdkDragDisabled]="true" (click)="$event.stopPropagation()">
               <input
                 class="shopping-item__edit-input"
                 type="text"
@@ -1393,9 +1404,13 @@
           } @else {
             <div
               class="shopping-item"
+              cdkDrag
               [class.shopping-item--bought]="item.bought"
               (click)="toggleShoppingItem(list.id, item.id)"
             >
+              <span class="shopping-item__drag material-symbols-outlined" cdkDragHandle (click)="$event.stopPropagation()" title="Перетащить">
+                drag_indicator
+              </span>
               <span class="shopping-item__check material-symbols-outlined">
                 {{ item.bought ? 'check_box' : 'check_box_outline_blank' }}
               </span>

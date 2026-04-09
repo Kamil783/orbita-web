@@ -19,6 +19,7 @@ import {
   ShoppingList,
   ShoppingListItem,
   SpendingLimits,
+  ReorderShoppingListItemsDto,
   ToggleShoppingListItemDto,
   UpdateShoppingListDto,
   UpdateShoppingListItemDto,
@@ -373,6 +374,34 @@ export class FinanceService {
             : l),
         );
       },
+      error: () => {
+        this.shoppingLists.set(backup);
+      },
+    });
+  }
+
+  reorderShoppingListItems(listId: string, itemIds: string[]): void {
+    const backup = this.shoppingLists();
+
+    // Optimistic reorder
+    this.shoppingLists.update(lists =>
+      lists.map(l => {
+        if (l.id !== listId) return l;
+        const byId = new Map(l.items.map(i => [i.id, i]));
+        const reordered = itemIds
+          .map((id, idx) => {
+            const it = byId.get(id);
+            return it ? { ...it, order: idx } : null;
+          })
+          .filter((i): i is ShoppingListItem => i !== null);
+        return { ...l, items: reordered };
+      }),
+    );
+
+    this.http.put(
+      `${this.apiUrl}/api/Finance/shopping-lists/${listId}/items/reorder`,
+      { itemIds } as ReorderShoppingListItemsDto,
+    ).subscribe({
       error: () => {
         this.shoppingLists.set(backup);
       },

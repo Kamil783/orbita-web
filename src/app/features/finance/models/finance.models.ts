@@ -44,6 +44,7 @@ export interface ShoppingListItem {
   name: string;
   price: number | null;  // kopecks, null = unknown
   bought: boolean;
+  order: number;         // position within the list (asc)
 }
 
 export interface ShoppingList {
@@ -52,6 +53,7 @@ export interface ShoppingList {
   items: ShoppingListItem[];
   createdAt: number;     // ms since epoch
   fromBalance: boolean;  // true = shared (общий), false = personal (личный)
+  pinned: boolean;       // pinned lists are always shown on top
 }
 
 // ─── Request DTOs ───
@@ -125,6 +127,11 @@ export interface UpdateShoppingListItemDto {
 
 export interface UpdateShoppingListDto {
   name?: string;
+  pinned?: boolean;
+}
+
+export interface ReorderShoppingListItemsDto {
+  itemIds: string[]; // new order, top → bottom
 }
 
 export interface ToggleShoppingListItemDto {
