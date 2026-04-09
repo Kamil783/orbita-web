@@ -258,6 +258,74 @@ $finance-accent-border: rgba(250, 204, 21, 0.30);
   font-size: 16px;
 }
 
+.tx-tabs__btn--icon {
+  margin-left: auto;
+  padding: 8px 10px;
+  position: relative;
+}
+
+.tx-tabs__dot {
+  position: absolute;
+  top: 6px; right: 6px;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--color-primary);
+}
+
+// ─── Transactions filters panel ───
+.tx-filters {
+  display: flex; flex-direction: column; gap: 10px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-light);
+  background: var(--surface-muted);
+}
+.tx-filters__row {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+}
+.tx-filters__label {
+  font-size: 12px; font-weight: 600; color: var(--text-500);
+  text-transform: uppercase; letter-spacing: 0.02em;
+}
+.tx-filters__select-wrap { flex: 1; min-width: 140px; }
+.tx-filters__row--dates app-date-picker { flex: 1; min-width: 130px; }
+.tx-filters ::ng-deep .dp__input { height: 34px; padding: 0 12px; }
+.tx-filters ::ng-deep .dp__input .material-symbols-outlined { font-size: 16px; }
+.tx-filters ::ng-deep .sel__input {
+  height: 34px;
+  padding: 6px 12px;
+  background: var(--surface-panel);
+}
+.tx-filters ::ng-deep .sel__icon,
+.tx-filters ::ng-deep .sel__chevron { font-size: 16px; }
+.tx-filters ::ng-deep .sel__value,
+.tx-filters ::ng-deep .sel__placeholder { font-size: 13px; }
+.tx-filters__actions {
+  display: flex; gap: 8px; flex-wrap: wrap;
+}
+.tx-filters__btn {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 6px 12px;
+  font-size: 12px; font-weight: 600;
+  border: 1px solid var(--border-color); border-radius: 8px;
+  background: var(--surface-panel); color: var(--text-700);
+  cursor: pointer; transition: all 0.15s ease;
+  .material-symbols-outlined { font-size: 14px; }
+  &:hover { border-color: var(--color-primary); color: var(--color-primary); }
+  &--clear:hover { border-color: #dc2626; color: #dc2626; }
+}
+
+// ─── Period detail dialog list ───
+.period-detail__list {
+  max-height: 50vh;
+  overflow-y: auto;
+  margin-top: 12px;
+  border-top: 1px solid var(--border-light);
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-color) transparent;
+  .transaction { padding: 12px 4px; border-bottom: 1px solid var(--border-light); }
+  .transaction:last-child { border-bottom: 0; }
+}
+
 // ─── Scrollable transactions list ───
 .transactions-card__list {
   flex: 1;
