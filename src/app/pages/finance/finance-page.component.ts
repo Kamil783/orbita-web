@@ -18,6 +18,7 @@ import { Chart, registerables } from 'chart.js';
 import { FinanceService } from '../../features/finance/data/finance.service';
 import { ModalOverlayComponent } from '../../shared/ui/modal-overlay/modal-overlay.component';
 import { DatePickerComponent } from '../../shared/ui/date-picker/date-picker.component';
+import { SelectComponent } from '../../shared/ui/select/select.component';
 import {
   Category,
   SavingsGoal,
@@ -33,7 +34,7 @@ Chart.register(...registerables);
 @Component({
   selector: 'app-finance-page',
   standalone: true,
-  imports: [AppShellComponent, TopbarComponent, FormsModule, ModalOverlayComponent, DatePickerComponent, CdkDropList, CdkDrag, CdkDragHandle],
+  imports: [AppShellComponent, TopbarComponent, FormsModule, ModalOverlayComponent, DatePickerComponent, SelectComponent, CdkDropList, CdkDrag, CdkDragHandle],
   templateUrl: './finance-page.component.html',
   styleUrl: './finance-page.component.scss',
 })
@@ -89,6 +90,10 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
   // ─── View state ───
 
   readonly txFilter = signal<'all' | 'personal' | 'shared'>('all');
+  readonly txCategoryFilter = signal<string>('');      // category id, '' = все
+  readonly txDateFrom = signal<string>('');            // ISO 'YYYY-MM-DD'
+  readonly txDateTo = signal<string>('');              // ISO 'YYYY-MM-DD'
+  readonly showTxFilters = signal(false);
   readonly slFilter = signal<'all' | 'personal' | 'shared'>('all');
   readonly periodOffset = signal(0);
 
@@ -439,10 +444,93 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly filteredTransactions = computed(() => {
     const all = this.transactionsWithCategory();
     const filter = this.txFilter();
-    if (filter === 'personal') return all.filter(tx => !tx.fromBalance);
-    if (filter === 'shared') return all.filter(tx => tx.fromBalance);
-    return all;
+    const catId = this.txCategoryFilter();
+    const from = this.txDateFrom();
+    const to = this.txDateTo();
+
+    const fromTs = from ? new Date(from + 'T00:00:00').getTime() : null;
+    const toTs = to ? new Date(to + 'T23:59:59.999').getTime() : null;
+
+    return all.filter(tx => {
+      if (filter === 'personal' && tx.fromBalance) return false;
+      if (filter === 'shared' && !tx.fromBalance) return false;
+      if (catId && tx.categoryId !== catId) return false;
+      if (fromTs !== null && tx.timestamp < fromTs) return false;
+      if (toTs !== null && tx.timestamp > toTs) return false;
+      return true;
+    });
   });
+
+  readonly hasActiveTxFilters = computed(() =>
+    !!this.txCategoryFilter() || !!this.txDateFrom() || !!this.txDateTo(),
+  );
+
+  readonly categoryFilterOptions = computed(() =>
+    this.categories().map(c => ({ value: c.id, label: c.name })),
+  );
+
+  resetTxFilters(): void {
+    this.txCategoryFilter.set('');
+    this.txDateFrom.set('');
+    this.txDateTo.set('');
+  }
+
+  setTxDateToday(): void {
+    const today = new Date();
+    const iso = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    this.txDateFrom.set(iso);
+    this.txDateTo.set(iso);
+  }
+
+  // ─── Period detail dialog (click on chart) ───
+
+  readonly detailPeriodRange = signal<{ start: number; end: number; label: string; catId?: string } | null>(null);
+
+  readonly showPeriodDetailDialog = computed(() => this.detailPeriodRange() !== null);
+
+  readonly periodDetailTransactions = computed(() => {
+    const range = this.detailPeriodRange();
+    if (!range) return [];
+    return this.transactionsWithCategory()
+      .filter(tx =>
+        tx.timestamp >= range.start &&
+        tx.timestamp < range.end &&
+        (!range.catId || tx.categoryId === range.catId),
+      )
+      .sort((a, b) => b.timestamp - a.timestamp);
+  });
+
+  readonly periodDetailTotal = computed(() =>
+    this.periodDetailTransactions()
+      .filter(tx => tx.amount < 0)
+      .reduce((s, tx) => s + Math.abs(tx.amount), 0),
+  );
+
+  closePeriodDetail(): void {
+    this.detailPeriodRange.set(null);
+  }
+
+  private openBucketDetail(bucketIndex: number, catId?: string): void {
+    const buckets = this.periodBuckets();
+    const bucket = buckets[bucketIndex];
+    if (!bucket) return;
+    const tab = this.activeChartTab();
+    let label = bucket.label;
+    if (tab === 'weekly') {
+      const d = new Date(bucket.start);
+      const months = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
+      label = `${d.getDate()} ${months[d.getMonth()]}`;
+    } else if (tab === 'monthly') {
+      const s = new Date(bucket.start);
+      const e = new Date(bucket.end - 1);
+      label = `${s.getDate()}–${e.getDate()} ${['янв','фев','мар','апр','мая','июн','июл','авг','сен','окт','ноя','дек'][s.getMonth()]}`;
+    } else {
+      const s = new Date(bucket.start);
+      const months = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+      label = `${months[s.getMonth()]} ${s.getFullYear()}`;
+    }
+    this.detailPeriodRange.set({ start: bucket.start, end: bucket.end, label, catId });
+  }
 
   readonly filteredShoppingLists = computed(() => {
     let all = this.shoppingLists();
@@ -1197,6 +1285,11 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        onClick: (_evt, elements) => {
+          if (elements.length > 0) {
+            this.openBucketDetail(elements[0].index);
+          }
+        },
         plugins: {
           legend: { display: false },
           tooltip: {
@@ -1259,6 +1352,8 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
       hidden: ds.hidden,
     }));
 
+    const datasetCatIds = datasets.map(d => d.catId);
+
     this.categoryChart = new Chart(canvas, {
       type: 'line',
       data: { labels, datasets: visibleDatasets },
@@ -1268,6 +1363,12 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
         interaction: {
           mode: 'index',
           intersect: false,
+        },
+        onClick: (_evt, elements) => {
+          if (elements.length > 0) {
+            const el = elements[0];
+            this.openBucketDetail(el.index, datasetCatIds[el.datasetIndex]);
+          }
         },
         plugins: {
           legend: { display: false },

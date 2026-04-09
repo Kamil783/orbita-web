@@ -282,7 +282,49 @@
               <span class="material-symbols-outlined tx-tabs__icon">group</span>
               Общие
             </button>
+            <button
+              class="tx-tabs__btn tx-tabs__btn--icon"
+              [class.tx-tabs__btn--active]="showTxFilters() || hasActiveTxFilters()"
+              type="button"
+              title="Фильтры"
+              (click)="showTxFilters.set(!showTxFilters())"
+            >
+              <span class="material-symbols-outlined tx-tabs__icon">filter_list</span>
+              @if (hasActiveTxFilters()) {
+                <span class="tx-tabs__dot"></span>
+              }
+            </button>
           </div>
+
+          @if (showTxFilters()) {
+            <div class="tx-filters">
+              <div class="tx-filters__row">
+                <label class="tx-filters__label">Категория</label>
+                <app-select
+                  class="tx-filters__select-wrap"
+                  [options]="categoryFilterOptions()"
+                  [ngModel]="txCategoryFilter()"
+                  (ngModelChange)="txCategoryFilter.set($event)"
+                  placeholder="Все категории"
+                  icon="category"
+                />
+              </div>
+              <div class="tx-filters__row tx-filters__row--dates">
+                <label class="tx-filters__label">С</label>
+                <app-date-picker [ngModel]="txDateFrom()" (ngModelChange)="txDateFrom.set($event)" placeholder="Начало" dropdownAlign="left" />
+                <label class="tx-filters__label">По</label>
+                <app-date-picker [ngModel]="txDateTo()" (ngModelChange)="txDateTo.set($event)" placeholder="Конец" dropdownAlign="right" />
+              </div>
+              <div class="tx-filters__actions">
+                <button class="tx-filters__btn" type="button" (click)="setTxDateToday()">Сегодня</button>
+                @if (hasActiveTxFilters()) {
+                  <button class="tx-filters__btn tx-filters__btn--clear" type="button" (click)="resetTxFilters()">
+                    <span class="material-symbols-outlined">close</span> Сбросить
+                  </button>
+                }
+              </div>
+            </div>
+          }
 
           <div class="transactions-card__list">
             @for (tx of filteredTransactions(); track tx.id) {
@@ -1460,6 +1502,56 @@
       </button>
       <button class="dialog__btn dialog__btn--primary" type="button" (click)="openAddItemFromDetail()">
         Добавить товар
+      </button>
+    </div>
+  </app-modal-overlay>
+}
+
+<!-- ═══ Dialog: Транзакции за период (клик по графику) ═══ -->
+@if (showPeriodDetailDialog()) {
+  <app-modal-overlay size="md" (close)="closePeriodDetail()">
+    <div class="dialog__icon-circle dialog__icon-circle--accent">
+      <span class="material-symbols-outlined">query_stats</span>
+    </div>
+    <h3 class="dialog__title">{{ detailPeriodRange()?.label }}</h3>
+    <p class="dialog__desc">
+      Операций: {{ periodDetailTransactions().length }}
+      @if (periodDetailTotal() > 0) {
+        &middot; Расход: {{ formatRub(periodDetailTotal()) }}
+      }
+    </p>
+
+    <div class="period-detail__list">
+      @for (tx of periodDetailTransactions(); track tx.id) {
+        <div class="transaction">
+          <div class="transaction__icon" [style.color]="tx.iconColor">
+            <span class="material-symbols-outlined">{{ tx.icon }}</span>
+          </div>
+          <div class="transaction__info">
+            <p class="transaction__title">{{ tx.title }}</p>
+            <p class="transaction__date">
+              {{ tx.categoryName }} &middot; {{ tx.date }}
+            </p>
+          </div>
+          <p
+            class="transaction__amount"
+            [class.transaction__amount--negative]="tx.amount < 0"
+            [class.transaction__amount--positive]="tx.amount > 0"
+          >
+            {{ formatAmount(tx.amount) }}
+          </p>
+        </div>
+      } @empty {
+        <div class="transactions-card__empty">
+          <span class="material-symbols-outlined transactions-card__empty-icon">receipt_long</span>
+          <p>За этот период нет операций</p>
+        </div>
+      }
+    </div>
+
+    <div class="dialog__actions">
+      <button class="dialog__btn dialog__btn--secondary" type="button" (click)="closePeriodDetail()">
+        Закрыть
       </button>
     </div>
   </app-modal-overlay>
