@@ -11,6 +11,7 @@ import {
   effect,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { CdkDropList, CdkDrag, CdkDragHandle, CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { AppShellComponent } from '../../shared/ui/app-shell/app-shell.component';
 import { TopbarComponent } from '../../shared/ui/topbar/topbar.component';
 import { Chart, registerables } from 'chart.js';
@@ -32,7 +33,7 @@ Chart.register(...registerables);
 @Component({
   selector: 'app-finance-page',
   standalone: true,
-  imports: [AppShellComponent, TopbarComponent, FormsModule, ModalOverlayComponent, DatePickerComponent],
+  imports: [AppShellComponent, TopbarComponent, FormsModule, ModalOverlayComponent, DatePickerComponent, CdkDropList, CdkDrag, CdkDragHandle],
   templateUrl: './finance-page.component.html',
   styleUrl: './finance-page.component.scss',
 })
@@ -444,12 +445,29 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
   });
 
   readonly filteredShoppingLists = computed(() => {
-    const all = this.shoppingLists();
+    let all = this.shoppingLists();
     const filter = this.slFilter();
-    if (filter === 'personal') return all.filter(l => !l.fromBalance);
-    if (filter === 'shared') return all.filter(l => l.fromBalance);
-    return all;
+    if (filter === 'personal') all = all.filter(l => !l.fromBalance);
+    else if (filter === 'shared') all = all.filter(l => l.fromBalance);
+    // Pinned first, then by createdAt desc
+    return [...all].sort((a, b) => {
+      if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
+      return b.createdAt - a.createdAt;
+    });
   });
+
+  togglePinShoppingList(list: ShoppingList): void {
+    this.financeService.updateShoppingList(list.id, { pinned: !list.pinned });
+  }
+
+  onShoppingItemDrop(listId: string, event: CdkDragDrop<ShoppingListItem[]>): void {
+    if (event.previousIndex === event.currentIndex) return;
+    const list = this.shoppingLists().find(l => l.id === listId);
+    if (!list) return;
+    const ids = list.items.map(i => i.id);
+    moveItemInArray(ids, event.previousIndex, event.currentIndex);
+    this.financeService.reorderShoppingListItems(listId, ids);
+  }
 
   // ─── History ───
 
