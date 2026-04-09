@@ -510,6 +510,12 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
     this.detailPeriodRange.set(null);
   }
 
+  openCategoryDetail(catId: string, catName: string): void {
+    const { start, end } = this.activePeriodRange();
+    const label = `${catName} · ${this.periodLabel()}`;
+    this.detailPeriodRange.set({ start, end, label, catId });
+  }
+
   private openBucketDetail(bucketIndex: number, catId?: string): void {
     const buckets = this.periodBuckets();
     const bucket = buckets[bucketIndex];

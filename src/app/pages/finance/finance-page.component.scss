@@ -705,8 +705,12 @@ $finance-accent-border: rgba(250, 204, 21, 0.30);
   align-items: center;
   gap: 12px;
   padding: 12px 20px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
   background: var(--surface-panel);
   border: 1px solid var(--border-color);
+
+  &:hover { border-color: var(--color-primary); background: var(--surface-hover); }
   border-radius: var(--radius-md);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   position: relative;

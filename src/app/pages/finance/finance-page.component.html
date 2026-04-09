@@ -150,12 +150,16 @@
           <p class="categories-section__subtitle">Расходы по категориям</p>
           <div class="category-chips">
             @for (cs of categorySpending(); track cs.id) {
-              <div class="category-chip" [class.category-chip--over]="cs.isOverLimit">
+              <div
+                class="category-chip"
+                [class.category-chip--over]="cs.isOverLimit"
+                (click)="openCategoryDetail(cs.id, cs.name)"
+              >
                 <button
                   class="category-chip__edit-btn"
                   type="button"
                   title="Редактировать категорию"
-                  (click)="openEditCategoryDialog(cs)"
+                  (click)="openEditCategoryDialog(cs); $event.stopPropagation()"
                 >
                   <span class="material-symbols-outlined">edit</span>
                 </button>
@@ -177,7 +181,7 @@
                       class="category-chip__limit-label"
                       [class.category-chip__limit-label--over]="cs.isOverLimit"
                     >
-                      {{ cs.isOverLimit ? 'Лимит превышен' : formatRub(cs.limit - cs.total) + ' осталось' }}
+                      {{ cs.isOverLimit ? 'Превышен на ' + formatRub(cs.total - cs.limit) : formatRub(cs.limit - cs.total) + ' осталось' }}
                     </span>
                   }
                 </div>
