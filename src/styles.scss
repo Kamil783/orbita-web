@@ -4,3 +4,17 @@
 * { box-sizing: border-box; }
 a { color: inherit; text-decoration: none; }
 button { font: inherit; }
+
+// ─── Global scrollbar ───
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-color) transparent;
+}
+
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 3px;
+  &:hover { background: var(--text-400); }
+}

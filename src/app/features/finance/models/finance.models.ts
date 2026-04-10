@@ -128,6 +128,7 @@ export interface UpdateShoppingListItemDto {
 export interface UpdateShoppingListDto {
   name?: string;
   pinned?: boolean;
+  fromBalance?: boolean;
 }
 
 export interface ReorderShoppingListItemsDto {
