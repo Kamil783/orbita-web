@@ -716,6 +716,7 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly showEditShoppingListDialog = signal(false);
   editShoppingListId = '';
   editShoppingListName = '';
+  editShoppingListFromBalance = false;
 
   // Inline edit shopping list item
   readonly editingShoppingItemId = signal<string | null>(null);
@@ -947,13 +948,17 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
   openEditShoppingListDialog(list: ShoppingList): void {
     this.editShoppingListId = list.id;
     this.editShoppingListName = list.name;
+    this.editShoppingListFromBalance = list.fromBalance;
     this.showEditShoppingListDialog.set(true);
   }
 
   saveEditShoppingList(): void {
     const name = this.editShoppingListName.trim();
     if (!name) return;
-    this.financeService.updateShoppingList(this.editShoppingListId, { name });
+    this.financeService.updateShoppingList(this.editShoppingListId, {
+      name,
+      fromBalance: this.editShoppingListFromBalance,
+    });
     this.showEditShoppingListDialog.set(false);
   }
 

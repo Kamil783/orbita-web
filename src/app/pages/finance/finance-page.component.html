@@ -1356,7 +1356,7 @@
       <span class="material-symbols-outlined">edit</span>
     </div>
     <h3 class="dialog__title">Редактировать план</h3>
-    <p class="dialog__desc">Измените название плана покупок</p>
+    <p class="dialog__desc">Измените название и тип плана покупок</p>
 
     <div class="dialog__fields">
       <div class="field">
@@ -1368,6 +1368,17 @@
           [(ngModel)]="editShoppingListName"
           placeholder="Название плана"
         />
+      </div>
+      <div class="field">
+        <label class="field__label">Источник</label>
+        <div class="type-toggle">
+          <button class="type-toggle__btn" [class.type-toggle__btn--active-income]="!editShoppingListFromBalance" type="button" (click)="editShoppingListFromBalance = false">
+            <span class="material-symbols-outlined">person</span> Личный
+          </button>
+          <button class="type-toggle__btn" [class.type-toggle__btn--active-expense]="editShoppingListFromBalance" type="button" (click)="editShoppingListFromBalance = true">
+            <span class="material-symbols-outlined">group</span> Общий
+          </button>
+        </div>
       </div>
     </div>
 
