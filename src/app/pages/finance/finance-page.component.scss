@@ -1173,7 +1173,17 @@ $finance-accent-border: rgba(250, 204, 21, 0.30);
 }
 
 .shopping-item__edit:hover { background: rgba(37, 140, 244, 0.08); color: var(--color-primary); }
-.shopping-item__remove:hover { background: #fef2f2; color: #dc2626; }
+.shopping-item__remove:hover { background: color-mix(in srgb, #dc2626 14%, transparent); color: #dc2626; }
+
+@media (max-width: 600px) {
+  .shopping-item { flex-wrap: wrap; gap: 6px; }
+  .shopping-item__drag { display: none; }
+  .shopping-item__name { white-space: normal; word-break: break-word; flex-basis: 0; min-width: 60%; }
+  .shopping-item__edit,
+  .shopping-item__remove { opacity: 1; width: 24px; height: 24px; }
+  .shopping-item__edit-input { min-width: 0; }
+  .shopping-item__edit-input--price { flex: 0 0 60px; }
+}
 
 // ═══════════════════════════════════════
 // ─── Section headers ───
