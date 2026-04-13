@@ -32,12 +32,21 @@ export class TaskCardComponent {
     return this.userService.resolveUsers(this.task().assigneeIds);
   }
 
-  get badgeText(): string {
+  get priorityIcon(): string {
     switch (this.task().priority) {
-      case 'critical': return 'Критичный';
-      case 'high':     return 'Высокий приоритет';
-      case 'medium':   return 'Средний';
-      case 'low':      return 'Низкий';
+      case 'critical': return 'priority_high';
+      case 'high': return 'keyboard_double_arrow_up';
+      case 'medium': return 'drag_handle';
+      case 'low': return 'keyboard_double_arrow_down';
+    }
+  }
+
+  get priorityColor(): string {
+    switch (this.task().priority) {
+      case 'critical': return '#dc2626';
+      case 'high': return '#ef4444';
+      case 'medium': return '#258cf4';
+      case 'low': return '#9ca3af';
     }
   }
 

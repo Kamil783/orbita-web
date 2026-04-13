@@ -5,6 +5,7 @@
 
   box-shadow: 0 2px 8px rgba(17, 24, 39, 0.06);
   border: 1px solid transparent;
+  border-left: 3px solid var(--card-priority-color, transparent);
 
   transition: border-color .2s ease;
   cursor: grab;
@@ -12,6 +13,7 @@
 
 .card:hover {
   border-color: rgba(37, 140, 244, 0.30);
+  border-left-color: var(--card-priority-color, rgba(37, 140, 244, 0.30));
 }
 
 .top {
@@ -22,37 +24,27 @@
 }
 
 .badge {
-  font-size: 9px;
-  font-weight: 900;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  padding: 3px 8px;
-  border-radius: 6px;
+  width: 26px; height: 26px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 8px;
 }
+
+.badge__icon { font-size: 18px; }
 
 .badge--critical {
-  background: rgba(220, 38, 38, 0.12);
-  color: #dc2626;
+  background: rgba(220, 38, 38, 0.12); color: #dc2626;
 }
-
 .badge--high {
-  background: var(--priority-high-bg);
-  color: var(--priority-high-text);
+  background: var(--priority-high-bg); color: var(--priority-high-text);
 }
-
 .badge--medium {
-  background: var(--priority-med-bg);
-  color: var(--priority-med-text);
+  background: var(--priority-med-bg); color: var(--priority-med-text);
 }
-
 .badge--low {
-  background: var(--priority-low-bg);
-  color: var(--priority-low-text);
+  background: var(--priority-low-bg); color: var(--priority-low-text);
 }
-
 .badge--done {
-  background: var(--priority-low-bg);
-  color: var(--priority-low-text);
+  background: var(--priority-low-bg); color: var(--priority-low-text);
 }
 
 .more {

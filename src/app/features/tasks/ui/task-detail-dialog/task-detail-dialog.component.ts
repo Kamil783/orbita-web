@@ -81,6 +81,15 @@ export class TaskDetailDialogComponent {
     return `badge--${this.card().priority}`;
   }
 
+  get priorityIcon(): string {
+    switch (this.card().priority) {
+      case 'critical': return 'priority_high';
+      case 'high': return 'keyboard_double_arrow_up';
+      case 'medium': return 'drag_handle';
+      case 'low': return 'keyboard_double_arrow_down';
+    }
+  }
+
   get badgeText(): string {
     switch (this.card().priority) {
       case 'critical': return 'Критичный';

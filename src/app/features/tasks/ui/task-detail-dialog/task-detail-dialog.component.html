@@ -5,8 +5,11 @@
           <span class="material-symbols-outlined">assignment</span>
         </div>
         <div>
-          <h3 class="dialog__title">Детали задачи</h3>
-          <span class="badge" [class]="badgeClass">{{ badgeText }}</span>
+          <h3 class="dialog__title">{{ card().title }}</h3>
+          <span class="badge" [class]="badgeClass">
+            <span class="material-symbols-outlined badge__icon">{{ priorityIcon }}</span>
+            {{ badgeText }}
+          </span>
         </div>
       </div>
       <button class="dialog__close" type="button" (click)="close.emit()">
@@ -134,8 +137,6 @@
     } @else {
       <!-- View mode -->
       <div class="dialog__body">
-        <h2 class="detail__title">{{ card().title }}</h2>
-
         @if (backlogTask?.description; as desc) {
           <p class="detail__description">{{ desc }}</p>
         } @else {
