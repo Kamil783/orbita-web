@@ -250,6 +250,7 @@ export class TasksService {
         this.backlog.update(list =>
           list.map(t => (t.id === id ? updated : t)),
         );
+        this.loadWeeklyBoard();
       },
       error: () => {
         // Rollback on error — reload backlog
