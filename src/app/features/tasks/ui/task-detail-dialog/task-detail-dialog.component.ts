@@ -1,17 +1,18 @@
 import { Component, computed, ElementRef, HostListener, inject, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { DatePipe } from '@angular/common';
 import { DatePickerComponent } from '../../../../shared/ui/date-picker/date-picker.component';
 import { SelectComponent, SelectOption } from '../../../../shared/ui/select/select.component';
 import { AvatarPipe } from '../../../../shared/ui/avatar-pipe/avatar.pipe';
 import { ModalOverlayComponent } from '../../../../shared/ui/modal-overlay/modal-overlay.component';
 import { User, UserService } from '../../../user/data/user.service';
 import { TasksService } from '../../data/tasks.service';
-import { TaskCardVm, TaskPriority, BacklogTask } from '../../models/task.models';
+import { TaskCardVm, TaskPriority, BacklogTask, TimeEntry } from '../../models/task.models';
 
 @Component({
   selector: 'app-task-detail-dialog',
   standalone: true,
-  imports: [FormsModule, DatePickerComponent, SelectComponent, AvatarPipe, ModalOverlayComponent],
+  imports: [FormsModule, DatePipe, DatePickerComponent, SelectComponent, AvatarPipe, ModalOverlayComponent],
   templateUrl: './task-detail-dialog.component.html',
   styleUrl: './task-detail-dialog.component.scss',
 })
@@ -153,6 +154,71 @@ export class TaskDetailDialogComponent {
 
   toggleAssigneeDropdown(): void {
     this.assigneeDropdownOpen.update(v => !v);
+  }
+
+  // ── Time logging ──
+
+  readonly showTimeLog = signal(false);
+  logTimeInput = '';
+  logTimeDesc = '';
+
+  readonly timeEntries = computed(() => {
+    const entries = this.backlogTask?.timeEntries ?? [];
+    return entries.map(e => ({
+      ...e,
+      userName: this.userService.resolveUsers([e.userId])[0]?.name ?? 'Неизвестный',
+      userAvatar: this.userService.resolveUsers([e.userId])[0]?.avatar,
+    }));
+  });
+
+  readonly loggedMinutes = computed(() => this.backlogTask?.loggedMinutes ?? 0);
+
+  readonly estimateMinutesNum = computed(() => this.backlogTask?.estimateMinutes ?? 0);
+
+  readonly timeProgress = computed(() => {
+    const est = this.estimateMinutesNum();
+    const logged = this.loggedMinutes();
+    if (!est) return 0;
+    return Math.min(100, Math.round((logged / est) * 100));
+  });
+
+  formatMinutes(m: number): string {
+    if (m < 60) return `${m} мин`;
+    const h = Math.floor(m / 60);
+    const mins = m % 60;
+    return mins > 0 ? `${h} ч ${mins} мин` : `${h} ч`;
+  }
+
+  submitTimeLog(): void {
+    const raw = this.logTimeInput.trim().replace(',', '.');
+    if (!raw) return;
+
+    let minutes: number;
+    if (raw.includes('ч') || raw.includes('h')) {
+      const hours = parseFloat(raw);
+      minutes = Math.round(hours * 60);
+    } else {
+      minutes = parseFloat(raw);
+      // If value is small (< 10), treat as hours
+      if (!isNaN(minutes) && minutes > 0 && minutes < 10 && !raw.includes('м') && !raw.includes('m')) {
+        minutes = Math.round(minutes * 60);
+      }
+    }
+
+    if (isNaN(minutes) || minutes <= 0) return;
+
+    const backlogId = this.card().backlogId;
+    if (!backlogId) return;
+
+    this.tasksService.logTime(backlogId, minutes, this.logTimeDesc.trim() || undefined);
+    this.logTimeInput = '';
+    this.logTimeDesc = '';
+  }
+
+  deleteTimeEntry(entryId: string): void {
+    const backlogId = this.card().backlogId;
+    if (!backlogId) return;
+    this.tasksService.deleteTimeEntry(backlogId, entryId);
   }
 
 }

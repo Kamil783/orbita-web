@@ -207,6 +207,88 @@
             </div>
           </div>
         }
+
+        <!-- Time tracking -->
+        @if (card().backlogId) {
+          <div class="detail__section time-section">
+            <div class="time-section__header">
+              <span class="detail__label">Учёт времени</span>
+              <button class="time-section__toggle" type="button" (click)="showTimeLog.set(!showTimeLog())">
+                <span class="material-symbols-outlined">{{ showTimeLog() ? 'expand_less' : 'expand_more' }}</span>
+              </button>
+            </div>
+
+            <div class="time-section__summary">
+              <div class="time-section__stat">
+                <span class="material-symbols-outlined time-section__stat-icon">schedule</span>
+                <span class="time-section__stat-label">Залогировано</span>
+                <span class="time-section__stat-value">{{ formatMinutes(loggedMinutes()) }}</span>
+              </div>
+              @if (estimateMinutesNum() > 0) {
+                <div class="time-section__stat">
+                  <span class="material-symbols-outlined time-section__stat-icon time-section__stat-icon--muted">timer</span>
+                  <span class="time-section__stat-label">Оценка</span>
+                  <span class="time-section__stat-value">{{ formatMinutes(estimateMinutesNum()) }}</span>
+                </div>
+                <div class="time-section__bar">
+                  <div
+                    class="time-section__bar-fill"
+                    [class.time-section__bar-fill--over]="loggedMinutes() > estimateMinutesNum()"
+                    [style.width.%]="timeProgress()"
+                  ></div>
+                </div>
+              }
+            </div>
+
+            <!-- Quick log form -->
+            <div class="time-section__form">
+              <input
+                class="time-section__input"
+                type="text"
+                inputmode="decimal"
+                [(ngModel)]="logTimeInput"
+                placeholder="Часы (напр. 1.5)"
+                (keydown.enter)="submitTimeLog()"
+              />
+              <input
+                class="time-section__input time-section__input--desc"
+                type="text"
+                [(ngModel)]="logTimeDesc"
+                placeholder="Комментарий"
+                (keydown.enter)="submitTimeLog()"
+              />
+              <button class="time-section__submit" type="button" (click)="submitTimeLog()" title="Списать">
+                <span class="material-symbols-outlined">add</span>
+              </button>
+            </div>
+
+            <!-- Entries list -->
+            @if (showTimeLog() && timeEntries().length > 0) {
+              <div class="time-section__entries">
+                @for (entry of timeEntries(); track entry.id) {
+                  <div class="time-entry">
+                    @if (entry.userAvatar) {
+                      <img class="time-entry__avatar" [src]="entry.userAvatar | avatar" [alt]="entry.userName" />
+                    } @else {
+                      <span class="time-entry__avatar time-entry__avatar--initial">{{ entry.userName.charAt(0).toUpperCase() }}</span>
+                    }
+                    <span class="time-entry__user">{{ entry.userName }}</span>
+                    <span class="time-entry__time">{{ formatMinutes(entry.minutes) }}</span>
+                    @if (entry.description) {
+                      <span class="time-entry__desc">{{ entry.description }}</span>
+                    } @else {
+                      <span class="time-entry__spacer"></span>
+                    }
+                    <span class="time-entry__date">{{ entry.createdAt | date:'dd.MM' }}</span>
+                    <button class="time-entry__delete" type="button" (click)="deleteTimeEntry(entry.id)" title="Удалить">
+                      <span class="material-symbols-outlined">close</span>
+                    </button>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        }
       </div>
 
       <footer class="dialog__footer">

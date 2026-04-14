@@ -4,7 +4,7 @@ import { environment } from '../../../../environments/environment';
 import { UserService } from '../../user/data/user.service';
 import {
   BacklogTask, KanbanColumnVm, TaskCardVm,
-  TasksFilterItemVm, WeekArchive,
+  TasksFilterItemVm, TimeEntry, WeekArchive,
 } from '../models/task.models';
 
 /**
@@ -21,6 +21,8 @@ import {
  * POST   /api/Backlog/:id/from-week→ void                    Remove backlog task from weekly board
  * PATCH  /api/Backlog/:id/done     → void                    Body: { done: boolean }
  * PATCH  /api/Backlog/:id          → BacklogTask             Update backlog task. Body: { title?, description?, priority?, dueDate?, estimateMinutes?, assigneeIds? }
+ * POST   /api/Backlog/:id/time-log → TimeEntry               Log time. Body: { minutes, description? }
+ * DELETE /api/Backlog/:id/time-log/:entryId → void           Delete a time entry
  *
  * POST   /api/Columns              → { id }                 Create a new board column. Body: { title }
  *
@@ -289,6 +291,57 @@ export class TasksService {
     };
     this.http.post<BacklogTask>(`${this.apiUrl}/api/Backlog`, dto).subscribe(created => {
       this.backlog.update(list => [...list, created]);
+    });
+  }
+
+  // ── Time logging ──
+
+  logTime(backlogTaskId: string, minutes: number, description?: string): void {
+    // Optimistic update
+    this.backlog.update(list =>
+      list.map(t => t.id === backlogTaskId
+        ? { ...t, loggedMinutes: (t.loggedMinutes ?? 0) + minutes }
+        : t),
+    );
+
+    this.http.post<TimeEntry>(
+      `${this.apiUrl}/api/Backlog/${backlogTaskId}/time-log`,
+      { minutes, description: description || undefined },
+    ).subscribe({
+      next: (entry) => {
+        this.backlog.update(list =>
+          list.map(t => t.id === backlogTaskId
+            ? { ...t, timeEntries: [...(t.timeEntries ?? []), entry] }
+            : t),
+        );
+      },
+      error: () => {
+        this.backlog.update(list =>
+          list.map(t => t.id === backlogTaskId
+            ? { ...t, loggedMinutes: (t.loggedMinutes ?? 0) - minutes }
+            : t),
+        );
+      },
+    });
+  }
+
+  deleteTimeEntry(backlogTaskId: string, entryId: string): void {
+    const task = this.backlog().find(t => t.id === backlogTaskId);
+    const entry = task?.timeEntries?.find(e => e.id === entryId);
+    if (!entry) return;
+
+    this.backlog.update(list =>
+      list.map(t => t.id === backlogTaskId
+        ? {
+            ...t,
+            loggedMinutes: Math.max(0, (t.loggedMinutes ?? 0) - entry.minutes),
+            timeEntries: (t.timeEntries ?? []).filter(e => e.id !== entryId),
+          }
+        : t),
+    );
+
+    this.http.delete(`${this.apiUrl}/api/Backlog/${backlogTaskId}/time-log/${entryId}`).subscribe({
+      error: () => this.loadBacklog(),
     });
   }
 
