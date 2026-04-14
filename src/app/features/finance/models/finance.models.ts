@@ -39,6 +39,8 @@ export interface ChartDataPoint {
 
 // ─── Shopping list ───
 
+export type ShoppingListType = 'personal' | 'shared' | 'team';
+
 export interface ShoppingListItem {
   id: string;
   name: string;
@@ -52,7 +54,7 @@ export interface ShoppingList {
   name: string;
   items: ShoppingListItem[];
   createdAt: number;     // ms since epoch
-  fromBalance: boolean;  // true = shared (общий), false = personal (личный)
+  listType: ShoppingListType;
   pinned: boolean;       // pinned lists are always shown on top
 }
 
@@ -112,7 +114,7 @@ export interface WithdrawSavingsGoalDto {
 
 export interface CreateShoppingListDto {
   name: string;
-  fromBalance: boolean;
+  listType: ShoppingListType;
 }
 
 export interface CreateShoppingListItemDto {
@@ -128,7 +130,7 @@ export interface UpdateShoppingListItemDto {
 export interface UpdateShoppingListDto {
   name?: string;
   pinned?: boolean;
-  fromBalance?: boolean;
+  listType?: ShoppingListType;
 }
 
 export interface ReorderShoppingListItemsDto {

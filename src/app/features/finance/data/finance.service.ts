@@ -18,6 +18,7 @@ import {
   SavingsGoal,
   ShoppingList,
   ShoppingListItem,
+  ShoppingListType,
   SpendingLimits,
   ReorderShoppingListItemsDto,
   ToggleShoppingListItemDto,
@@ -306,8 +307,8 @@ export class FinanceService {
       });
   }
 
-  createShoppingList(name: string, fromBalance: boolean): void {
-    this.http.post<ShoppingList>(`${this.apiUrl}/api/Finance/shopping-lists`, { name, fromBalance } as CreateShoppingListDto)
+  createShoppingList(name: string, listType: ShoppingListType): void {
+    this.http.post<ShoppingList>(`${this.apiUrl}/api/Finance/shopping-lists`, { name, listType } as CreateShoppingListDto)
       .subscribe(created => {
         this.shoppingLists.update(lists => [...lists, created]);
       });
