@@ -94,7 +94,7 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly txDateFrom = signal<string>('');            // ISO 'YYYY-MM-DD'
   readonly txDateTo = signal<string>('');              // ISO 'YYYY-MM-DD'
   readonly showTxFilters = signal(false);
-  readonly slFilter = signal<'all' | 'personal' | 'shared'>('all');
+  readonly slFilter = signal<'all' | 'personal' | 'shared' | 'team'>('all');
   readonly periodOffset = signal(0);
 
   // ─── Computed ───
@@ -541,8 +541,7 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly filteredShoppingLists = computed(() => {
     let all = this.shoppingLists();
     const filter = this.slFilter();
-    if (filter === 'personal') all = all.filter(l => !l.fromBalance);
-    else if (filter === 'shared') all = all.filter(l => l.fromBalance);
+    if (filter !== 'all') all = all.filter(l => l.listType === filter);
     // Pinned first, then by createdAt desc
     return [...all].sort((a, b) => {
       if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
@@ -685,7 +684,7 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
   goalType: 'goal' | 'shoppingList' = 'goal';
   goalName = '';
   goalTarget = '';
-  goalFromBalance = false;
+  goalListType: 'personal' | 'shared' | 'team' = 'personal';
 
   // Shopping list item form
   readonly showAddItemDialog = signal(false);
@@ -716,7 +715,7 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly showEditShoppingListDialog = signal(false);
   editShoppingListId = '';
   editShoppingListName = '';
-  editShoppingListFromBalance = false;
+  editShoppingListType: 'personal' | 'shared' | 'team' = 'personal';
 
   // Inline edit shopping list item
   readonly editingShoppingItemId = signal<string | null>(null);
@@ -899,7 +898,7 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
     this.goalType = 'goal';
     this.goalName = '';
     this.goalTarget = '';
-    this.goalFromBalance = false;
+    this.goalListType = 'personal';
     this.showGoalDialog.set(true);
   }
 
@@ -908,7 +907,7 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!name) return;
 
     if (this.goalType === 'shoppingList') {
-      this.financeService.createShoppingList(name, this.goalFromBalance);
+      this.financeService.createShoppingList(name, this.goalListType);
       this.showGoalDialog.set(false);
       return;
     }
@@ -948,7 +947,7 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
   openEditShoppingListDialog(list: ShoppingList): void {
     this.editShoppingListId = list.id;
     this.editShoppingListName = list.name;
-    this.editShoppingListFromBalance = list.fromBalance;
+    this.editShoppingListType = list.listType;
     this.showEditShoppingListDialog.set(true);
   }
 
@@ -957,7 +956,7 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!name) return;
     this.financeService.updateShoppingList(this.editShoppingListId, {
       name,
-      fromBalance: this.editShoppingListFromBalance,
+      listType: this.editShoppingListType,
     });
     this.showEditShoppingListDialog.set(false);
   }

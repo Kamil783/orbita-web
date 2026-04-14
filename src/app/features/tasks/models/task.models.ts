@@ -31,6 +31,14 @@ export interface KanbanColumnVm {
   cards: TaskCardVm[];
 }
 
+export interface TimeEntry {
+  id: string;
+  userId: string;
+  minutes: number;
+  description?: string;
+  createdAt: string; // ISO date-time
+}
+
 export interface BacklogTask {
   id: string;
   title: string;
@@ -40,6 +48,8 @@ export interface BacklogTask {
   dueDisplayText?: string;
   estimateMinutes?: number;
   estimateDisplayText?: string;
+  loggedMinutes?: number;
+  timeEntries?: TimeEntry[];
   isCompleted: boolean;
   inWeek: boolean;
   assigneeIds?: string[];

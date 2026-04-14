@@ -403,6 +403,9 @@
               <button class="tx-tabs__btn" [class.tx-tabs__btn--active]="slFilter() === 'shared'" type="button" (click)="slFilter.set('shared')">
                 <span class="material-symbols-outlined tx-tabs__icon">group</span> Общие
               </button>
+              <button class="tx-tabs__btn" [class.tx-tabs__btn--active]="slFilter() === 'team'" type="button" (click)="slFilter.set('team')">
+                <span class="material-symbols-outlined tx-tabs__icon">groups</span> Командные
+              </button>
             </div>
             <div class="shopping-lists-card__list">
               @for (list of filteredShoppingLists(); track list.id) {
@@ -420,8 +423,8 @@
                         }
                         @if (slFilter() === 'all') {
                           &middot;
-                          <span class="sl-card__source" [class.sl-card__source--shared]="list.fromBalance">
-                            {{ list.fromBalance ? 'Общий' : 'Личный' }}
+                          <span class="sl-card__source" [class.sl-card__source--shared]="list.listType === 'shared'" [class.sl-card__source--team]="list.listType === 'team'">
+                            {{ list.listType === 'shared' ? 'Общий' : list.listType === 'team' ? 'Командный' : 'Личный' }}
                           </span>
                         }
                       </p>
@@ -707,13 +710,16 @@
       }
       @if (goalType === 'shoppingList') {
         <div class="field">
-          <label class="field__label">Источник</label>
+          <label class="field__label">Тип списка</label>
           <div class="type-toggle">
-            <button class="type-toggle__btn" [class.type-toggle__btn--active-income]="!goalFromBalance" type="button" (click)="goalFromBalance = false">
+            <button class="type-toggle__btn" [class.type-toggle__btn--active-income]="goalListType === 'personal'" type="button" (click)="goalListType = 'personal'">
               <span class="material-symbols-outlined">person</span> Личный
             </button>
-            <button class="type-toggle__btn" [class.type-toggle__btn--active-expense]="goalFromBalance" type="button" (click)="goalFromBalance = true">
+            <button class="type-toggle__btn" [class.type-toggle__btn--active-expense]="goalListType === 'shared'" type="button" (click)="goalListType = 'shared'">
               <span class="material-symbols-outlined">group</span> Общий
+            </button>
+            <button class="type-toggle__btn" [class.type-toggle__btn--active-expense]="goalListType === 'team'" type="button" (click)="goalListType = 'team'">
+              <span class="material-symbols-outlined">groups</span> Командный
             </button>
           </div>
         </div>
@@ -1370,13 +1376,16 @@
         />
       </div>
       <div class="field">
-        <label class="field__label">Источник</label>
+        <label class="field__label">Тип списка</label>
         <div class="type-toggle">
-          <button class="type-toggle__btn" [class.type-toggle__btn--active-income]="!editShoppingListFromBalance" type="button" (click)="editShoppingListFromBalance = false">
+          <button class="type-toggle__btn" [class.type-toggle__btn--active-income]="editShoppingListType === 'personal'" type="button" (click)="editShoppingListType = 'personal'">
             <span class="material-symbols-outlined">person</span> Личный
           </button>
-          <button class="type-toggle__btn" [class.type-toggle__btn--active-expense]="editShoppingListFromBalance" type="button" (click)="editShoppingListFromBalance = true">
+          <button class="type-toggle__btn" [class.type-toggle__btn--active-expense]="editShoppingListType === 'shared'" type="button" (click)="editShoppingListType = 'shared'">
             <span class="material-symbols-outlined">group</span> Общий
+          </button>
+          <button class="type-toggle__btn" [class.type-toggle__btn--active-expense]="editShoppingListType === 'team'" type="button" (click)="editShoppingListType = 'team'">
+            <span class="material-symbols-outlined">groups</span> Командный
           </button>
         </div>
       </div>
