@@ -87,7 +87,7 @@ export interface CreateTransactionDto {
 }
 
 export interface UpdateTransactionDto {
-  categoryId?: string;
+  categoryId?: string | null;
   title?: string;
   amount?: number;      // kopecks, signed
   fromBalance?: boolean;

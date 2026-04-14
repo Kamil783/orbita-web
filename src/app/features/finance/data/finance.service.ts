@@ -171,23 +171,46 @@ export class FinanceService {
   updateTransaction(id: string, dto: UpdateTransactionDto): void {
     const backup = this.transactions();
 
-    // Optimistic update
+    const patchDto: UpdateTransactionDto = {
+      ...dto,
+      ...(Object.prototype.hasOwnProperty.call(dto, 'categoryId')
+        ? { categoryId: dto.categoryId ?? null }
+        : {}),
+    };
+
     this.transactions.update(list =>
-      list.map(t => t.id === id ? { ...t, ...dto } : t),
+      list.map(t => {
+        if (t.id !== id) {
+          return t;
+        }
+
+        return {
+          ...t,
+          ...(dto.title !== undefined ? { title: dto.title } : {}),
+          ...(dto.amount !== undefined ? { amount: dto.amount } : {}),
+          ...(dto.fromBalance !== undefined ? { fromBalance: dto.fromBalance } : {}),
+          ...(dto.date !== undefined ? { date: dto.date } : {}),
+          ...(dto.categoryId !== undefined && dto.categoryId !== null
+            ? { categoryId: dto.categoryId }
+            : {}),
+        };
+      }),
     );
 
-    this.http.patch<Transaction>(`${this.apiUrl}/api/Finance/transactions/${id}`, dto)
-      .subscribe({
-        next: updated => {
-          this.transactions.update(list =>
-            list.map(t => t.id === id ? updated : t),
-          );
-          this.loadBalance();
-        },
-        error: () => {
-          this.transactions.set(backup);
-        },
-      });
+    this.http.patch<Transaction>(
+      `${this.apiUrl}/api/Finance/transactions/${id}`,
+      patchDto,
+    ).subscribe({
+      next: updated => {
+        this.transactions.update(list =>
+          list.map(t => t.id === id ? updated : t),
+        );
+        this.loadBalance();
+      },
+      error: () => {
+        this.transactions.set(backup);
+      },
+    });
   }
 
   deleteTransaction(id: string): void {
