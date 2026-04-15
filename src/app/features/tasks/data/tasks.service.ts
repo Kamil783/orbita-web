@@ -439,14 +439,26 @@ export class TasksService {
       list.map(t => doneBacklogIds.has(t.id) ? { ...t, inWeek: false } : t),
     );
 
+    const currentStart = this.currentWeekStart();
+    if (!currentStart) return;
+
+    const nextWeekStart = this.addDays(this.currentWeekStart(), 7);
+    const nextWeekEnd = this.addDays(nextWeekStart, 6);
+
     this.http.post<{ startDate: string; endDate: string }>(`${this.apiUrl}/api/Weeks/new`, {
-      startDate: archive.startDate,
-      endDate: archive.endDate,
+      startDate: nextWeekStart,
+      endDate: nextWeekEnd,
     }).subscribe(newWeek => {
       if (newWeek?.startDate) {
         this.currentWeekStart.set(newWeek.startDate);
       }
     });
+  }
+
+  private addDays(isoDate: string, days: number): string {
+    const d = new Date(isoDate);
+    d.setDate(d.getDate() + days);
+    return d.toISOString().slice(0, 10);
   }
 
   // ── Column operations ──
