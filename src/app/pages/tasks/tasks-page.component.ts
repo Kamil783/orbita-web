@@ -44,6 +44,7 @@ export class TasksPageComponent implements OnInit {
     this.tasksService.loadWeeklyBoard();
     this.tasksService.loadBacklog();
     this.tasksService.loadWeekArchives();
+    this.tasksService.loadCapacity();
     this.userService.loadMembers();
   }
 

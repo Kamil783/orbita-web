@@ -2,7 +2,6 @@ import { Component, computed, ElementRef, HostListener, inject, input, output, s
 import { FormsModule } from '@angular/forms';
 import { DatePipe } from '@angular/common';
 import { DatePickerComponent } from '../../../../shared/ui/date-picker/date-picker.component';
-import { SelectComponent, SelectOption } from '../../../../shared/ui/select/select.component';
 import { AvatarPipe } from '../../../../shared/ui/avatar-pipe/avatar.pipe';
 import { ModalOverlayComponent } from '../../../../shared/ui/modal-overlay/modal-overlay.component';
 import { User, UserService } from '../../../user/data/user.service';
@@ -12,7 +11,7 @@ import { TaskCardVm, TaskPriority, BacklogTask, TimeEntry } from '../../models/t
 @Component({
   selector: 'app-task-detail-dialog',
   standalone: true,
-  imports: [FormsModule, DatePipe, DatePickerComponent, SelectComponent, AvatarPipe, ModalOverlayComponent],
+  imports: [FormsModule, DatePipe, DatePickerComponent, AvatarPipe, ModalOverlayComponent],
   templateUrl: './task-detail-dialog.component.html',
   styleUrl: './task-detail-dialog.component.scss',
 })
@@ -43,16 +42,45 @@ export class TaskDetailDialogComponent {
     return users.map(u => u.name).join(', ');
   });
 
-  readonly estimateOptions: SelectOption[] = [
-    { value: '15', label: '15 мин' },
-    { value: '30', label: '30 мин' },
-    { value: '45', label: '45 мин' },
-    { value: '60', label: '1 час' },
-    { value: '90', label: '1.5 часа' },
-    { value: '120', label: '2 часа' },
-    { value: '180', label: '3 часа' },
-    { value: '240', label: '4 часа' },
-  ];
+  /**
+   * Parse Jira-style time string into minutes.
+   * Supported: "2ч 30м", "2h 30m", "1д", "1d", "1н", "1w", "90" (plain minutes).
+   */
+  parseEstimate(input: string): number | undefined {
+    const s = input.trim().toLowerCase();
+    if (!s) return undefined;
+
+    if (/^\d+$/.test(s)) {
+      const n = parseInt(s, 10);
+      return n > 0 ? n : undefined;
+    }
+
+    let total = 0;
+    let matched = false;
+
+    const weeks = s.match(/(\d+)\s*[нw]/);
+    if (weeks) { total += parseInt(weeks[1], 10) * 5 * 8 * 60; matched = true; }
+
+    const days = s.match(/(\d+)\s*[дd]/);
+    if (days) { total += parseInt(days[1], 10) * 8 * 60; matched = true; }
+
+    const hours = s.match(/(\d+)\s*[чh]/);
+    if (hours) { total += parseInt(hours[1], 10) * 60; matched = true; }
+
+    const mins = s.match(/(\d+)\s*[мm]/);
+    if (mins) { total += parseInt(mins[1], 10); matched = true; }
+
+    return matched && total > 0 ? total : undefined;
+  }
+
+  formatEstimate(minutes?: number): string {
+    if (!minutes) return '';
+    const h = Math.floor(minutes / 60);
+    const m = minutes % 60;
+    if (h > 0 && m > 0) return `${h}ч ${m}м`;
+    if (h > 0) return `${h}ч`;
+    return `${m}м`;
+  }
 
   readonly priorities: { value: TaskPriority; label: string }[] = [
     { value: 'low', label: 'Низкий' },
@@ -108,7 +136,7 @@ export class TaskDetailDialogComponent {
     this.editPriority.set(task?.priority ?? c.priority);
     this.editDueDate = task?.dueDate ?? '';
     this.editAssigneeIds.set(c.assigneeIds ? [...c.assigneeIds] : []);
-    this.editEstimate = task?.estimateMinutes ? String(task.estimateMinutes) : '';
+    this.editEstimate = task?.estimateMinutes ? this.formatEstimate(task.estimateMinutes) : '';
     this.editProgress.set(c.progressPct ?? null);
     this.isEditing.set(true);
   }
@@ -117,7 +145,6 @@ export class TaskDetailDialogComponent {
     const backlogId = this.card().backlogId;
     if (!backlogId || !this.editTitle.trim()) return;
 
-    const estimateMin = this.editEstimate ? parseInt(this.editEstimate, 10) : undefined;
     const ids = this.editAssigneeIds();
 
     this.tasksService.updateBacklogTask(backlogId, {
@@ -125,7 +152,7 @@ export class TaskDetailDialogComponent {
       description: this.editDescription.trim() || undefined,
       priority: this.editPriority(),
       dueDate: this.editDueDate || undefined,
-      estimateMinutes: estimateMin && !isNaN(estimateMin) ? estimateMin : undefined,
+      estimateMinutes: this.parseEstimate(this.editEstimate),
       assigneeIds: ids,
       progressPct: this.editProgress() ?? undefined,
     });

@@ -66,6 +66,277 @@
   .material-symbols-outlined { font-size: 18px; }
 }
 
+/* ── Capacity indicator ── */
+.capacity {
+  position: relative;
+  background: var(--surface-panel);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 14px 18px;
+  margin-bottom: 16px;
+}
+
+.capacity__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.capacity__title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.capacity__icon {
+  font-size: 18px;
+  color: var(--color-primary);
+}
+
+.capacity__label {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.capacity__summary {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-500);
+}
+
+.capacity__free {
+  font-size: 12px;
+  font-weight: 600;
+  color: #16a34a;
+  background: rgba(22, 163, 74, 0.08);
+  padding: 2px 8px;
+  border-radius: 6px;
+
+  &--over {
+    color: #dc2626;
+    background: rgba(220, 38, 38, 0.08);
+  }
+}
+
+.capacity__settings-btn {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--surface-panel);
+  cursor: pointer;
+  color: var(--text-500);
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+
+  &:hover {
+    color: var(--color-primary);
+    border-color: var(--color-primary);
+  }
+
+  .material-symbols-outlined { font-size: 18px; }
+}
+
+.capacity__bar {
+  width: 100%;
+  height: 6px;
+  background: var(--surface-hover);
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.capacity__bar-fill {
+  height: 100%;
+  background: var(--color-primary);
+  border-radius: 9999px;
+  transition: width 0.4s ease;
+
+  &--warn { background: #f59e0b; }
+  &--over { background: #dc2626; }
+}
+
+.capacity__assignees {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-light);
+}
+
+.capacity__assignee {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.capacity__assignee-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.capacity__assignee-avatar {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.capacity__assignee-initial {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--surface-hover);
+  display: grid;
+  place-items: center;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-500);
+}
+
+.capacity__assignee-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-700);
+}
+
+.capacity__assignee-hours {
+  font-size: 12px;
+  color: var(--text-500);
+  margin-left: auto;
+}
+
+.capacity__assignee-bar {
+  width: 100%;
+  height: 4px;
+  background: var(--surface-hover);
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.capacity__assignee-bar-fill {
+  height: 100%;
+  background: var(--color-primary);
+  border-radius: 9999px;
+  transition: width 0.4s ease;
+
+  &--over { background: #dc2626; }
+}
+
+/* Capacity settings popover */
+.capacity__popover {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 10;
+  margin-top: 6px;
+  background: var(--surface-panel);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  padding: 16px;
+  min-width: 280px;
+  animation: capacityIn 0.15s ease-out;
+}
+
+@keyframes capacityIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.capacity__popover-title {
+  margin: 0 0 12px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.capacity__popover-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.capacity__popover-label {
+  font-size: 13px;
+  color: var(--text-700);
+  white-space: nowrap;
+}
+
+.capacity__popover-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 6px 10px;
+  background: var(--surface-input);
+
+  &:focus-within { border-color: var(--color-primary); }
+}
+
+.capacity__popover-input {
+  width: 48px;
+  border: 0;
+  background: transparent;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-main);
+  outline: none;
+  text-align: center;
+  font-family: inherit;
+
+  /* Hide number spinners */
+  -moz-appearance: textfield;
+  &::-webkit-outer-spin-button,
+  &::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+}
+
+.capacity__popover-unit {
+  font-size: 13px;
+  color: var(--text-500);
+}
+
+.capacity__popover-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-light);
+}
+
+.capacity__popover-total {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-500);
+}
+
+.capacity__popover-save {
+  padding: 6px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  border: 0;
+  border-radius: 8px;
+  background: var(--color-primary);
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.15s ease;
+
+  &:hover { background: var(--color-primary-hover); }
+}
+
 /* ── Toolbar ── */
 .backlog__toolbar {
   display: flex;
@@ -411,28 +682,53 @@
   flex-shrink: 0;
 }
 
-/* Ensure app-select and app-date-picker size consistently in the form row */
-app-select,
+/* Ensure app-date-picker size consistently in the form row */
 app-date-picker {
   min-width: 130px;
 }
 
-/* Make icons in date-picker & select more contrasting inside the form */
+/* Jira-style estimate text input */
+.estimate-input {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 130px;
+
+  &__icon {
+    font-size: 18px;
+    color: var(--text-500);
+    flex-shrink: 0;
+  }
+
+  &__field {
+    border: 0;
+    background: transparent;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-900);
+    outline: none;
+    width: 100%;
+    padding: 6px 4px;
+
+    &::placeholder {
+      color: var(--text-400);
+      font-weight: 400;
+    }
+  }
+}
+
+/* Make icons in date-picker more contrasting inside the form */
 .add-form {
-  app-date-picker,
-  app-select {
+  app-date-picker {
     ::ng-deep .dp__icon,
-    ::ng-deep .sel__icon,
-    ::ng-deep .dp__chevron,
-    ::ng-deep .sel__chevron {
+    ::ng-deep .dp__chevron {
       color: var(--text-500);
     }
   }
 
   /* Remove nested borders inside the secondary row — the row itself is the container */
   .add-form__row--secondary {
-    app-date-picker ::ng-deep .dp__input,
-    app-select ::ng-deep .sel__input {
+    app-date-picker ::ng-deep .dp__input {
       border: 0;
       background: transparent;
       border-radius: 0;
@@ -558,8 +854,7 @@ app-date-picker {
   border-radius: 10px;
   padding: 4px;
 
-  app-date-picker ::ng-deep .dp__input,
-  app-select ::ng-deep .sel__input {
+  app-date-picker ::ng-deep .dp__input {
     border: 0;
     background: transparent;
     border-radius: 0;

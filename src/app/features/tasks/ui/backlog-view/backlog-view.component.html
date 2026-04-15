@@ -16,6 +16,110 @@
     </button>
   </div>
 
+  <!-- Capacity indicator -->
+  @if (totalCapacityMinutes() > 0) {
+    <div class="capacity">
+      <div class="capacity__header">
+        <div class="capacity__title-row">
+          <span class="material-symbols-outlined capacity__icon">schedule</span>
+          <span class="capacity__label">Нагрузка на неделю</span>
+          <span class="capacity__summary">
+            {{ formatHours(totalWeekLoadMinutes()) }} / {{ formatHours(totalCapacityMinutes()) }}
+          </span>
+          <span class="capacity__free" [class.capacity__free--over]="freeMinutes() === 0 && totalWeekLoadMinutes() > 0">
+            @if (freeMinutes() > 0) {
+              {{ formatHours(freeMinutes()) }} свободно
+            } @else if (totalWeekLoadMinutes() > totalCapacityMinutes()) {
+              превышено на {{ formatHours(totalWeekLoadMinutes() - totalCapacityMinutes()) }}
+            } @else {
+              нет свободного времени
+            }
+          </span>
+        </div>
+        <button class="capacity__settings-btn" type="button" (click)="openCapacitySettings()" title="Настроить часы">
+          <span class="material-symbols-outlined">tune</span>
+        </button>
+      </div>
+      <div class="capacity__bar">
+        <div
+          class="capacity__bar-fill"
+          [class.capacity__bar-fill--warn]="capacityPercent() >= 80 && capacityPercent() < 100"
+          [class.capacity__bar-fill--over]="capacityPercent() >= 100"
+          [style.width.%]="Math.min(capacityPercent(), 100)"
+        ></div>
+      </div>
+
+      <!-- Per-assignee breakdown -->
+      @if (assigneeOptions().length > 1) {
+        <div class="capacity__assignees">
+          @for (a of assigneeOptions(); track a.id) {
+            @if (assigneeLoad(a.id) > 0) {
+              <div class="capacity__assignee">
+                <div class="capacity__assignee-info">
+                  @if (a.avatar) {
+                    <img class="capacity__assignee-avatar" [src]="a.avatar | avatar" [alt]="a.name" />
+                  } @else {
+                    <span class="capacity__assignee-initial">{{ a.name.charAt(0).toUpperCase() }}</span>
+                  }
+                  <span class="capacity__assignee-name">{{ a.name }}</span>
+                  <span class="capacity__assignee-hours">{{ formatHours(assigneeLoad(a.id)) }}</span>
+                </div>
+                <div class="capacity__assignee-bar">
+                  <div
+                    class="capacity__assignee-bar-fill"
+                    [class.capacity__assignee-bar-fill--over]="assigneeCapacityPercent(a.id) >= 100"
+                    [style.width.%]="Math.min(assigneeCapacityPercent(a.id), 100)"
+                  ></div>
+                </div>
+              </div>
+            }
+          }
+        </div>
+      }
+
+      <!-- Capacity settings popover -->
+      @if (showCapacitySettings()) {
+        <div class="capacity__popover">
+          <p class="capacity__popover-title">Свободные часы в день</p>
+          <div class="capacity__popover-row">
+            <label class="capacity__popover-label">Будни (Пн–Пт)</label>
+            <div class="capacity__popover-input-wrap">
+              <input
+                class="capacity__popover-input"
+                type="number"
+                min="0"
+                max="24"
+                step="0.5"
+                [(ngModel)]="capacityWeekday"
+              />
+              <span class="capacity__popover-unit">ч</span>
+            </div>
+          </div>
+          <div class="capacity__popover-row">
+            <label class="capacity__popover-label">Выходные (Сб–Вс)</label>
+            <div class="capacity__popover-input-wrap">
+              <input
+                class="capacity__popover-input"
+                type="number"
+                min="0"
+                max="24"
+                step="0.5"
+                [(ngModel)]="capacityWeekend"
+              />
+              <span class="capacity__popover-unit">ч</span>
+            </div>
+          </div>
+          <div class="capacity__popover-footer">
+            <span class="capacity__popover-total">
+              Итого: {{ formatHours((capacityWeekday * 5 + capacityWeekend * 2) * 60) }} / неделю
+            </span>
+            <button class="capacity__popover-save" type="button" (click)="saveCapacity()">Сохранить</button>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
   <!-- Filters & Search -->
   <div class="backlog__toolbar">
     <div class="backlog__filters">
@@ -141,12 +245,15 @@
             </div>
           }
         </div>
-        <app-select
-          [(ngModel)]="newEstimate"
-          [options]="estimateOptions"
-          placeholder="Время"
-          icon="timer"
-        />
+        <div class="estimate-input">
+          <span class="material-symbols-outlined estimate-input__icon">timer</span>
+          <input
+            class="estimate-input__field"
+            type="text"
+            placeholder="Напр. 2ч 30м"
+            [(ngModel)]="newEstimate"
+          />
+        </div>
       </div>
       <div class="add-form__row">
         <label class="add-form__checkbox">
@@ -240,12 +347,15 @@
                 </div>
               }
             </div>
-            <app-select
-              [(ngModel)]="editEstimate"
-              [options]="estimateOptions"
-              placeholder="Время"
-              icon="timer"
-            />
+            <div class="estimate-input">
+              <span class="material-symbols-outlined estimate-input__icon">timer</span>
+              <input
+                class="estimate-input__field"
+                type="text"
+                placeholder="Напр. 2ч 30м"
+                [(ngModel)]="editEstimate"
+              />
+            </div>
           </div>
           <div class="edit-form__row edit-form__row--actions">
             <button class="add-form__save" type="button" (click)="saveEdit()">Сохранить</button>
