@@ -82,15 +82,20 @@ export class TasksService {
 
   readonly capacity = signal<WeeklyCapacity>({ ...DEFAULT_CAPACITY });
 
-  /** Total weekly capacity in minutes (per person × team size) */
-  readonly totalCapacityMinutes = computed(() => {
+  /** Weekly capacity in minutes for one person */
+  readonly perPersonCapacityMinutes = computed(() => {
     const c = this.capacity();
-    const perPerson = (c.weekdayHours * 5 + c.weekendHours * 2) * 60;
-    const teamSize = Math.max(1, this.userService.members().length);
-    return perPerson * teamSize;
+    return (c.weekdayHours * 5 + c.weekendHours * 2) * 60;
   });
 
-  /** Estimated minutes for all "inWeek" tasks (not completed), grouped by assignee */
+  /** Total weekly capacity in minutes (per person × team size) */
+  readonly totalCapacityMinutes = computed(() => {
+    const teamSize = Math.max(1, this.userService.members().length);
+    return this.perPersonCapacityMinutes() * teamSize;
+  });
+
+  /** Estimated minutes for all "inWeek" tasks (not completed), grouped by assignee.
+   *  Time is split equally among assignees (e.g. 60min task with 2 assignees → 30min each). */
   readonly weekLoadByAssignee = computed(() => {
     const tasks = this.backlog().filter(t => t.inWeek && !t.isCompleted);
     const map = new Map<string, number>();
@@ -98,8 +103,9 @@ export class TasksService {
       const mins = t.estimateMinutes ?? 0;
       if (!mins) continue;
       const ids = t.assigneeIds?.length ? t.assigneeIds : ['_unassigned'];
+      const share = mins / ids.length;
       for (const id of ids) {
-        map.set(id, (map.get(id) ?? 0) + mins);
+        map.set(id, (map.get(id) ?? 0) + share);
       }
     }
     return map;
