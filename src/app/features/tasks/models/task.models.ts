@@ -97,6 +97,16 @@ export interface WeekArchive {
   tasks: BacklogTask[];
 }
 
+export interface WeeklyCapacity {
+  weekdayHours: number;  // free hours per weekday (Mon–Fri)
+  weekendHours: number;  // free hours per weekend day (Sat–Sun)
+}
+
+export const DEFAULT_CAPACITY: WeeklyCapacity = {
+  weekdayHours: 8,
+  weekendHours: 0,
+};
+
 export const TASK_STATUS_LABELS: Record<TaskStatus, string> = {
   todo: 'К выполнению',
   inprogress: 'В процессе',

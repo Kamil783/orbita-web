@@ -3,8 +3,8 @@ import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
 import { UserService } from '../../user/data/user.service';
 import {
-  BacklogTask, KanbanColumnVm, TaskCardVm,
-  TasksFilterItemVm, TimeEntry, WeekArchive,
+  BacklogTask, DEFAULT_CAPACITY, KanbanColumnVm, TaskCardVm,
+  TasksFilterItemVm, TimeEntry, WeekArchive, WeeklyCapacity,
 } from '../models/task.models';
 
 /**
@@ -77,6 +77,52 @@ export class TasksService {
   );
 
   readonly backlogCount = computed(() => this.backlog().length);
+
+  // ── Capacity ──
+
+  readonly capacity = signal<WeeklyCapacity>({ ...DEFAULT_CAPACITY });
+
+  /** Total weekly capacity in minutes (per person × team size) */
+  readonly totalCapacityMinutes = computed(() => {
+    const c = this.capacity();
+    const perPerson = (c.weekdayHours * 5 + c.weekendHours * 2) * 60;
+    const teamSize = Math.max(1, this.userService.members().length);
+    return perPerson * teamSize;
+  });
+
+  /** Estimated minutes for all "inWeek" tasks (not completed), grouped by assignee */
+  readonly weekLoadByAssignee = computed(() => {
+    const tasks = this.backlog().filter(t => t.inWeek && !t.isCompleted);
+    const map = new Map<string, number>();
+    for (const t of tasks) {
+      const mins = t.estimateMinutes ?? 0;
+      if (!mins) continue;
+      const ids = t.assigneeIds?.length ? t.assigneeIds : ['_unassigned'];
+      for (const id of ids) {
+        map.set(id, (map.get(id) ?? 0) + mins);
+      }
+    }
+    return map;
+  });
+
+  /** Total estimated minutes for all "inWeek" tasks (not completed) */
+  readonly totalWeekLoadMinutes = computed(() => {
+    return this.backlog()
+      .filter(t => t.inWeek && !t.isCompleted)
+      .reduce((sum, t) => sum + (t.estimateMinutes ?? 0), 0);
+  });
+
+  loadCapacity(): void {
+    this.http.get<WeeklyCapacity>(`${this.apiUrl}/api/Capacity`).subscribe({
+      next: cap => this.capacity.set(cap),
+      error: () => this.capacity.set({ ...DEFAULT_CAPACITY }),
+    });
+  }
+
+  saveCapacity(cap: WeeklyCapacity): void {
+    this.capacity.set(cap);
+    this.http.put(`${this.apiUrl}/api/Capacity`, cap).subscribe();
+  }
 
   // ── Load data from API ──
 
@@ -393,14 +439,26 @@ export class TasksService {
       list.map(t => doneBacklogIds.has(t.id) ? { ...t, inWeek: false } : t),
     );
 
+    const currentStart = this.currentWeekStart();
+    if (!currentStart) return;
+
+    const nextWeekStart = this.addDays(this.currentWeekStart(), 7);
+    const nextWeekEnd = this.addDays(nextWeekStart, 6);
+
     this.http.post<{ startDate: string; endDate: string }>(`${this.apiUrl}/api/Weeks/new`, {
-      startDate: archive.startDate,
-      endDate: archive.endDate,
+      startDate: nextWeekStart,
+      endDate: nextWeekEnd,
     }).subscribe(newWeek => {
       if (newWeek?.startDate) {
         this.currentWeekStart.set(newWeek.startDate);
       }
     });
+  }
+
+  private addDays(isoDate: string, days: number): string {
+    const d = new Date(isoDate);
+    d.setDate(d.getDate() + days);
+    return d.toISOString().slice(0, 10);
   }
 
   // ── Column operations ──

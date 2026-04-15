@@ -230,6 +230,37 @@
   letter-spacing: 0.06em;
 }
 
+.estimate-input {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 14px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--surface-input);
+  transition: border-color 0.15s ease;
+
+  &:focus-within { border-color: var(--color-primary); }
+
+  &__icon {
+    font-size: 18px;
+    color: var(--text-500);
+    flex-shrink: 0;
+  }
+
+  &__field {
+    border: 0;
+    background: transparent;
+    font-size: 14px;
+    color: var(--text-main);
+    outline: none;
+    width: 100%;
+    font-family: inherit;
+
+    &::placeholder { color: var(--text-400); }
+  }
+}
+
 .field__input {
   padding: 10px 14px;
   font-size: 14px;

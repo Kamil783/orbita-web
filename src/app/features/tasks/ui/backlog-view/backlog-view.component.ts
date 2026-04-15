@@ -1,11 +1,11 @@
 import { Component, computed, ElementRef, HostListener, inject, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DatePickerComponent } from '../../../../shared/ui/date-picker/date-picker.component';
-import { SelectComponent, SelectOption } from '../../../../shared/ui/select/select.component';
+import { SelectOption } from '../../../../shared/ui/select/select.component';
 import { AvatarPipe } from '../../../../shared/ui/avatar-pipe/avatar.pipe';
 import { User, UserService } from '../../../user/data/user.service';
 import { TasksService } from '../../data/tasks.service';
-import { BacklogTask, TaskPriority, PRIORITY_LABELS, WeekArchive } from '../../models/task.models';
+import { BacklogTask, TaskPriority, PRIORITY_LABELS, WeekArchive, WeeklyCapacity } from '../../models/task.models';
 
 
 type BacklogFilter = 'all' | 'week' | 'available';
@@ -13,7 +13,7 @@ type BacklogFilter = 'all' | 'week' | 'available';
 @Component({
   selector: 'app-backlog-view',
   standalone: true,
-  imports: [FormsModule, DatePickerComponent, SelectComponent, AvatarPipe],
+  imports: [FormsModule, DatePickerComponent, AvatarPipe],
   templateUrl: './backlog-view.component.html',
   styleUrl: './backlog-view.component.scss',
 })
@@ -26,6 +26,8 @@ export class BacklogViewComponent {
       this.editAssigneeDropdownOpen.set(false);
     }
   }
+
+  readonly Math = Math;
 
   private readonly tasksService = inject(TasksService);
   private readonly userService = inject(UserService);
@@ -41,6 +43,59 @@ export class BacklogViewComponent {
   readonly expandedWeekIds = signal<Set<string>>(new Set());
 
   readonly weekArchives = this.tasksService.weekArchives;
+
+  // ── Capacity ──
+  readonly showCapacitySettings = signal(false);
+  readonly capacity = this.tasksService.capacity;
+  readonly totalCapacityMinutes = this.tasksService.totalCapacityMinutes;
+  readonly totalWeekLoadMinutes = this.tasksService.totalWeekLoadMinutes;
+  readonly weekLoadByAssignee = this.tasksService.weekLoadByAssignee;
+
+  capacityWeekday = 8;
+  capacityWeekend = 0;
+
+  openCapacitySettings(): void {
+    const c = this.capacity();
+    this.capacityWeekday = c.weekdayHours;
+    this.capacityWeekend = c.weekendHours;
+    this.showCapacitySettings.update(v => !v);
+  }
+
+  saveCapacity(): void {
+    this.tasksService.saveCapacity({
+      weekdayHours: this.capacityWeekday,
+      weekendHours: this.capacityWeekend,
+    });
+    this.showCapacitySettings.set(false);
+  }
+
+  readonly capacityPercent = computed(() => {
+    const total = this.totalCapacityMinutes();
+    if (!total) return 0;
+    return Math.round((this.totalWeekLoadMinutes() / total) * 100);
+  });
+
+  readonly freeMinutes = computed(() => {
+    return Math.max(0, this.totalCapacityMinutes() - this.totalWeekLoadMinutes());
+  });
+
+  formatHours(minutes: number): string {
+    const h = Math.floor(minutes / 60);
+    const m = minutes % 60;
+    if (h > 0 && m > 0) return `${h}ч ${m}м`;
+    if (h > 0) return `${h}ч`;
+    return `${m}м`;
+  }
+
+  assigneeLoad(id: string): number {
+    return this.weekLoadByAssignee().get(id) ?? 0;
+  }
+
+  assigneeCapacityPercent(id: string): number {
+    const total = this.totalCapacityMinutes();
+    if (!total) return 0;
+    return Math.round((this.assigneeLoad(id) / total) * 100);
+  }
 
   // New task form
   newTitle = '';
@@ -83,16 +138,42 @@ export class BacklogViewComponent {
     this.assigneeOptions().map(a => ({ value: a.id, label: a.name })),
   );
 
-  readonly estimateOptions: SelectOption[] = [
-    { value: '15', label: '15 мин' },
-    { value: '30', label: '30 мин' },
-    { value: '45', label: '45 мин' },
-    { value: '60', label: '1 час' },
-    { value: '90', label: '1.5 часа' },
-    { value: '120', label: '2 часа' },
-    { value: '180', label: '3 часа' },
-    { value: '240', label: '4 часа' },
-  ];
+  /**
+   * Parse Jira-style time string into minutes.
+   * Supported formats: "2ч 30м", "2h 30m", "1д", "1d", "1н", "1w", "90" (plain minutes).
+   * Returns undefined if the input is empty or invalid.
+   */
+  parseEstimate(input: string): number | undefined {
+    const s = input.trim().toLowerCase();
+    if (!s) return undefined;
+
+    // Plain number → treat as minutes
+    if (/^\d+$/.test(s)) {
+      const n = parseInt(s, 10);
+      return n > 0 ? n : undefined;
+    }
+
+    let total = 0;
+    let matched = false;
+
+    // Weeks: "1н", "1w"
+    const weeks = s.match(/(\d+)\s*[нw]/);
+    if (weeks) { total += parseInt(weeks[1], 10) * 5 * 8 * 60; matched = true; }
+
+    // Days: "1д", "1d"
+    const days = s.match(/(\d+)\s*[дd]/);
+    if (days) { total += parseInt(days[1], 10) * 8 * 60; matched = true; }
+
+    // Hours: "2ч", "2h"
+    const hours = s.match(/(\d+)\s*[чh]/);
+    if (hours) { total += parseInt(hours[1], 10) * 60; matched = true; }
+
+    // Minutes: "30м", "30m"
+    const mins = s.match(/(\d+)\s*[мm]/);
+    if (mins) { total += parseInt(mins[1], 10); matched = true; }
+
+    return matched && total > 0 ? total : undefined;
+  }
 
   readonly filters: { value: BacklogFilter; label: string }[] = [
     { value: 'all', label: 'Все' },
@@ -180,7 +261,6 @@ export class BacklogViewComponent {
   onSaveNewTask(): void {
     if (!this.newTitle.trim()) return;
 
-    const estimateMin = this.newEstimate ? parseInt(this.newEstimate, 10) : undefined;
     const ids = this.newAssigneeIds();
 
     this.tasksService.addBacklogTask({
@@ -188,7 +268,7 @@ export class BacklogViewComponent {
       description: this.newDescription.trim() || undefined,
       priority: this.newPriority(),
       dueDate: this.newDueDate || undefined,
-      estimateMinutes: estimateMin && !isNaN(estimateMin) ? estimateMin : undefined,
+      estimateMinutes: this.parseEstimate(this.newEstimate),
       assigneeIds: ids.length ? ids : undefined,
       progressPct: this.newTrackProgress ? 0 : undefined,
     });
@@ -226,7 +306,7 @@ export class BacklogViewComponent {
     this.editPriority.set(task.priority);
     this.editDueDate = task.dueDate ?? '';
     this.editAssigneeIds.set(task.assigneeIds ? [...task.assigneeIds] : []);
-    this.editEstimate = task.estimateMinutes ? String(task.estimateMinutes) : '';
+    this.editEstimate = task.estimateMinutes ? this.formatEstimate(task.estimateMinutes) : '';
     this.editAssigneeDropdownOpen.set(false);
   }
 
@@ -234,7 +314,6 @@ export class BacklogViewComponent {
     const id = this.editingTaskId();
     if (!id || !this.editTitle.trim()) return;
 
-    const estimateMin = this.editEstimate ? parseInt(this.editEstimate, 10) : undefined;
     const ids = this.editAssigneeIds();
 
     this.tasksService.updateBacklogTask(id, {
@@ -242,7 +321,7 @@ export class BacklogViewComponent {
       description: this.editDescription.trim() || undefined,
       priority: this.editPriority(),
       dueDate: this.editDueDate || undefined,
-      estimateMinutes: estimateMin && !isNaN(estimateMin) ? estimateMin : undefined,
+      estimateMinutes: this.parseEstimate(this.editEstimate),
       assigneeIds: ids,
     });
     this.cancelEdit();

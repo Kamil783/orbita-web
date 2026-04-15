@@ -64,12 +64,15 @@
 
           <div class="field">
             <label class="field__label">Время</label>
-            <app-select
-              [(ngModel)]="editEstimate"
-              [options]="estimateOptions"
-              placeholder="Выбрать"
-              icon="timer"
-            />
+            <div class="estimate-input">
+              <span class="material-symbols-outlined estimate-input__icon">timer</span>
+              <input
+                class="estimate-input__field"
+                type="text"
+                placeholder="Напр. 2ч 30м"
+                [(ngModel)]="editEstimate"
+              />
+            </div>
           </div>
         </div>
 
