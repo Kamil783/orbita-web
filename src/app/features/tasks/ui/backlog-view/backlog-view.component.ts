@@ -87,14 +87,16 @@ export class BacklogViewComponent {
     return `${m}м`;
   }
 
+  readonly perPersonCapacityMinutes = this.tasksService.perPersonCapacityMinutes;
+
   assigneeLoad(id: string): number {
     return this.weekLoadByAssignee().get(id) ?? 0;
   }
 
   assigneeCapacityPercent(id: string): number {
-    const total = this.totalCapacityMinutes();
-    if (!total) return 0;
-    return Math.round((this.assigneeLoad(id) / total) * 100);
+    const cap = this.perPersonCapacityMinutes();
+    if (!cap) return 0;
+    return Math.round((this.assigneeLoad(id) / cap) * 100);
   }
 
   // New task form
