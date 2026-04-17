@@ -94,7 +94,7 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly txDateFrom = signal<string>('');            // ISO 'YYYY-MM-DD'
   readonly txDateTo = signal<string>('');              // ISO 'YYYY-MM-DD'
   readonly showTxFilters = signal(false);
-  readonly slFilter = signal<'all' | 'personal' | 'shared' | 'team'>('all');
+  readonly slFilter = signal<'all' | 'personal' | 'shared' | 'team'>('personal');
   readonly periodOffset = signal(0);
 
   // ─── Computed ───
