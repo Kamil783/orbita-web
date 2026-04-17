@@ -16,16 +16,43 @@
     </button>
   </div>
 
+  <!-- Tabs -->
+  <div class="backlog__tabs">
+    <button
+      class="backlog__tab"
+      [class.backlog__tab--active]="activeTab() === 'tasks'"
+      type="button"
+      (click)="activeTab.set('tasks')"
+    >
+      <span class="material-symbols-outlined">list_alt</span>
+      Задачи
+    </button>
+    <button
+      class="backlog__tab"
+      [class.backlog__tab--active]="activeTab() === 'archive'"
+      type="button"
+      (click)="activeTab.set('archive')"
+    >
+      <span class="material-symbols-outlined">history</span>
+      Архив недель
+      @if (weekArchives().length) {
+        <span class="backlog__tab-count">{{ weekArchives().length }}</span>
+      }
+    </button>
+  </div>
+
+  @if (activeTab() === 'tasks') {
   <!-- Capacity indicator -->
   @if (totalCapacityMinutes() > 0) {
-    <div class="capacity">
+    <div class="capacity" [class.capacity--expanded]="capacityExpanded()">
       <div class="capacity__header">
-        <div class="capacity__title-row">
+        <div class="capacity__title-row" (click)="toggleCapacityExpand()">
           <span class="material-symbols-outlined capacity__icon">schedule</span>
-          <span class="capacity__label">Нагрузка на неделю</span>
+          <span class="capacity__label">Нагрузка:</span>
           <span class="capacity__summary">
             {{ formatHours(totalWeekLoadMinutes()) }} / {{ formatHours(totalCapacityMinutes()) }}
           </span>
+          <span class="capacity__sep">·</span>
           <span class="capacity__free" [class.capacity__free--over]="freeMinutes() === 0 && totalWeekLoadMinutes() > 0">
             @if (freeMinutes() > 0) {
               {{ formatHours(freeMinutes()) }} свободно
@@ -35,44 +62,52 @@
               нет свободного времени
             }
           </span>
+          <span class="material-symbols-outlined capacity__chevron" [class.capacity__chevron--open]="capacityExpanded()">
+            expand_more
+          </span>
         </div>
-        <button class="capacity__settings-btn" type="button" (click)="openCapacitySettings()" title="Настроить часы">
+        <button class="capacity__settings-btn" type="button" (click)="openCapacitySettings(); $event.stopPropagation()" title="Настроить часы">
           <span class="material-symbols-outlined">tune</span>
         </button>
       </div>
-      <div class="capacity__bar">
-        <div
-          class="capacity__bar-fill"
-          [class.capacity__bar-fill--warn]="capacityPercent() >= 80 && capacityPercent() < 100"
-          [class.capacity__bar-fill--over]="capacityPercent() >= 100"
-          [style.width.%]="Math.min(capacityPercent(), 100)"
-        ></div>
-      </div>
 
-      <!-- Per-assignee breakdown -->
-      @if (assigneeOptions().length > 1) {
-        <div class="capacity__assignees">
-          @for (a of assigneeOptions(); track a.id) {
-            @if (assigneeLoad(a.id) > 0) {
-              <div class="capacity__assignee">
-                <div class="capacity__assignee-info">
-                  @if (a.avatar) {
-                    <img class="capacity__assignee-avatar" [src]="a.avatar | avatar" [alt]="a.name" />
-                  } @else {
-                    <span class="capacity__assignee-initial">{{ a.name.charAt(0).toUpperCase() }}</span>
-                  }
-                  <span class="capacity__assignee-name">{{ a.name }}</span>
-                  <span class="capacity__assignee-hours">{{ formatHours(assigneeLoad(a.id)) }}</span>
-                </div>
-                <div class="capacity__assignee-bar">
-                  <div
-                    class="capacity__assignee-bar-fill"
-                    [class.capacity__assignee-bar-fill--over]="assigneeCapacityPercent(a.id) >= 100"
-                    [style.width.%]="Math.min(assigneeCapacityPercent(a.id), 100)"
-                  ></div>
-                </div>
-              </div>
-            }
+      @if (capacityExpanded()) {
+        <div class="capacity__details">
+          <div class="capacity__bar">
+            <div
+              class="capacity__bar-fill"
+              [class.capacity__bar-fill--warn]="capacityPercent() >= 80 && capacityPercent() < 100"
+              [class.capacity__bar-fill--over]="capacityPercent() >= 100"
+              [style.width.%]="Math.min(capacityPercent(), 100)"
+            ></div>
+          </div>
+
+          <!-- Per-assignee breakdown -->
+          @if (assigneeOptions().length > 1) {
+            <div class="capacity__assignees">
+              @for (a of assigneeOptions(); track a.id) {
+                @if (assigneeLoad(a.id) > 0) {
+                  <div class="capacity__assignee">
+                    <div class="capacity__assignee-info">
+                      @if (a.avatar) {
+                        <img class="capacity__assignee-avatar" [src]="a.avatar | avatar" [alt]="a.name" />
+                      } @else {
+                        <span class="capacity__assignee-initial">{{ a.name.charAt(0).toUpperCase() }}</span>
+                      }
+                      <span class="capacity__assignee-name">{{ a.name }}</span>
+                      <span class="capacity__assignee-hours">{{ formatHours(assigneeLoad(a.id)) }}</span>
+                    </div>
+                    <div class="capacity__assignee-bar">
+                      <div
+                        class="capacity__assignee-bar-fill"
+                        [class.capacity__assignee-bar-fill--over]="assigneeCapacityPercent(a.id) >= 100"
+                        [style.width.%]="Math.min(assigneeCapacityPercent(a.id), 100)"
+                      ></div>
+                    </div>
+                  </div>
+                }
+              }
+            </div>
           }
         </div>
       }
@@ -424,41 +459,45 @@
       </div>
     }
   </div>
+  }
 
-  <!-- Closed weeks -->
-  @if (weekArchives().length) {
-    <div class="weeks-history">
-      <h3 class="weeks-history__title">
-        <span class="material-symbols-outlined">history</span>
-        Закрытые недели
-      </h3>
-      @for (week of weekArchives(); track week.id) {
-        <div class="week-card">
-          <button
-            class="week-card__header"
-            type="button"
-            (click)="toggleWeekExpand(week.id)"
-          >
-            <span class="material-symbols-outlined week-card__chevron" [class.week-card__chevron--open]="isWeekExpanded(week.id)">
-              chevron_right
-            </span>
-            <span class="week-card__label">{{ week.label }}</span>
-            <span class="week-card__count">{{ week.tasks.length }} задач</span>
-          </button>
-          @if (isWeekExpanded(week.id)) {
-            <div class="week-card__tasks">
-              @for (task of week.tasks; track task.id) {
-                <div class="week-card__task">
-                  <span class="task-row__priority" [class]="priorityClass(task.priority)"></span>
-                  <span class="week-card__task-title">{{ task.title }}</span>
-                </div>
-              } @empty {
-                <p class="week-card__empty">Нет завершённых задач</p>
-              }
-            </div>
-          }
-        </div>
-      }
-    </div>
+  @if (activeTab() === 'archive') {
+    <!-- Closed weeks -->
+    @if (weekArchives().length) {
+      <div class="weeks-history">
+        @for (week of weekArchives(); track week.id) {
+          <div class="week-card">
+            <button
+              class="week-card__header"
+              type="button"
+              (click)="toggleWeekExpand(week.id)"
+            >
+              <span class="material-symbols-outlined week-card__chevron" [class.week-card__chevron--open]="isWeekExpanded(week.id)">
+                chevron_right
+              </span>
+              <span class="week-card__label">{{ week.label }}</span>
+              <span class="week-card__count">{{ week.tasks.length }} задач</span>
+            </button>
+            @if (isWeekExpanded(week.id)) {
+              <div class="week-card__tasks">
+                @for (task of week.tasks; track task.id) {
+                  <div class="week-card__task">
+                    <span class="task-row__priority" [class]="priorityClass(task.priority)"></span>
+                    <span class="week-card__task-title">{{ task.title }}</span>
+                  </div>
+                } @empty {
+                  <p class="week-card__empty">Нет завершённых задач</p>
+                }
+              </div>
+            }
+          </div>
+        }
+      </div>
+    } @else {
+      <div class="backlog__empty">
+        <span class="material-symbols-outlined backlog__empty-icon">history</span>
+        <p>Нет закрытых недель</p>
+      </div>
+    }
   }
 </div>

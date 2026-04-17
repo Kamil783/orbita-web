@@ -4,6 +4,15 @@
   min-height: 0;
   overflow: hidden;
   position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.page > app-kanban-board,
+.page > app-backlog-view {
+  display: block;
+  flex: 1;
+  min-height: 0;
 }
 
 /* ── Tab toggle ── */

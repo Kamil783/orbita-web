@@ -25,6 +25,13 @@ export class BacklogViewComponent {
       this.assigneeDropdownOpen.set(false);
       this.editAssigneeDropdownOpen.set(false);
     }
+    if (
+      this.showCapacitySettings() &&
+      !target.closest('.capacity__popover') &&
+      !target.closest('.capacity__settings-btn')
+    ) {
+      this.showCapacitySettings.set(false);
+    }
   }
 
   readonly Math = Math;
@@ -36,6 +43,7 @@ export class BacklogViewComponent {
   /** Assignee options from the parent page */
   readonly assigneeOptions = input<User[]>([]);
 
+  readonly activeTab = signal<'tasks' | 'archive'>('tasks');
   readonly filter = signal<BacklogFilter>('all');
   readonly assigneeFilter = signal<string>('all'); // 'all' or assignee id
   readonly searchQuery = signal('');
@@ -46,6 +54,7 @@ export class BacklogViewComponent {
 
   // ── Capacity ──
   readonly showCapacitySettings = signal(false);
+  readonly capacityExpanded = signal(false);
   readonly capacity = this.tasksService.capacity;
   readonly totalCapacityMinutes = this.tasksService.totalCapacityMinutes;
   readonly totalWeekLoadMinutes = this.tasksService.totalWeekLoadMinutes;
@@ -53,6 +62,10 @@ export class BacklogViewComponent {
 
   capacityWeekday = 8;
   capacityWeekend = 0;
+
+  toggleCapacityExpand(): void {
+    this.capacityExpanded.update(v => !v);
+  }
 
   openCapacitySettings(): void {
     const c = this.capacity();
