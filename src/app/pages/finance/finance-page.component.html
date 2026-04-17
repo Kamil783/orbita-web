@@ -396,7 +396,6 @@
 
           <div class="shopping-lists-card">
             <div class="tx-tabs">
-              <button class="tx-tabs__btn" [class.tx-tabs__btn--active]="slFilter() === 'all'" type="button" (click)="slFilter.set('all')">Все</button>
               <button class="tx-tabs__btn" [class.tx-tabs__btn--active]="slFilter() === 'personal'" type="button" (click)="slFilter.set('personal')">
                 <span class="material-symbols-outlined tx-tabs__icon">person</span> Личные
               </button>
@@ -406,6 +405,7 @@
               <button class="tx-tabs__btn" [class.tx-tabs__btn--active]="slFilter() === 'team'" type="button" (click)="slFilter.set('team')">
                 <span class="material-symbols-outlined tx-tabs__icon">groups</span> Командные
               </button>
+              <button class="tx-tabs__btn" [class.tx-tabs__btn--active]="slFilter() === 'all'" type="button" (click)="slFilter.set('all')">Все</button>
             </div>
             <div class="shopping-lists-card__list">
               @for (list of filteredShoppingLists(); track list.id) {
