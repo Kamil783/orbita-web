@@ -246,6 +246,7 @@ export class TasksService {
           return { ...col, cards, totalCount: cards.length };
         }),
       );
+      this.loadBacklog();
     });
   }
 
@@ -262,7 +263,9 @@ export class TasksService {
       }),
     );
 
-    this.http.post(`${this.apiUrl}/api/Backlog/${backlogTaskId}/from-week`, {}).subscribe();
+    this.http.post(`${this.apiUrl}/api/Backlog/${backlogTaskId}/from-week`, {}).subscribe(res => {
+      this.loadBacklog();
+    });
   }
 
   toggleBacklogDone(backlogTaskId: string): void {

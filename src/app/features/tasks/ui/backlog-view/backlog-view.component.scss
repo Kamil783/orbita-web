@@ -66,21 +66,82 @@
   .material-symbols-outlined { font-size: 18px; }
 }
 
+/* ── Tabs ── */
+.backlog__tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 20px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar { display: none; }
+}
+
+.backlog__tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--icon-muted);
+  background: transparent;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease;
+  white-space: nowrap;
+  margin-bottom: -1px;
+
+  &:hover { color: var(--text-main); }
+
+  &--active {
+    color: var(--color-primary);
+    border-bottom-color: var(--color-primary);
+  }
+
+  .material-symbols-outlined { font-size: 18px; }
+}
+
+.backlog__tab-count {
+  display: inline-grid;
+  place-items: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 10px;
+  background: rgba(37, 140, 244, 0.12);
+  color: var(--color-primary);
+  font-size: 11px;
+  font-weight: 700;
+}
+
 /* ── Capacity indicator ── */
 .capacity {
   position: relative;
   background: var(--surface-panel);
   border: 1px solid var(--border-color);
   border-radius: 12px;
-  padding: 14px 18px;
+  padding: 8px 12px;
   margin-bottom: 16px;
+  transition: padding 0.15s ease;
+
+  &--expanded {
+    padding: 14px 18px;
+  }
 }
 
 .capacity__header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 8px;
+  gap: 8px;
+
+  .capacity--expanded & {
+    margin-bottom: 12px;
+  }
 }
 
 .capacity__title-row {
@@ -88,6 +149,34 @@
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
+  flex: 1;
+  min-width: 0;
+  cursor: pointer;
+  padding: 4px 6px;
+  margin: -4px -6px;
+  border-radius: 8px;
+  transition: background 0.15s ease;
+
+  &:hover {
+    background: var(--surface-hover);
+  }
+}
+
+.capacity__sep {
+  color: var(--icon-muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.capacity__chevron {
+  font-size: 18px !important;
+  color: var(--icon-muted);
+  margin-left: auto;
+  transition: transform 0.2s ease;
+
+  &--open {
+    transform: rotate(180deg);
+  }
 }
 
 .capacity__icon {
