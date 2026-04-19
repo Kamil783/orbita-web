@@ -1,4 +1,4 @@
-import { Component, input, output } from '@angular/core';
+import { Component, HostListener, input, output, signal } from '@angular/core';
 import { CdkDropList, CdkDrag, CdkDragDrop, CdkDragPlaceholder } from '@angular/cdk/drag-drop';
 import { TaskCardComponent } from '../task-card/task-card.component';
 import { ColumnHeaderAction, KanbanColumnVm, TaskCardVm, TaskDropEvent, TaskMenuAction } from '../../models/task.models';
@@ -15,6 +15,15 @@ import { ColumnHeaderAction, KanbanColumnVm, TaskCardVm, TaskDropEvent, TaskMenu
 })
 export class KanbanColumnComponent {
   readonly showDivider = input(false);
+
+  readonly isMobile = signal(
+    typeof window !== 'undefined' && window.innerWidth <= 768,
+  );
+
+  @HostListener('window:resize')
+  onResize(): void {
+    this.isMobile.set(window.innerWidth <= 768);
+  }
   readonly column = input.required<KanbanColumnVm>();
   readonly allColumns = input<KanbanColumnVm[]>([]);
   readonly menuAction = output<TaskMenuAction>();

@@ -331,6 +331,44 @@
   flex-shrink: 0;
 }
 
+/* ── Estimate input ── */
+.estimate-input {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 42px;
+  padding: 0 14px;
+  background: var(--surface-input);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  box-sizing: border-box;
+
+  &:focus-within {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(37, 140, 244, 0.15);
+  }
+}
+
+.estimate-input__icon {
+  font-size: 18px;
+  color: var(--text-500);
+  flex-shrink: 0;
+}
+
+.estimate-input__field {
+  flex: 1;
+  border: 0;
+  background: transparent;
+  font-size: 14px;
+  color: var(--text-main);
+  outline: none;
+  font-family: inherit;
+  min-width: 0;
+
+  &::placeholder { color: var(--text-400); }
+}
+
 /* ── Responsive ── */
 @media (max-width: 768px) {
   .overlay {

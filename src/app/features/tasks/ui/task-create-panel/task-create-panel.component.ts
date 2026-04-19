@@ -36,6 +36,7 @@ export class TaskCreatePanelComponent {
   assigneeIds = signal<string[]>([]);
   description = '';
   trackProgress = false;
+  estimate = '';
 
   readonly assigneeDropdownOpen = signal(false);
 
@@ -71,6 +72,33 @@ export class TaskCreatePanelComponent {
     this.assigneeDropdownOpen.update(v => !v);
   }
 
+  parseEstimate(input: string): number | undefined {
+    const s = input.trim().toLowerCase().replace(',', '.');
+    if (!s) return undefined;
+
+    if (/^\d+(\.\d+)?$/.test(s)) {
+      const n = parseFloat(s);
+      return n > 0 ? Math.round(n) : undefined;
+    }
+
+    let total = 0;
+    let matched = false;
+
+    const weeks = s.match(/(\d+(?:\.\d+)?)\s*[нw]/);
+    if (weeks) { total += parseFloat(weeks[1]) * 5 * 8 * 60; matched = true; }
+
+    const days = s.match(/(\d+(?:\.\d+)?)\s*[дd]/);
+    if (days) { total += parseFloat(days[1]) * 8 * 60; matched = true; }
+
+    const hours = s.match(/(\d+(?:\.\d+)?)\s*[чh]/);
+    if (hours) { total += parseFloat(hours[1]) * 60; matched = true; }
+
+    const mins = s.match(/(\d+(?:\.\d+)?)\s*[мm]/);
+    if (mins) { total += parseFloat(mins[1]); matched = true; }
+
+    return matched && total > 0 ? Math.round(total) : undefined;
+  }
+
   onSave(): void {
     if (!this.title.trim()) return;
 
@@ -81,6 +109,7 @@ export class TaskCreatePanelComponent {
       assigneeIds: this.assigneeIds(),
       description: this.description.trim(),
       trackProgress: this.trackProgress,
+      estimateMinutes: this.parseEstimate(this.estimate),
     });
   }
 

@@ -47,30 +47,30 @@ export class TaskDetailDialogComponent {
    * Supported: "2ч 30м", "2h 30m", "1д", "1d", "1н", "1w", "90" (plain minutes).
    */
   parseEstimate(input: string): number | undefined {
-    const s = input.trim().toLowerCase();
+    const s = input.trim().toLowerCase().replace(',', '.');
     if (!s) return undefined;
 
-    if (/^\d+$/.test(s)) {
-      const n = parseInt(s, 10);
-      return n > 0 ? n : undefined;
+    if (/^\d+(\.\d+)?$/.test(s)) {
+      const n = parseFloat(s);
+      return n > 0 ? Math.round(n) : undefined;
     }
 
     let total = 0;
     let matched = false;
 
-    const weeks = s.match(/(\d+)\s*[нw]/);
-    if (weeks) { total += parseInt(weeks[1], 10) * 5 * 8 * 60; matched = true; }
+    const weeks = s.match(/(\d+(?:\.\d+)?)\s*[нw]/);
+    if (weeks) { total += parseFloat(weeks[1]) * 5 * 8 * 60; matched = true; }
 
-    const days = s.match(/(\d+)\s*[дd]/);
-    if (days) { total += parseInt(days[1], 10) * 8 * 60; matched = true; }
+    const days = s.match(/(\d+(?:\.\d+)?)\s*[дd]/);
+    if (days) { total += parseFloat(days[1]) * 8 * 60; matched = true; }
 
-    const hours = s.match(/(\d+)\s*[чh]/);
-    if (hours) { total += parseInt(hours[1], 10) * 60; matched = true; }
+    const hours = s.match(/(\d+(?:\.\d+)?)\s*[чh]/);
+    if (hours) { total += parseFloat(hours[1]) * 60; matched = true; }
 
-    const mins = s.match(/(\d+)\s*[мm]/);
-    if (mins) { total += parseInt(mins[1], 10); matched = true; }
+    const mins = s.match(/(\d+(?:\.\d+)?)\s*[мm]/);
+    if (mins) { total += parseFloat(mins[1]); matched = true; }
 
-    return matched && total > 0 ? total : undefined;
+    return matched && total > 0 ? Math.round(total) : undefined;
   }
 
   formatEstimate(minutes?: number): string {
