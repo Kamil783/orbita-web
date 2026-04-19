@@ -79,6 +79,7 @@ export interface TaskCreatePayload {
   assigneeIds: string[];
   description: string;
   trackProgress: boolean;
+  estimateMinutes?: number;
 }
 
 export interface TaskDropEvent {

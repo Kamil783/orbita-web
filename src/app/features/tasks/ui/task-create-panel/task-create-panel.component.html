@@ -40,8 +40,22 @@
         </div>
 
         <div class="field">
-          <label class="field__label">Исполнители</label>
-          <div class="assignee-dropdown" (click)="$event.stopPropagation()">
+          <label class="field__label">Оценка времени</label>
+          <div class="estimate-input">
+            <span class="material-symbols-outlined estimate-input__icon">timer</span>
+            <input
+              class="estimate-input__field"
+              type="text"
+              placeholder="Напр. 1.5ч, 2ч 30м, 1д"
+              [(ngModel)]="estimate"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="field__label">Исполнители</label>
+        <div class="assignee-dropdown" (click)="$event.stopPropagation()">
             <div
               class="assignee-dropdown__trigger"
               [class.assignee-dropdown__trigger--open]="assigneeDropdownOpen()"
@@ -79,7 +93,6 @@
               </div>
             }
           </div>
-        </div>
       </div>
 
       <div class="field">

@@ -159,35 +159,35 @@ export class BacklogViewComponent {
    * Returns undefined if the input is empty or invalid.
    */
   parseEstimate(input: string): number | undefined {
-    const s = input.trim().toLowerCase();
+    const s = input.trim().toLowerCase().replace(',', '.');
     if (!s) return undefined;
 
     // Plain number → treat as minutes
-    if (/^\d+$/.test(s)) {
-      const n = parseInt(s, 10);
-      return n > 0 ? n : undefined;
+    if (/^\d+(\.\d+)?$/.test(s)) {
+      const n = parseFloat(s);
+      return n > 0 ? Math.round(n) : undefined;
     }
 
     let total = 0;
     let matched = false;
 
-    // Weeks: "1н", "1w"
-    const weeks = s.match(/(\d+)\s*[нw]/);
-    if (weeks) { total += parseInt(weeks[1], 10) * 5 * 8 * 60; matched = true; }
+    // Weeks: "1н", "1w", "1.5н"
+    const weeks = s.match(/(\d+(?:\.\d+)?)\s*[нw]/);
+    if (weeks) { total += parseFloat(weeks[1]) * 5 * 8 * 60; matched = true; }
 
-    // Days: "1д", "1d"
-    const days = s.match(/(\d+)\s*[дd]/);
-    if (days) { total += parseInt(days[1], 10) * 8 * 60; matched = true; }
+    // Days: "1д", "1d", "1.5д"
+    const days = s.match(/(\d+(?:\.\d+)?)\s*[дd]/);
+    if (days) { total += parseFloat(days[1]) * 8 * 60; matched = true; }
 
-    // Hours: "2ч", "2h"
-    const hours = s.match(/(\d+)\s*[чh]/);
-    if (hours) { total += parseInt(hours[1], 10) * 60; matched = true; }
+    // Hours: "2ч", "2h", "1.5ч"
+    const hours = s.match(/(\d+(?:\.\d+)?)\s*[чh]/);
+    if (hours) { total += parseFloat(hours[1]) * 60; matched = true; }
 
-    // Minutes: "30м", "30m"
-    const mins = s.match(/(\d+)\s*[мm]/);
-    if (mins) { total += parseInt(mins[1], 10); matched = true; }
+    // Minutes: "30м", "30m", "0.5м"
+    const mins = s.match(/(\d+(?:\.\d+)?)\s*[мm]/);
+    if (mins) { total += parseFloat(mins[1]); matched = true; }
 
-    return matched && total > 0 ? total : undefined;
+    return matched && total > 0 ? Math.round(total) : undefined;
   }
 
   readonly filters: { value: BacklogFilter; label: string }[] = [
