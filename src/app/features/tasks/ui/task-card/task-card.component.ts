@@ -25,6 +25,7 @@ export class TaskCardComponent {
   readonly cardClick = output<TaskCardVm>();
 
   readonly menuOpen = signal(false);
+  readonly moveMenuOpen = signal(false);
 
   constructor(private readonly elRef: ElementRef<HTMLElement>) {}
 
@@ -69,6 +70,12 @@ export class TaskCardComponent {
   toggleMenu(event: MouseEvent): void {
     event.stopPropagation();
     this.menuOpen.update(v => !v);
+    if (!this.menuOpen()) this.moveMenuOpen.set(false);
+  }
+
+  toggleMoveMenu(event: MouseEvent): void {
+    event.stopPropagation();
+    this.moveMenuOpen.update(v => !v);
   }
 
   onEdit(event: MouseEvent): void {
@@ -80,6 +87,7 @@ export class TaskCardComponent {
   onMoveTo(event: MouseEvent, targetColumnId: string): void {
     event.stopPropagation();
     this.menuOpen.set(false);
+    this.moveMenuOpen.set(false);
     this.menuAction.emit({ type: 'moveTo', taskId: this.task().id, targetColumnId });
   }
 

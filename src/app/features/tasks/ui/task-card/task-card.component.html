@@ -28,12 +28,13 @@
             Редактировать
           </button>
 
-          <div class="dropdown__submenu-wrap">
-            <!-- <button class="dropdown__item">
+          <div class="dropdown__submenu-wrap" [class.dropdown__submenu-wrap--open]="moveMenuOpen()">
+            <button class="dropdown__item" (click)="toggleMoveMenu($event)">
               <span class="material-symbols-outlined">drive_file_move</span>
               Переместить в...
-              <span class="material-symbols-outlined dropdown__chevron">chevron_right</span>
-            </button> -->
+              <span class="material-symbols-outlined dropdown__chevron"
+                    [class.dropdown__chevron--open]="moveMenuOpen()">chevron_right</span>
+            </button>
 
             <div class="dropdown__submenu">
               @for (target of moveTargets; track target.columnId) {
