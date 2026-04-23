@@ -1219,6 +1219,7 @@ app-date-picker {
 @media (max-width: 768px) {
   .backlog {
     padding: 12px 16px;
+    overflow-x: hidden; /* Не даём странице скроллиться горизонтально */
   }
 
   /* Скрыть capacity на мобильных — места мало */
@@ -1258,9 +1259,13 @@ app-date-picker {
   .backlog__filters {
     flex-wrap: nowrap;
     overflow-x: auto;
+    overflow-y: visible;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
     padding-bottom: 2px;
+    /* Явная ширина, чтобы overflow-x: auto работал как скролл-контейнер */
+    width: 100%;
+    min-width: 0;
 
     &::-webkit-scrollbar { display: none; }
   }

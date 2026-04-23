@@ -165,8 +165,13 @@
   z-index: 71;
 }
 
-.dropdown__submenu-wrap:hover > .dropdown__submenu {
+.dropdown__submenu-wrap:hover > .dropdown__submenu,
+.dropdown__submenu-wrap--open > .dropdown__submenu {
   display: block;
+}
+
+.dropdown__chevron--open {
+  transform: rotate(90deg);
 }
 
 /* ── Title ── */
@@ -287,8 +292,8 @@
     display: none;
   }
 
-  .dropdown__submenu-wrap:hover > .dropdown__submenu,
-  .dropdown__submenu-wrap:active > .dropdown__submenu {
+  /* На мобильном submenu управляется через --open класс (click), не hover */
+  .dropdown__submenu-wrap--open > .dropdown__submenu {
     display: block;
   }
 
