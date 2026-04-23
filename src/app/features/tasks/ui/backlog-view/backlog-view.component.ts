@@ -227,6 +227,14 @@ export class BacklogViewComponent {
       tasks = tasks.filter(t => t.title.toLowerCase().includes(q));
     }
 
+    // Sort by due date: closest first, tasks without date go to the end
+    tasks = [...tasks].sort((a, b) => {
+      if (!a.dueDate && !b.dueDate) return 0;
+      if (!a.dueDate) return 1;
+      if (!b.dueDate) return -1;
+      return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+    });
+
     return tasks;
   });
 

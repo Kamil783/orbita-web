@@ -24,10 +24,6 @@
         <span class="material-symbols-outlined action-btn__icon">calendar_month</span>
         <span>Детализация</span>
       </button>
-      <button class="action-btn action-btn--primary" type="button" (click)="openTransactionDialog()">
-        <span class="material-symbols-outlined action-btn__icon">add</span>
-        <span>Внести операцию</span>
-      </button>
     </div>
 
     <!-- ═══ Summary bar ═══ -->
@@ -522,6 +518,10 @@
         </div>
       </div>
     }
+
+    <button class="fab" type="button" (click)="openTransactionDialog()" aria-label="Внести операцию">
+      <span class="material-symbols-outlined">add</span>
+    </button>
   </main>
 </app-app-shell>
 
