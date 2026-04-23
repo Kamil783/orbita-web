@@ -92,17 +92,10 @@
 .field__checkbox {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   font-size: 14px;
   color: var(--text-main);
   cursor: pointer;
-
-  input[type='checkbox'] {
-    width: 18px;
-    height: 18px;
-    accent-color: var(--color-primary);
-    cursor: pointer;
-  }
 }
 
 /* ── Делаем "Описание" растягивающимся ── */
@@ -329,6 +322,13 @@
   font-size: 18px;
   color: var(--color-primary);
   flex-shrink: 0;
+}
+
+/* ── Date picker alignment with other inputs ── */
+:host ::ng-deep app-date-picker .dp__input {
+  height: 42px;
+  padding: 0 14px;
+  background: var(--surface-input);
 }
 
 /* ── Estimate input ── */
