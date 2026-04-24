@@ -37,6 +37,30 @@ export interface ChartDataPoint {
   value: number;        // rubles
 }
 
+// ─── Recurring (mandatory) payments ───
+
+export interface RecurringPayment {
+  id: string;
+  title: string;
+  amount: number;        // kopecks, positive (expense amount)
+  dayOfMonth: number;    // 1..31, due day each month
+  categoryId?: string;   // optional link to category
+}
+
+export interface CreateRecurringPaymentDto {
+  title: string;
+  amount: number;        // kopecks, positive
+  dayOfMonth: number;    // 1..31
+  categoryId?: string;
+}
+
+export interface UpdateRecurringPaymentDto {
+  title?: string;
+  amount?: number;       // kopecks, positive
+  dayOfMonth?: number;   // 1..31
+  categoryId?: string | null;
+}
+
 // ─── Shopping list ───
 
 export type ShoppingListType = 'personal' | 'shared' | 'team';

@@ -24,6 +24,124 @@
         <span class="material-symbols-outlined action-btn__icon">calendar_month</span>
         <span>Детализация</span>
       </button>
+
+      <div class="recurring-wrap" #recurringWrap>
+        <button
+          class="action-btn"
+          type="button"
+          [class.action-btn--active]="showRecurringPopover()"
+          (click)="toggleRecurringPopover($event)"
+        >
+          <span class="material-symbols-outlined action-btn__icon">event_repeat</span>
+          <span>Обязательные платежи</span>
+        </button>
+
+        @if (showRecurringPopover()) {
+          <div class="recurring-popover" (click)="$event.stopPropagation()">
+            <div class="recurring-popover__header">
+              <div>
+                <h3 class="recurring-popover__title">Обязательные платежи</h3>
+                <p class="recurring-popover__subtitle">
+                  Итого в месяц: <strong>{{ formatRub(recurringTotal()) }}</strong>
+                </p>
+              </div>
+              <button
+                class="recurring-popover__close"
+                type="button"
+                (click)="closeRecurringPopover()"
+                aria-label="Закрыть"
+              >
+                <span class="material-symbols-outlined">close</span>
+              </button>
+            </div>
+
+            <div class="recurring-popover__list">
+              @for (p of sortedRecurringPayments(); track p.id) {
+                <div
+                  class="recurring-row"
+                  [class.recurring-row--editing]="recurringEditingId() === p.id"
+                >
+                  <span class="recurring-row__day">{{ p.dayOfMonth }}</span>
+                  <div class="recurring-row__info">
+                    <p class="recurring-row__title">{{ p.title }}</p>
+                    <p class="recurring-row__amount">{{ formatRub(p.amount) }} / мес</p>
+                  </div>
+                  <div class="recurring-row__actions">
+                    <button
+                      class="recurring-row__btn"
+                      type="button"
+                      title="Редактировать"
+                      (click)="startEditRecurring(p)"
+                    >
+                      <span class="material-symbols-outlined">edit</span>
+                    </button>
+                    <button
+                      class="recurring-row__btn recurring-row__btn--danger"
+                      type="button"
+                      title="Удалить"
+                      (click)="deleteRecurring(p.id, $event)"
+                    >
+                      <span class="material-symbols-outlined">delete</span>
+                    </button>
+                  </div>
+                </div>
+              } @empty {
+                <p class="recurring-popover__empty">
+                  Пока нет обязательных платежей. Добавьте первый ниже.
+                </p>
+              }
+            </div>
+
+            <form class="recurring-form" (ngSubmit)="submitRecurring()">
+              <p class="recurring-form__title">
+                {{ recurringEditingId() ? 'Редактирование' : 'Новый платёж' }}
+              </p>
+
+              <input
+                class="recurring-form__input"
+                type="text"
+                placeholder="Название (напр. «Ипотека»)"
+                [(ngModel)]="recurringTitleInput"
+                name="recurringTitle"
+              />
+
+              <div class="recurring-form__row">
+                <input
+                  class="recurring-form__input"
+                  type="number"
+                  inputmode="decimal"
+                  step="0.01"
+                  min="0"
+                  placeholder="Сумма, ₽"
+                  [(ngModel)]="recurringAmountInput"
+                  name="recurringAmount"
+                />
+                <input
+                  class="recurring-form__input recurring-form__input--day"
+                  type="number"
+                  inputmode="numeric"
+                  min="1"
+                  max="31"
+                  placeholder="День"
+                  [(ngModel)]="recurringDayInput"
+                  name="recurringDay"
+                />
+              </div>
+
+              <div class="recurring-form__actions">
+                @if (recurringEditingId()) {
+                  <button type="button" class="recurring-form__btn recurring-form__btn--ghost" (click)="cancelRecurringEdit()">
+                    Отмена
+                  </button>
+                }
+                <button type="submit" class="recurring-form__btn recurring-form__btn--primary">
+                  {{ recurringEditingId() ? 'Сохранить' : 'Добавить' }}
+                </button>
+              </div>
+            </form>
+          </div>
+        }
+      </div>
     </div>
 
     <!-- ═══ Summary bar ═══ -->

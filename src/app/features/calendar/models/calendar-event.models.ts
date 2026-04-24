@@ -16,7 +16,7 @@ export interface CalendarEvent {
   googleEventId?: string; // Google Calendar event id
 }
 
-export type CalendarViewMode = 'day' | 'week';
+export type CalendarViewMode = 'day' | 'week' | 'month';
 
 export interface CalendarDayInfo {
   date: Date;
@@ -24,6 +24,15 @@ export interface CalendarDayInfo {
   dayNumber: number;
   isToday: boolean;
   isWeekend: boolean;
+}
+
+export interface CalendarMonthCell {
+  date: Date;
+  dayNumber: number;
+  isToday: boolean;
+  isWeekend: boolean;
+  isCurrentMonth: boolean;
+  events: CalendarEvent[];
 }
 
 export interface EventLayout {

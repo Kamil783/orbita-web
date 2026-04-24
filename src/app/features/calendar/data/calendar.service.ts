@@ -1,19 +1,76 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
-import { CalendarEvent, CalendarDayInfo, CalendarViewMode, DAY_NAMES_SHORT } from '../models/calendar-event.models';
+import { CalendarEvent, CalendarDayInfo, CalendarMonthCell, CalendarViewMode, DAY_NAMES_SHORT } from '../models/calendar-event.models';
+
+const MONTH_NAMES = [
+  'Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь',
+  'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь',
+];
 
 /**
- * API endpoints:
+ * ════════════════════════ API CONTRACT ════════════════════════
  *
- * GET    /api/Calendar/events?from=YYYY-MM-DD&to=YYYY-MM-DD → CalendarEvent[]   Load events for a date range
- * POST   /api/Calendar/events                                → CalendarEvent     Create event. Body: { title, type, color, date, endDate?, startTime, endTime, location? }
- * PUT    /api/Calendar/events/:id                            → CalendarEvent     Update event
- * DELETE /api/Calendar/events/:id                            → void              Delete event
+ *  EVENTS CRUD
+ *  ───────────
+ *  GET    /api/Calendar/events?from=YYYY-MM-DD&to=YYYY-MM-DD
+ *         Returns events whose `date` falls in [from, to] inclusive.
+ *         Response: CalendarEvent[] — see model below.
  *
- * POST   /api/Calendar/google/connect                        → { connected }     Initiate Google Calendar OAuth
- * POST   /api/Calendar/google/disconnect                     → void              Disconnect Google Calendar
- * GET    /api/Calendar/google/status                         → { connected }     Check if Google Calendar is connected
+ *  POST   /api/Calendar/events
+ *         Request body (EventCreatePayload):
+ *           { title: string, type: 'personal' | 'task' | 'google',
+ *             color: 'blue'|'green'|'amber'|'purple'|'rose',
+ *             date: 'YYYY-MM-DD', endDate?: 'YYYY-MM-DD',
+ *             startTime: 'HH:mm', endTime: 'HH:mm', location?: string }
+ *         Response: CalendarEvent (with server-assigned id).
+ *
+ *  PUT    /api/Calendar/events/:id
+ *         Same body as POST; response is updated CalendarEvent.
+ *
+ *  DELETE /api/Calendar/events/:id
+ *         Response: 204 No Content.
+ *
+ *  GOOGLE CALENDAR INTEGRATION
+ *  ───────────────────────────
+ *  GET    /api/Calendar/google/status
+ *         Response: { connected: boolean }
+ *
+ *  GET    /api/Calendar/google/auth-url
+ *         Builds the Google OAuth consent URL for the current user
+ *         (scope: https://www.googleapis.com/auth/calendar.readonly).
+ *         Response: { url: string }
+ *
+ *  GET    /api/Calendar/google/callback?code=...&state=...
+ *         Exchanges `code` for access + refresh tokens, persists them
+ *         against the current user, then returns an HTML page that
+ *         posts `{ type: 'google-calendar-connected' }` to
+ *         `window.opener` and closes itself. Also triggers an initial
+ *         event sync.
+ *
+ *  POST   /api/Calendar/google/sync
+ *         Forces a re-pull of the user's Google events into the local
+ *         events table (type = 'google').
+ *         Response: 204 No Content.
+ *
+ *  POST   /api/Calendar/google/disconnect
+ *         Revokes stored refresh token, deletes googleEventId links,
+ *         optionally removes `type: 'google'` rows.
+ *         Response: 204 No Content.
+ *
+ *  CalendarEvent shape:
+ *    { id: string,
+ *      title: string,
+ *      type: 'personal' | 'task' | 'google',
+ *      date: 'YYYY-MM-DD',
+ *      endDate?: 'YYYY-MM-DD',
+ *      startTime: 'HH:mm',
+ *      endTime: 'HH:mm',
+ *      location?: string,
+ *      color: 'blue'|'green'|'amber'|'purple'|'rose',
+ *      taskId?: string,       // set when type === 'task'
+ *      googleEventId?: string // set when type === 'google'
+ *    }
  */
 
 @Injectable({ providedIn: 'root' })
@@ -42,6 +99,11 @@ export class CalendarService {
     const last = days[6].date;
     const opts: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short' };
     return `${first.toLocaleDateString('ru-RU', opts)} — ${last.toLocaleDateString('ru-RU', opts)}, ${last.getFullYear()}`;
+  });
+
+  readonly monthLabel = computed(() => {
+    const d = this._selectedDate();
+    return `${MONTH_NAMES[d.getMonth()]} ${d.getFullYear()}`;
   });
 
   readonly weekDays = computed<CalendarDayInfo[]>(() => {
@@ -73,15 +135,56 @@ export class CalendarService {
     return this._events().filter(e => e.date === dateStr);
   });
 
+  /** 6×7 grid of days for the month view (anchored on Monday) */
+  readonly monthCells = computed<CalendarMonthCell[]>(() => {
+    const sel = this._selectedDate();
+    const year = sel.getFullYear();
+    const month = sel.getMonth();
+
+    // First day of month
+    const first = new Date(year, month, 1);
+    // Monday-based offset: Mon=0..Sun=6
+    const weekday = first.getDay();
+    const mondayOffset = (weekday === 0 ? 7 : weekday) - 1;
+
+    // Grid start = Monday of the week containing day 1
+    const gridStart = new Date(first);
+    gridStart.setDate(first.getDate() - mondayOffset);
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const events = this._events();
+
+    return Array.from({ length: 42 }, (_, i) => {
+      const date = new Date(gridStart);
+      date.setDate(gridStart.getDate() + i);
+      const check = new Date(date);
+      check.setHours(0, 0, 0, 0);
+      const dateStr = toDateString(date);
+      const dow = date.getDay();
+
+      return {
+        date,
+        dayNumber: date.getDate(),
+        isToday: check.getTime() === today.getTime(),
+        isWeekend: dow === 0 || dow === 6,
+        isCurrentMonth: date.getMonth() === month,
+        events: events
+          .filter(e => e.date === dateStr)
+          .sort((a, b) => a.startTime.localeCompare(b.startTime)),
+      };
+    });
+  });
+
   // ── Load data from API ──
 
   loadEvents(): void {
-    // Load events for the visible date range (current month ± 1 week)
+    // Load events for a wide window around the selected date
+    // (covers day/week/month views with margin for grid edges)
     const d = this._selectedDate();
-    const from = new Date(d);
-    from.setDate(from.getDate() - 14);
-    const to = new Date(d);
-    to.setDate(to.getDate() + 14);
+    const from = new Date(d.getFullYear(), d.getMonth() - 1, 1);
+    const to = new Date(d.getFullYear(), d.getMonth() + 2, 0);
 
     this.http.get<CalendarEvent[]>(`${this.apiUrl}/api/Calendar/events`, {
       params: { from: toDateString(from), to: toDateString(to) },
@@ -132,10 +235,13 @@ export class CalendarService {
 
   goPrev(): void {
     const d = new Date(this._selectedDate());
-    if (this._viewMode() === 'day') {
+    const mode = this._viewMode();
+    if (mode === 'day') {
       d.setDate(d.getDate() - 1);
-    } else {
+    } else if (mode === 'week') {
       d.setDate(d.getDate() - 7);
+    } else {
+      d.setMonth(d.getMonth() - 1);
     }
     this._selectedDate.set(d);
     this.loadEvents();
@@ -143,10 +249,13 @@ export class CalendarService {
 
   goNext(): void {
     const d = new Date(this._selectedDate());
-    if (this._viewMode() === 'day') {
+    const mode = this._viewMode();
+    if (mode === 'day') {
       d.setDate(d.getDate() + 1);
-    } else {
+    } else if (mode === 'week') {
       d.setDate(d.getDate() + 7);
+    } else {
+      d.setMonth(d.getMonth() + 1);
     }
     this._selectedDate.set(d);
     this.loadEvents();
@@ -154,10 +263,51 @@ export class CalendarService {
 
   // ── Google Calendar integration ──
 
+  /**
+   * Initiates Google OAuth via popup window.
+   * Backend flow:
+   *   1. GET  /api/Calendar/google/auth-url          → { url }
+   *      Backend builds Google consent URL with client_id, scope
+   *      (https://www.googleapis.com/auth/calendar.readonly), redirect_uri
+   *      pointing back to backend callback, and a signed `state`.
+   *   2. User authenticates in popup, Google redirects to backend callback:
+   *      GET /api/Calendar/google/callback?code=...&state=...
+   *      Backend exchanges code for access+refresh token, saves in user
+   *      profile, then responds with an HTML page that calls
+   *      `window.opener.postMessage({ type: 'google-calendar-connected' }, '*')`
+   *      and closes itself.
+   *   3. Frontend listens for that postMessage, refreshes status + events.
+   */
   connectGoogle(): void {
-    this.http.post<{ connected: boolean }>(`${this.apiUrl}/api/Calendar/google/connect`, {}).subscribe(res => {
-      this._googleConnected.set(res.connected);
-      this.loadEvents();
+    this.http.get<{ url: string }>(`${this.apiUrl}/api/Calendar/google/auth-url`).subscribe(res => {
+      const popup = window.open(
+        res.url,
+        'google-calendar-auth',
+        'width=520,height=640,menubar=no,toolbar=no,location=no,status=no',
+      );
+      if (!popup) return;
+
+      const onMessage = (event: MessageEvent) => {
+        // Accept only same-origin messages coming from the callback page
+        if (event.origin !== window.location.origin && event.origin !== this.apiUrl) return;
+        const data = event.data as { type?: string };
+        if (data?.type === 'google-calendar-connected') {
+          window.removeEventListener('message', onMessage);
+          this._googleConnected.set(true);
+          this.loadEvents();
+        }
+      };
+
+      window.addEventListener('message', onMessage);
+
+      // Fallback: poll status every 1.5s if popup closes without postMessage
+      const poll = window.setInterval(() => {
+        if (popup.closed) {
+          window.clearInterval(poll);
+          window.removeEventListener('message', onMessage);
+          this.loadGoogleStatus();
+        }
+      }, 1500);
     });
   }
 
@@ -165,6 +315,13 @@ export class CalendarService {
     this.http.post(`${this.apiUrl}/api/Calendar/google/disconnect`, {}).subscribe(() => {
       this._googleConnected.set(false);
       this._events.update(events => events.filter(e => e.type !== 'google'));
+    });
+  }
+
+  /** Manual sync trigger — refetches Google events into local DB */
+  syncGoogle(): void {
+    this.http.post(`${this.apiUrl}/api/Calendar/google/sync`, {}).subscribe(() => {
+      this.loadEvents();
     });
   }
 }

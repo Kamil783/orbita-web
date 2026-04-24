@@ -2,7 +2,7 @@ import { Injectable, computed, signal, inject, OnDestroy } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import * as signalR from '@microsoft/signalr';
 import { environment } from '../../../../environments/environment';
-import { AppNotification } from '../models/notification.models';
+import { AppNotification, NotificationType } from '../models/notification.models';
 
 /**
  * API endpoints:
@@ -94,6 +94,72 @@ export class NotificationService implements OnDestroy {
   markAllAsRead(): void {
     this._notifications.update(list => list.map(n => ({ ...n, read: true })));
     this.http.post(`${this.apiUrl}/api/Notifications/read-all`, {}).subscribe();
+  }
+
+  /**
+   * Show a notification purely client-side (без обращения к API).
+   * Появится тот же тост, что и от SignalR-уведомления, и добавится в список.
+   *
+   * Пример:
+   *   notificationService.notify({
+   *     type: 'task',
+   *     title: 'Задача сохранена',
+   *     message: 'Изменения применены',
+   *   });
+   */
+  notify(input: {
+    type: NotificationType;
+    title: string;
+    message: string;
+    /** Если не задано — тост пропадёт сам через 5 сек. Передай 0 чтобы не скрывать автоматически. */
+    durationMs?: number;
+    /** Показать всплывающий toast. По умолчанию true. */
+    toast?: boolean;
+    /** Добавить в дропдаун колокольчика. По умолчанию true. */
+    dropdown?: boolean;
+  }): AppNotification {
+    const notification: AppNotification = {
+      id: this.generateId(),
+      type: input.type,
+      title: input.title,
+      message: input.message,
+      read: false,
+      createdAt: new Date(),
+    };
+
+    if (input.dropdown !== false) {
+      this._notifications.update(list => [notification, ...list]);
+    }
+
+    if (input.toast !== false) {
+      this._toasts.update(list => [...list, notification]);
+      const duration = input.durationMs ?? 5000;
+      if (duration > 0) {
+        setTimeout(() => this.dismissToast(notification.id), duration);
+      }
+    }
+
+    return notification;
+  }
+
+  /**
+   * Показать только всплывающий toast без добавления в дропдаун.
+   * Удобно для быстрых системных сообщений («Сохранено», «Ошибка сети» и т.п.).
+   */
+  showToast(input: {
+    type: NotificationType;
+    title: string;
+    message: string;
+    durationMs?: number;
+  }): AppNotification {
+    return this.notify({ ...input, dropdown: false });
+  }
+
+  private generateId(): string {
+    if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
+      return crypto.randomUUID();
+    }
+    return `local-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
   }
 
   /** Send a test notification via the API */

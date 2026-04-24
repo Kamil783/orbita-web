@@ -4,7 +4,7 @@ import { AppShellComponent } from '../../shared/ui/app-shell/app-shell.component
 import { TopbarComponent } from '../../shared/ui/topbar/topbar.component';
 import { CalendarService } from '../../features/calendar/data/calendar.service';
 import {
-  CalendarViewMode, HOURS, HOUR_HEIGHT, EVENT_COLOR_MAP,
+  CalendarViewMode, HOURS, HOUR_HEIGHT, EVENT_COLOR_MAP, DAY_NAMES_SHORT,
   CalendarEvent, EventCreatePayload, EventLayout,
   timeToMinutes, layoutEvents,
 } from '../../features/calendar/models/calendar-event.models';
@@ -29,6 +29,7 @@ export class CalendarPageComponent implements OnInit {
   readonly title = 'Расписание';
   readonly hours = HOURS;
   readonly colorMap = EVENT_COLOR_MAP;
+  readonly weekdayShort = DAY_NAMES_SHORT;
 
   readonly selectedEvent = signal<CalendarEvent | null>(null);
   readonly showCreatePanel = signal(false);
@@ -44,11 +45,23 @@ export class CalendarPageComponent implements OnInit {
   });
 
   readonly headerSubtitle = computed(() => {
-    if (this.calendarService.viewMode() === 'day') {
-      return this.calendarService.selectedDateLabel();
-    }
-    return this.calendarService.weekLabel();
+    const mode = this.calendarService.viewMode();
+    if (mode === 'day') return this.calendarService.selectedDateLabel();
+    if (mode === 'week') return this.calendarService.weekLabel();
+    return this.calendarService.monthLabel();
   });
+
+  readonly headerTitle = computed(() => {
+    const mode = this.calendarService.viewMode();
+    if (mode === 'day') return 'Расписание на день';
+    if (mode === 'week') return 'Расписание на неделю';
+    return 'Расписание на месяц';
+  });
+
+  onMonthCellClick(date: Date): void {
+    this.calendarService.setSelectedDate(new Date(date));
+    this.calendarService.setViewMode('day');
+  }
 
   readonly isSelectedDateToday = computed(() => {
     const sel = this.calendarService.selectedDate();

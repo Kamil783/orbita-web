@@ -5,6 +5,7 @@ import {
   OnInit,
   ViewChild,
   ElementRef,
+  HostListener,
   signal,
   computed,
   inject,
@@ -16,6 +17,7 @@ import { AppShellComponent } from '../../shared/ui/app-shell/app-shell.component
 import { TopbarComponent } from '../../shared/ui/topbar/topbar.component';
 import { Chart, registerables } from 'chart.js';
 import { FinanceService } from '../../features/finance/data/finance.service';
+import { NotificationService } from '../../features/notifications/data/notification.service';
 import { ModalOverlayComponent } from '../../shared/ui/modal-overlay/modal-overlay.component';
 import { DatePickerComponent } from '../../shared/ui/date-picker/date-picker.component';
 import { SelectComponent } from '../../shared/ui/select/select.component';
@@ -25,6 +27,7 @@ import {
   ShoppingList,
   ShoppingListItem,
   Transaction,
+  RecurringPayment,
   ICON_OPTIONS,
   COLOR_OPTIONS,
 } from '../../features/finance/models/finance.models';
@@ -40,6 +43,7 @@ Chart.register(...registerables);
 })
 export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly financeService = inject(FinanceService);
+  private readonly notifications = inject(NotificationService);
 
   readonly title = 'Финансы';
   readonly iconOptions = ICON_OPTIONS;
@@ -47,6 +51,7 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   @ViewChild('spendingChart') chartCanvas!: ElementRef<HTMLCanvasElement>;
   @ViewChild('categoryChart') categoryChartCanvas!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('recurringWrap') recurringWrap?: ElementRef<HTMLElement>;
   private chart: Chart | null = null;
   private categoryChart: Chart | null = null;
   private viewReady = false;
@@ -81,6 +86,24 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly transactions = this.financeService.transactions;
   readonly savingsGoals = this.financeService.savingsGoals;
   readonly shoppingLists = this.financeService.shoppingLists;
+  readonly recurringPayments = this.financeService.recurringPayments;
+
+  // ─── Recurring payments popover ───
+
+  readonly showRecurringPopover = signal(false);
+  readonly recurringEditingId = signal<string | null>(null);
+
+  recurringTitleInput = '';
+  recurringAmountInput = '';
+  recurringDayInput = '';
+
+  readonly sortedRecurringPayments = computed(() =>
+    [...this.recurringPayments()].sort((a, b) => a.dayOfMonth - b.dayOfMonth),
+  );
+
+  readonly recurringTotal = computed(() =>
+    this.recurringPayments().reduce((sum, p) => sum + p.amount, 0),
+  );
 
   // ─── Limits (delegated to service) ───
 
@@ -529,10 +552,10 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
     } else if (tab === 'monthly') {
       const s = new Date(bucket.start);
       const e = new Date(bucket.end - 1);
-      label = `${s.getDate()}–${e.getDate()} ${['янв','фев','мар','апр','мая','июн','июл','авг','сен','окт','ноя','дек'][s.getMonth()]}`;
+      label = `${s.getDate()}–${e.getDate()} ${['янв', 'фев', 'мар', 'апр', 'мая', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'][s.getMonth()]}`;
     } else {
       const s = new Date(bucket.start);
-      const months = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+      const months = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
       label = `${months[s.getMonth()]} ${s.getFullYear()}`;
     }
     this.detailPeriodRange.set({ start: bucket.start, end: bucket.end, label, catId });
@@ -768,6 +791,88 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
   limitMonthly = '';
   limitWeekly = '';
 
+  // ─── Recurring payment handlers ───
+
+  toggleRecurringPopover(event: MouseEvent): void {
+    event.stopPropagation();
+    this.showRecurringPopover.update(v => !v);
+    if (!this.showRecurringPopover()) {
+      this.cancelRecurringEdit();
+    }
+  }
+
+  closeRecurringPopover(): void {
+    this.showRecurringPopover.set(false);
+    this.cancelRecurringEdit();
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClickForRecurring(event: MouseEvent): void {
+    if (!this.showRecurringPopover()) return;
+    const target = event.target as Node;
+    if (this.recurringWrap && !this.recurringWrap.nativeElement.contains(target)) {
+      this.closeRecurringPopover();
+    }
+  }
+
+  private resetRecurringForm(): void {
+    this.recurringTitleInput = '';
+    this.recurringAmountInput = '';
+    this.recurringDayInput = '';
+  }
+
+  cancelRecurringEdit(): void {
+    this.recurringEditingId.set(null);
+    this.resetRecurringForm();
+  }
+
+  startEditRecurring(payment: RecurringPayment): void {
+    this.recurringEditingId.set(payment.id);
+    this.recurringTitleInput = payment.title;
+    this.recurringAmountInput = (payment.amount / 100).toString();
+    this.recurringDayInput = payment.dayOfMonth.toString();
+  }
+
+  submitRecurring(): void {
+    const title = String(this.recurringTitleInput ?? '').trim();
+
+    const amountRub = parseFloat(
+      String(this.recurringAmountInput ?? '').replace(',', '.')
+    );
+
+    const day = parseInt(String(this.recurringDayInput ?? ''), 10);
+
+    if (!title || !Number.isFinite(amountRub) || amountRub <= 0) return;
+    if (!Number.isInteger(day) || day < 1 || day > 31) return;
+
+    const amount = Math.round(amountRub * 100);
+    const editingId = this.recurringEditingId();
+
+    if (editingId) {
+      this.financeService.updateRecurringPayment(editingId, {
+        title,
+        amount,
+        dayOfMonth: day,
+      });
+    } else {
+      this.financeService.createRecurringPayment({
+        title,
+        amount,
+        dayOfMonth: day,
+      });
+    }
+
+    this.cancelRecurringEdit();
+  }
+
+  deleteRecurring(id: string, event: MouseEvent): void {
+    event.stopPropagation();
+    this.financeService.deleteRecurringPayment(id);
+    if (this.recurringEditingId() === id) {
+      this.cancelRecurringEdit();
+    }
+  }
+
   // ─── Lifecycle ───
 
   ngOnInit(): void {
@@ -778,6 +883,7 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
     this.financeService.loadSavingsGoals();
     this.financeService.loadShoppingLists();
     this.financeService.loadLimits();
+    this.financeService.loadRecurringPayments();
   }
 
   ngAfterViewInit(): void {
@@ -1125,13 +1231,23 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
     const kopecks = Math.round(val * 100);
     const amount = this.txType === 'expense' ? -kopecks : kopecks;
 
-    this.financeService.createTransaction({
-      categoryId: this.txCategoryId || '',
-      title,
-      amount,
-      fromBalance: this.txFromBalance,
-      date: this.txDate || undefined,
-    });
+    this.financeService.createTransaction(
+      {
+        categoryId: this.txCategoryId || '',
+        title,
+        amount,
+        fromBalance: this.txFromBalance,
+        date: this.txDate || undefined,
+      },
+      (created) => {
+        const isExpense = created.amount < 0;
+        this.notifications.showToast({
+          type: 'finance',
+          title: 'Транзакция добавлена',
+          message: `${created.title} · ${this.formatRub(Math.abs(created.amount))}`,
+        });
+      },
+    );
     this.showTransactionDialog.set(false);
   }
 
