@@ -4,6 +4,7 @@ import { KanbanBoardComponent } from '../../features/tasks/ui/kanban-board/kanba
 import { TopbarComponent } from '../../shared/ui/topbar/topbar.component';
 import { TasksService } from '../../features/tasks/data/tasks.service';
 import { UserService } from '../../features/user/data/user.service';
+import { NotificationService } from '../../features/notifications/data/notification.service';
 import { TasksFilterComponent } from '../../features/tasks/ui/tasks-filter/tasks-filter.component';
 import { ConfirmDialogComponent } from '../../shared/ui/confirm-dialog/confirm-dialog.component';
 import { TaskCreatePanelComponent } from '../../features/tasks/ui/task-create-panel/task-create-panel.component';
@@ -32,6 +33,7 @@ import {
 export class TasksPageComponent implements OnInit {
   private readonly tasksService = inject(TasksService);
   private readonly userService = inject(UserService);
+  private readonly notifications = inject(NotificationService);
 
   readonly title = 'Задачи';
   readonly activeTab = signal<TasksTab>('board');
@@ -86,9 +88,13 @@ export class TasksPageComponent implements OnInit {
       case 'delete':
         this.deleteTaskId.set(action.taskId);
         break;
-      case 'moveTo':
+      case 'moveTo': {
+        const title = this.findCardTitle(action.taskId);
+        const columnTitle = this.findColumnTitle(action.targetColumnId);
         this.tasksService.moveTaskById(action.taskId, action.targetColumnId);
+        this.toast('Задача перемещена', columnTitle ? `${title} → ${columnTitle}` : title);
         break;
+      }
       case 'edit':
         this.openDetailByTaskId(action.taskId);
         break;
@@ -128,7 +134,9 @@ export class TasksPageComponent implements OnInit {
   onConfirmDelete(): void {
     const taskId = this.deleteTaskId();
     if (taskId) {
+      const title = this.findCardTitle(taskId);
       this.tasksService.deleteTask(taskId);
+      this.toast('Задача удалена', title);
       this.deleteTaskId.set(null);
     }
   }
@@ -151,6 +159,7 @@ export class TasksPageComponent implements OnInit {
       progressPct: payload.trackProgress ? 0 : undefined,
       estimateMinutes: payload.estimateMinutes,
     });
+    this.toast('Задача создана', payload.title);
     this.showCreatePanel.set(false);
   }
 
@@ -172,6 +181,7 @@ export class TasksPageComponent implements OnInit {
 
   onConfirmNewWeek(): void {
     this.tasksService.startNewWeek();
+    this.toast('Новая неделя начата');
     this.showNewWeekConfirm.set(false);
   }
 
@@ -181,10 +191,27 @@ export class TasksPageComponent implements OnInit {
 
   onSaveColumn(title: string): void {
     this.tasksService.createColumn(title);
+    this.toast('Колонка создана', title);
     this.showColumnCreateDialog.set(false);
   }
 
   onCancelColumnCreate(): void {
     this.showColumnCreateDialog.set(false);
+  }
+
+  private toast(title: string, message = ''): void {
+    this.notifications.showToast({ type: 'task', title, message });
+  }
+
+  private findCardTitle(taskId: string): string {
+    for (const col of this.tasksService.columns()) {
+      const card = col.cards.find(c => c.id === taskId);
+      if (card) return card.title;
+    }
+    return '';
+  }
+
+  private findColumnTitle(columnId: string): string {
+    return this.tasksService.columns().find(c => c.id === columnId)?.title ?? '';
   }
 }
