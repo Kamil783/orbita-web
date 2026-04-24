@@ -16,6 +16,13 @@
       >
         Неделя
       </button>
+      <button
+        class="view-toggle__btn"
+        [class.view-toggle__btn--active]="calendarService.viewMode() === 'month'"
+        (click)="setView('month')"
+      >
+        Месяц
+      </button>
     </div>
   </app-topbar>
 
@@ -27,9 +34,7 @@
           <span class="material-symbols-outlined">event</span>
         </div>
         <div class="cal-header__info">
-          <h2 class="cal-header__title">
-            {{ calendarService.viewMode() === 'day' ? 'Расписание на день' : 'Расписание на неделю' }}
-          </h2>
+          <h2 class="cal-header__title">{{ headerTitle() }}</h2>
           <p class="cal-header__subtitle">{{ headerSubtitle() }}</p>
         </div>
       </div>
@@ -166,6 +171,50 @@
                   <div class="current-time__line"></div>
                 </div>
               }
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- MONTH VIEW -->
+    @if (calendarService.viewMode() === 'month') {
+      <div class="month-wrapper">
+        <div class="month-header">
+          @for (d of weekdayShort; track d) {
+            <div class="month-header__day">{{ d }}</div>
+          }
+        </div>
+
+        <div class="month-grid">
+          @for (cell of calendarService.monthCells(); track cell.date.getTime()) {
+            <div
+              class="month-cell"
+              [class.month-cell--other]="!cell.isCurrentMonth"
+              [class.month-cell--today]="cell.isToday"
+              [class.month-cell--weekend]="cell.isWeekend"
+              (click)="onMonthCellClick(cell.date)"
+            >
+              <span class="month-cell__day">{{ cell.dayNumber }}</span>
+
+              <div class="month-cell__events">
+                @for (ev of cell.events.slice(0, 3); track ev.id) {
+                  <button
+                    type="button"
+                    class="month-event"
+                    [style.background]="colorMap[ev.color].bg"
+                    [style.color]="colorMap[ev.color].text"
+                    [style.border-left-color]="colorMap[ev.color].border"
+                    (click)="openEventDetail(ev, $event)"
+                  >
+                    <span class="month-event__time">{{ ev.startTime }}</span>
+                    <span class="month-event__title">{{ ev.title }}</span>
+                  </button>
+                }
+                @if (cell.events.length > 3) {
+                  <span class="month-cell__more">+{{ cell.events.length - 3 }}</span>
+                }
+              </div>
             </div>
           }
         </div>

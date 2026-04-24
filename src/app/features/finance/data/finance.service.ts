@@ -26,6 +26,9 @@ import {
   UpdateShoppingListItemDto,
   Transaction,
   UpdateTransactionDto,
+  RecurringPayment,
+  CreateRecurringPaymentDto,
+  UpdateRecurringPaymentDto,
 } from '../models/finance.models';
 
 /**
@@ -51,6 +54,11 @@ import {
  *
  * GET    /api/Finance/limits                         → SpendingLimits              Load spending limits
  * PUT    /api/Finance/limits                         → SpendingLimits              Update spending limits. Body: SpendingLimits
+ *
+ * GET    /api/Finance/recurring-payments             → RecurringPayment[]          Load mandatory monthly payments
+ * POST   /api/Finance/recurring-payments             → RecurringPayment            Create. Body: CreateRecurringPaymentDto
+ * PATCH  /api/Finance/recurring-payments/:id         → RecurringPayment            Update. Body: UpdateRecurringPaymentDto
+ * DELETE /api/Finance/recurring-payments/:id         → void                        Delete
  */
 
 @Injectable({ providedIn: 'root' })
@@ -67,6 +75,7 @@ export class FinanceService {
   readonly transactions = signal<Transaction[]>([]);
   readonly savingsGoals = signal<SavingsGoal[]>([]);
   readonly limits = signal<SpendingLimits>({ monthlyLimit: 0, weeklyLimit: 0 });
+  readonly recurringPayments = signal<RecurringPayment[]>([]);
 
   // ─── Balance ───
 
@@ -159,12 +168,13 @@ export class FinanceService {
       });
   }
 
-  createTransaction(dto: CreateTransactionDto): void {
+  createTransaction(dto: CreateTransactionDto, onSuccess?: (tx: Transaction) => void): void {
     this.http.post<Transaction>(`${this.apiUrl}/api/Finance/transactions`, dto)
       .subscribe(created => {
         this.transactions.update(list => [created, ...list]);
         // Balance is updated server-side; reload to stay in sync
         this.loadBalance();
+        onSuccess?.(created);
       });
   }
 
@@ -491,6 +501,39 @@ export class FinanceService {
       .subscribe(limits => {
         this.limits.set(limits);
       });
+  }
+
+  // ─── Recurring (mandatory) payments ───
+
+  loadRecurringPayments(): void {
+    this.http.get<RecurringPayment[]>(`${this.apiUrl}/api/Finance/recurring-payments`)
+      .subscribe(list => {
+        this.recurringPayments.set(list);
+      });
+  }
+
+  createRecurringPayment(dto: CreateRecurringPaymentDto): void {
+    this.http.post<RecurringPayment>(`${this.apiUrl}/api/Finance/recurring-payments`, dto)
+      .subscribe(created => {
+        this.recurringPayments.update(list => [...list, created]);
+      });
+  }
+
+  updateRecurringPayment(id: string, dto: UpdateRecurringPaymentDto): void {
+    this.http.patch<RecurringPayment>(`${this.apiUrl}/api/Finance/recurring-payments/${id}`, dto)
+      .subscribe(updated => {
+        this.recurringPayments.update(list =>
+          list.map(p => p.id === id ? updated : p),
+        );
+      });
+  }
+
+  deleteRecurringPayment(id: string): void {
+    const backup = this.recurringPayments();
+    this.recurringPayments.update(list => list.filter(p => p.id !== id));
+    this.http.delete(`${this.apiUrl}/api/Finance/recurring-payments/${id}`).subscribe({
+      error: () => this.recurringPayments.set(backup),
+    });
   }
 
   updateLimits(limits: SpendingLimits): void {
