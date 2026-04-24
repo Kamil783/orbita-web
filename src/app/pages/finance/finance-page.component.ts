@@ -791,6 +791,11 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
   limitMonthly = '';
   limitWeekly = '';
 
+  // ─── Toast helper ───
+  private toast(title: string, message = ''): void {
+    this.notifications.showToast({ type: 'finance', title, message });
+  }
+
   // ─── Recurring payment handlers ───
 
   toggleRecurringPopover(event: MouseEvent): void {
@@ -854,12 +859,14 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
         amount,
         dayOfMonth: day,
       });
+      this.toast('Платёж обновлён', `${title} · ${day}-го числа`);
     } else {
       this.financeService.createRecurringPayment({
         title,
         amount,
         dayOfMonth: day,
       });
+      this.toast('Платёж добавлен', `${title} · ${day}-го числа`);
     }
 
     this.cancelRecurringEdit();
@@ -867,10 +874,12 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   deleteRecurring(id: string, event: MouseEvent): void {
     event.stopPropagation();
+    const removed = this.recurringPayments().find(p => p.id === id);
     this.financeService.deleteRecurringPayment(id);
     if (this.recurringEditingId() === id) {
       this.cancelRecurringEdit();
     }
+    this.toast('Платёж удалён', removed?.title ?? '');
   }
 
   // ─── Lifecycle ───
@@ -949,8 +958,13 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
   saveBalance(): void {
     const val = parseFloat(this.balanceAmount.replace(',', '.'));
     if (isNaN(val) || val === 0) return;
-    this.financeService.adjustBalance(Math.round(val * 100));
+    const kopecks = Math.round(val * 100);
+    this.financeService.adjustBalance(kopecks);
     this.showBalanceDialog.set(false);
+    this.toast(
+      val > 0 ? 'Баланс пополнен' : 'Баланс уменьшен',
+      this.formatRub(Math.abs(kopecks)),
+    );
   }
 
   // ─── Category dialog ───
@@ -992,8 +1006,10 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
     };
     if (this.editCategoryId) {
       this.financeService.updateCategory(this.editCategoryId, data);
+      this.toast('Категория обновлена', name);
     } else {
       this.financeService.createCategory(data);
+      this.toast('Категория создана', name);
     }
     this.showCategoryDialog.set(false);
   }
@@ -1014,6 +1030,7 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
 
     if (this.goalType === 'shoppingList') {
       this.financeService.createShoppingList(name, this.goalListType);
+      this.toast('Список покупок создан', name);
       this.showGoalDialog.set(false);
       return;
     }
@@ -1024,6 +1041,7 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
       name,
       target: Math.round(target * 100),
     });
+    this.toast('Цель создана', name);
     this.showGoalDialog.set(false);
   }
 
@@ -1045,6 +1063,7 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
       name,
       target: Math.round(val * 100),
     });
+    this.toast('Цель обновлена', name);
     this.showEditGoalDialog.set(false);
   }
 
@@ -1064,6 +1083,7 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
       name,
       listType: this.editShoppingListType,
     });
+    this.toast('Список обновлён', name);
     this.showEditShoppingListDialog.set(false);
   }
 
@@ -1084,6 +1104,7 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
     const val = parseFloat(this.editShoppingItemPrice.replace(',', '.'));
     const price = !isNaN(val) && val > 0 ? Math.round(val * 100) : null;
     this.financeService.updateShoppingListItem(this.editShoppingItemListId, itemId, { name, price });
+    this.toast('Товар обновлён', name);
     this.editingShoppingItemId.set(null);
   }
 
@@ -1148,6 +1169,7 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
     const val = parseFloat(this.addItemPrice.replace(',', '.'));
     const price = !isNaN(val) && val > 0 ? Math.round(val * 100) : null;
     this.financeService.addShoppingListItem(this.addItemListId, name, price);
+    this.toast('Товар добавлен', name);
     this.showAddItemDialog.set(false);
   }
 
@@ -1158,7 +1180,9 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   confirmDeleteList(): void {
+    const name = this.deleteListName;
     this.financeService.deleteShoppingList(this.deleteListId);
+    this.toast('Список удалён', name);
     this.showDeleteListDialog.set(false);
   }
 
@@ -1174,7 +1198,9 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
   saveFundGoal(): void {
     const val = parseFloat(this.fundGoalAmount.replace(',', '.'));
     if (isNaN(val) || val <= 0) return;
-    this.financeService.fundSavingsGoal(this.fundGoalId, Math.round(val * 100));
+    const kopecks = Math.round(val * 100);
+    this.financeService.fundSavingsGoal(this.fundGoalId, kopecks);
+    this.toast('Пополнено', `${this.fundGoalName} · ${this.formatRub(kopecks)}`);
     this.showFundGoalDialog.set(false);
   }
 
@@ -1195,6 +1221,7 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
     const clamped = Math.min(kopecks, this.withdrawGoalMax);
     if (clamped <= 0) return;
     this.financeService.withdrawSavingsGoal(this.withdrawGoalId, clamped);
+    this.toast('Снято с цели', `${this.withdrawGoalName} · ${this.formatRub(clamped)}`);
     this.showWithdrawGoalDialog.set(false);
   }
 
@@ -1207,7 +1234,9 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   confirmDeleteGoal(): void {
+    const name = this.deleteGoalName;
     this.financeService.deleteSavingsGoal(this.deleteGoalId);
+    this.toast('Цель удалена', name);
     this.showDeleteGoalDialog.set(false);
   }
 
@@ -1280,6 +1309,7 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
       fromBalance: this.editTxFromBalance,
       date: this.editTxDate || undefined,
     });
+    this.toast('Транзакция обновлена', `${title} · ${this.formatRub(kopecks)}`);
     this.showEditTransactionDialog.set(false);
   }
 
@@ -1292,7 +1322,9 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   confirmDeleteTransaction(): void {
+    const title = this.deleteTxTitle;
     this.financeService.deleteTransaction(this.deleteTxId);
+    this.toast('Транзакция удалена', title);
     this.showDeleteTransactionDialog.set(false);
   }
 
@@ -1313,6 +1345,7 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
       monthlyLimit: !isNaN(ml) && ml > 0 ? Math.round(ml * 100) : 0,
       weeklyLimit: !isNaN(wl) && wl > 0 ? Math.round(wl * 100) : 0,
     });
+    this.toast('Лимиты обновлены');
     this.showLimitDialog.set(false);
   }
 
