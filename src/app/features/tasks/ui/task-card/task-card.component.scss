@@ -157,9 +157,14 @@
   padding: 0 0 4px 32px;
 }
 
-.dropdown__submenu-wrap:hover > .dropdown__submenu,
 .dropdown__submenu-wrap--open > .dropdown__submenu {
   display: block;
+}
+
+@media (hover: hover) {
+  .dropdown__submenu-wrap:hover > .dropdown__submenu {
+    display: block;
+  }
 }
 
 .dropdown__chevron {

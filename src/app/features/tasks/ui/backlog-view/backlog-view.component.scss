@@ -526,7 +526,7 @@
   font-size: 13px;
   border: 1px solid var(--border-color);
   border-radius: 10px;
-  background: var(--surface-input);
+  background: var(--surface-panel);
   color: var(--text-main);
   outline: none;
   transition: border-color 0.15s ease;
@@ -885,6 +885,7 @@ app-date-picker {
   input[type='checkbox'] {
     width: 16px;
     height: 16px;
+    background: var(--surface-panel);
   }
 }
 
