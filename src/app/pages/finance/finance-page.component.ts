@@ -12,6 +12,7 @@ import {
   effect,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { CdkDropList, CdkDrag, CdkDragHandle, CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { AppShellComponent } from '../../shared/ui/app-shell/app-shell.component';
 import { TopbarComponent } from '../../shared/ui/topbar/topbar.component';
@@ -37,7 +38,7 @@ Chart.register(...registerables);
 @Component({
   selector: 'app-finance-page',
   standalone: true,
-  imports: [AppShellComponent, TopbarComponent, FormsModule, ModalOverlayComponent, DatePickerComponent, SelectComponent, CdkDropList, CdkDrag, CdkDragHandle],
+  imports: [AppShellComponent, TopbarComponent, FormsModule, RouterLink, ModalOverlayComponent, DatePickerComponent, SelectComponent, CdkDropList, CdkDrag, CdkDragHandle],
   templateUrl: './finance-page.component.html',
   styleUrl: './finance-page.component.scss',
 })
