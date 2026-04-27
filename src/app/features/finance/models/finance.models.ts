@@ -82,6 +82,41 @@ export interface ShoppingList {
   pinned: boolean;       // pinned lists are always shown on top
 }
 
+// ─── Planned purchases (monthly purchase plan) ───
+
+export type PlannedPurchaseStatus = 'planned' | 'bought' | 'cancelled';
+
+export interface PlannedPurchase {
+  id: string;
+  title: string;
+  date: string;                   // ISO 'YYYY-MM-DD' — planned purchase date
+  amount: number;                 // kopecks, expected expense (positive)
+  assigneeId: string | null;      // team member id, null = unassigned
+  categoryId: string | null;
+  note: string;                   // optional details, '' if not set
+  status: PlannedPurchaseStatus;
+  createdAt: number;              // ms since epoch
+}
+
+export interface CreatePlannedPurchaseDto {
+  title: string;
+  date: string;                   // ISO 'YYYY-MM-DD'
+  amount: number;                 // kopecks, positive
+  assigneeId?: string | null;
+  categoryId?: string | null;
+  note?: string;
+}
+
+export interface UpdatePlannedPurchaseDto {
+  title?: string;
+  date?: string;                  // ISO 'YYYY-MM-DD'
+  amount?: number;                // kopecks, positive
+  assigneeId?: string | null;
+  categoryId?: string | null;
+  note?: string;
+  status?: PlannedPurchaseStatus;
+}
+
 // ─── Request DTOs ───
 
 export interface CreateCategoryDto {

@@ -1,0 +1,319 @@
+<app-app-shell>
+  <app-topbar [title]="title" placeholder="Поиск покупок..."></app-topbar>
+
+  <main class="page">
+    <!-- Header: back link + month nav + add button -->
+    <div class="page-head">
+      <button class="back-btn" type="button" (click)="backToFinance()">
+        <span class="material-symbols-outlined">arrow_back</span>
+        <span>Финансы</span>
+      </button>
+
+      <div class="month-nav">
+        <button class="month-nav__btn" type="button" (click)="prevMonth()" aria-label="Предыдущий месяц">
+          <span class="material-symbols-outlined">chevron_left</span>
+        </button>
+        <div class="month-nav__label">
+          <span class="month-nav__title">{{ monthLabel() }}</span>
+          @if (!isCurrentMonth()) {
+            <button class="month-nav__today" type="button" (click)="goToCurrentMonth()">
+              К текущему
+            </button>
+          }
+        </div>
+        <button class="month-nav__btn" type="button" (click)="nextMonth()" aria-label="Следующий месяц">
+          <span class="material-symbols-outlined">chevron_right</span>
+        </button>
+      </div>
+
+      <button class="add-btn" type="button" (click)="openCreate()">
+        <span class="material-symbols-outlined">add</span>
+        <span>Запланировать</span>
+      </button>
+    </div>
+
+    <!-- Stats summary -->
+    <div class="stats">
+      <div class="stat">
+        <span class="stat__label">Запланировано</span>
+        <span class="stat__value">{{ formatRub(stats().plannedTotal) }}</span>
+        <span class="stat__hint">{{ stats().plannedCount }} шт.</span>
+      </div>
+      <div class="stat stat--bought">
+        <span class="stat__label">Куплено</span>
+        <span class="stat__value">{{ formatRub(stats().boughtTotal) }}</span>
+        <span class="stat__hint">{{ stats().boughtCount }} шт.</span>
+      </div>
+      <div class="stat stat--forecast">
+        <span class="stat__label">Прогноз на месяц</span>
+        <span class="stat__value">{{ formatRub(stats().forecastTotal) }}</span>
+        <span class="stat__hint">{{ stats().total }} позиций</span>
+      </div>
+      @if (stats().cancelledCount > 0) {
+        <div class="stat stat--cancelled">
+          <span class="stat__label">Отменено</span>
+          <span class="stat__value">{{ stats().cancelledCount }}</span>
+          <span class="stat__hint">не учитывается в прогнозе</span>
+        </div>
+      }
+    </div>
+
+    <!-- Filters -->
+    <div class="filters">
+      <div class="filters__group">
+        <app-select
+          [options]="statusFilterOptions"
+          icon="flag"
+          placeholder="Все статусы"
+          [ngModel]="statusFilter()"
+          (ngModelChange)="setStatusFilter($event)"
+        ></app-select>
+
+        <app-select
+          [options]="assigneeOptions()"
+          icon="person"
+          placeholder="Любой исполнитель"
+          [ngModel]="assigneeFilter()"
+          (ngModelChange)="assigneeFilter.set($event)"
+        ></app-select>
+
+        <app-select
+          [options]="categoryOptions()"
+          icon="category"
+          placeholder="Все категории"
+          [ngModel]="categoryFilter()"
+          (ngModelChange)="categoryFilter.set($event)"
+        ></app-select>
+      </div>
+
+      @if (hasActiveFilters()) {
+        <button class="filters__reset" type="button" (click)="resetFilters()">
+          <span class="material-symbols-outlined">close</span>
+          Сбросить
+        </button>
+      }
+    </div>
+
+    <!-- Day-grouped list -->
+    @if (showEmpty()) {
+      <div class="empty">
+        <span class="material-symbols-outlined empty__icon">event_note</span>
+        <h3 class="empty__title">
+          @if (hasActiveFilters()) { Нет покупок по выбранным фильтрам }
+          @else { В этом месяце ничего не запланировано }
+        </h3>
+        <p class="empty__msg">
+          Запланируйте, что нужно купить и когда — и каждый член команды увидит свою часть.
+        </p>
+        @if (hasActiveFilters()) {
+          <button class="empty__cta" type="button" (click)="resetFilters()">
+            Сбросить фильтры
+          </button>
+        } @else {
+          <button class="empty__cta" type="button" (click)="openCreate()">
+            <span class="material-symbols-outlined">add</span>
+            Запланировать покупку
+          </button>
+        }
+      </div>
+    } @else {
+      <div class="days">
+        @for (g of groups(); track g.iso) {
+          <section class="day"
+            [class.day--today]="g.isToday"
+            [class.day--past]="g.isPast"
+          >
+            <header class="day__head">
+              <div class="day__date">
+                <span class="day__num">{{ g.day }}</span>
+                <div class="day__meta">
+                  <span class="day__title">{{ formatDayHeading(g) }}</span>
+                  <span class="day__dow">{{ g.dayOfWeek }}</span>
+                </div>
+                @if (g.isToday) {
+                  <span class="day__badge">Сегодня</span>
+                }
+              </div>
+              <div class="day__totals">
+                <span class="day__total-amount">{{ formatRub(g.total) }}</span>
+                <button class="day__add" type="button" (click)="openCreate(g.iso)" aria-label="Добавить на этот день">
+                  <span class="material-symbols-outlined">add</span>
+                </button>
+              </div>
+            </header>
+
+            <ul class="rows">
+              @for (r of g.rows; track r.id) {
+                <li class="row"
+                  [class.row--bought]="r.status === 'bought'"
+                  [class.row--cancelled]="r.status === 'cancelled'"
+                >
+                  <span class="row__icon" [style.background]="r.categoryBg" [style.color]="r.categoryColor">
+                    <span class="material-symbols-outlined">{{ r.categoryIcon }}</span>
+                  </span>
+
+                  <div class="row__main">
+                    <div class="row__title-line">
+                      <span class="row__title">{{ r.title }}</span>
+                      <span class="row__status row__status--{{ r.status }}">
+                        {{ statusLabel(r.status) }}
+                      </span>
+                    </div>
+                    <div class="row__sub">
+                      <span class="row__cat">{{ r.categoryName }}</span>
+                      @if (r.note) {
+                        <span class="row__note" [title]="r.note">{{ r.note }}</span>
+                      }
+                    </div>
+                  </div>
+
+                  <div class="row__assignee">
+                    @if (r.assignee) {
+                      @if (r.assignee.avatar) {
+                        <img class="avatar" [src]="r.assignee.avatar | avatar" [alt]="r.assignee.name" />
+                      } @else {
+                        <span class="avatar avatar--initial">{{ initialOf(r.assignee.name) }}</span>
+                      }
+                      <span class="row__assignee-name">{{ r.assignee.name }}</span>
+                    } @else {
+                      <span class="avatar avatar--unassigned">
+                        <span class="material-symbols-outlined">person</span>
+                      </span>
+                      <span class="row__assignee-name row__assignee-name--muted">Не назначено</span>
+                    }
+                  </div>
+
+                  <span class="row__amount">{{ formatRub(r.amount) }}</span>
+
+                  <div class="row__actions">
+                    @if (r.status === 'planned') {
+                      <button class="row__btn row__btn--ok" type="button" title="Отметить купленным" (click)="markBought(r)">
+                        <span class="material-symbols-outlined">check</span>
+                      </button>
+                      <button class="row__btn" type="button" title="Отменить" (click)="markCancelled(r)">
+                        <span class="material-symbols-outlined">block</span>
+                      </button>
+                    } @else {
+                      <button class="row__btn" type="button" title="Вернуть в план" (click)="markPlanned(r)">
+                        <span class="material-symbols-outlined">restart_alt</span>
+                      </button>
+                    }
+                    <button class="row__btn" type="button" title="Редактировать" (click)="openEdit(r)">
+                      <span class="material-symbols-outlined">edit</span>
+                    </button>
+                    <button class="row__btn row__btn--danger" type="button" title="Удалить" (click)="openDelete(r)">
+                      <span class="material-symbols-outlined">delete</span>
+                    </button>
+                  </div>
+                </li>
+              }
+            </ul>
+          </section>
+        }
+      </div>
+    }
+  </main>
+</app-app-shell>
+
+<!-- ─── Add / Edit dialog ─── -->
+@if (showFormDialog()) {
+  <app-modal-overlay (close)="closeFormDialog()">
+    <header class="form__header">
+      <h2 class="form__title">
+        {{ editingId() ? 'Редактировать покупку' : 'Запланировать покупку' }}
+      </h2>
+      <button class="form__close" type="button" (click)="closeFormDialog()" aria-label="Закрыть">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </header>
+
+    <form class="form" (ngSubmit)="saveForm()">
+      <label class="form__field">
+        <span class="form__label">Название</span>
+        <input
+          class="form__input"
+          type="text"
+          name="title"
+          [(ngModel)]="formTitle"
+          placeholder="Например: продукты на неделю"
+          autofocus
+          required
+        />
+      </label>
+
+      <div class="form__row">
+        <label class="form__field">
+          <span class="form__label">Дата</span>
+          <app-date-picker name="date" [(ngModel)]="formDate" placeholder="Дата покупки"></app-date-picker>
+        </label>
+
+        <label class="form__field">
+          <span class="form__label">Сумма, ₽</span>
+          <input
+            class="form__input"
+            type="text"
+            inputmode="decimal"
+            name="amount"
+            [(ngModel)]="formAmount"
+            placeholder="0,00"
+            required
+          />
+        </label>
+      </div>
+
+      <div class="form__row">
+        <label class="form__field">
+          <span class="form__label">Категория</span>
+          <app-select
+            name="category"
+            [options]="categorySelectOptions()"
+            icon="category"
+            placeholder="Без категории"
+            [(ngModel)]="formCategoryId"
+          ></app-select>
+        </label>
+
+        <label class="form__field">
+          <span class="form__label">Кто покупает</span>
+          <app-select
+            name="assignee"
+            [options]="memberOptions()"
+            icon="person"
+            placeholder="Не назначено"
+            [(ngModel)]="formAssigneeId"
+          ></app-select>
+        </label>
+      </div>
+
+      <label class="form__field">
+        <span class="form__label">Заметка</span>
+        <textarea
+          class="form__input form__input--area"
+          name="note"
+          [(ngModel)]="formNote"
+          rows="3"
+          placeholder="Бренд, магазин, ссылки — что угодно"
+        ></textarea>
+      </label>
+
+      <div class="form__actions">
+        <button class="form__btn" type="button" (click)="closeFormDialog()">Отмена</button>
+        <button class="form__btn form__btn--primary" type="submit">
+          {{ editingId() ? 'Сохранить' : 'Запланировать' }}
+        </button>
+      </div>
+    </form>
+  </app-modal-overlay>
+}
+
+<!-- ─── Delete confirmation ─── -->
+@if (showDeleteDialog()) {
+  <app-confirm-dialog
+    icon="delete"
+    title="Удалить покупку?"
+    [message]="'Запланированная покупка «' + deleteTargetTitle() + '» будет удалена.'"
+    confirmText="Удалить"
+    (cancel)="cancelDelete()"
+    (confirm)="confirmDelete()"
+  ></app-confirm-dialog>
+}
