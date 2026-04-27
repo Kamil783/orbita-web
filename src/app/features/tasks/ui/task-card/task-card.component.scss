@@ -11,9 +11,11 @@
   cursor: grab;
 }
 
-.card:hover {
-  border-color: rgba(37, 140, 244, 0.30);
-  border-left-color: var(--card-priority-color, rgba(37, 140, 244, 0.30));
+@media (hover: hover) {
+  .card:hover {
+    border-color: rgba(37, 140, 244, 0.30);
+    border-left-color: var(--card-priority-color, rgba(37, 140, 244, 0.30));
+  }
 }
 
 .top {
