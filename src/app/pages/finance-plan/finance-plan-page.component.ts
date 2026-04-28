@@ -109,6 +109,18 @@ export class FinancePlanPageComponent implements OnInit {
   formCategoryId = '';
   formNote = '';
 
+  // ─── Per-user spending breakdown dialog ───
+  readonly showBreakdownDialog = signal(false);
+  readonly breakdownFromDate = signal('');
+  readonly breakdownToDate = signal('');
+  readonly breakdownStatus = signal<'all' | 'bought' | 'planned'>('all');
+
+  readonly breakdownStatusOptions: SelectOption[] = [
+    { value: 'all', label: 'Все (план + купленные)' },
+    { value: 'bought', label: 'Только купленные' },
+    { value: 'planned', label: 'Только запланированные' },
+  ];
+
   // ─── Computed ───
 
   readonly monthLabel = computed(() =>
@@ -273,6 +285,78 @@ export class FinancePlanPageComponent implements OnInit {
     return this.viewYear() === now.getFullYear() && this.viewMonth() === now.getMonth();
   });
 
+  // ─── Per-user breakdown ───
+
+  readonly breakdownRows = computed(() => {
+    const from = this.breakdownFromDate();
+    const to = this.breakdownToDate();
+    const status = this.breakdownStatus();
+    const membersMap = this.userService.membersMap();
+    const members = this.members();
+
+    // Build a lookup: userId -> { count, total } over filtered purchases
+    const stats = new Map<string, { count: number; total: number }>();
+    let unassignedCount = 0;
+    let unassignedTotal = 0;
+
+    for (const p of this.purchases()) {
+      if (from && p.date < from) continue;
+      if (to && p.date > to) continue;
+      if (status === 'bought' && p.status !== 'bought') continue;
+      if (status === 'planned' && p.status !== 'planned') continue;
+      if (status === 'all' && p.status === 'cancelled') continue;
+
+      if (p.assigneeId === null) {
+        unassignedCount++;
+        unassignedTotal += p.amount;
+        continue;
+      }
+      const cur = stats.get(p.assigneeId) ?? { count: 0, total: 0 };
+      cur.count++;
+      cur.total += p.amount;
+      stats.set(p.assigneeId, cur);
+    }
+
+    const rows = members.map((m) => {
+      const s = stats.get(m.id) ?? { count: 0, total: 0 };
+      return {
+        id: m.id,
+        name: m.name,
+        avatar: m.avatar,
+        count: s.count,
+        total: s.total,
+      };
+    });
+
+    if (unassignedCount > 0) {
+      rows.push({
+        id: '__unassigned__',
+        name: 'Не назначено',
+        avatar: undefined,
+        count: unassignedCount,
+        total: unassignedTotal,
+      });
+    }
+
+    rows.sort((a, b) => b.total - a.total);
+    return rows;
+  });
+
+  readonly breakdownGrandTotal = computed(() =>
+    this.breakdownRows().reduce((s, r) => s + r.total, 0),
+  );
+
+  readonly breakdownMaxTotal = computed(() =>
+    this.breakdownRows().reduce((m, r) => Math.max(m, r.total), 0),
+  );
+
+  /** Use Math from template for percentage bar width. */
+  barWidth(value: number): number {
+    const max = this.breakdownMaxTotal();
+    if (max <= 0) return 0;
+    return Math.round((value / max) * 100);
+  }
+
   // ─── Lifecycle ───
 
   ngOnInit(): void {
@@ -331,6 +415,28 @@ export class FinancePlanPageComponent implements OnInit {
     this.statusFilter.set(value as StatusFilter);
   }
 
+  // ─── Breakdown dialog ───
+
+  openBreakdownDialog(): void {
+    // Default range = current viewed month
+    const y = this.viewYear();
+    const m = this.viewMonth();
+    const first = this.toIso(new Date(y, m, 1));
+    const last = this.toIso(new Date(y, m + 1, 0));
+    this.breakdownFromDate.set(first);
+    this.breakdownToDate.set(last);
+    this.breakdownStatus.set('all');
+    this.showBreakdownDialog.set(true);
+  }
+
+  closeBreakdownDialog(): void {
+    this.showBreakdownDialog.set(false);
+  }
+
+  setBreakdownStatus(value: string): void {
+    this.breakdownStatus.set(value as 'all' | 'bought' | 'planned');
+  }
+
   // ─── Form dialog ───
 
   openCreate(presetDateIso?: string): void {
@@ -356,7 +462,7 @@ export class FinancePlanPageComponent implements OnInit {
     this.formAmount = (item.amount / 100).toString().replace('.', ',');
     this.formAssigneeId = item.assigneeId ?? '';
     this.formCategoryId = item.categoryId ?? '';
-    this.formNote = item.note;
+    this.formNote = item.note ?? '';
     this.showFormDialog.set(true);
   }
 

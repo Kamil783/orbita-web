@@ -120,6 +120,29 @@ $accent-soft: rgba(250, 204, 21, 0.14);
   }
 }
 
+.breakdown-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 14px;
+  height: 40px;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  background: var(--surface-panel);
+  color: var(--text-700);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  .material-symbols-outlined { font-size: 20px; }
+
+  &:hover {
+    color: var(--color-primary);
+    border-color: var(--color-primary);
+  }
+}
+
 // ─── Stats ───
 .stats {
   display: grid;
@@ -684,8 +707,151 @@ $accent-soft: rgba(250, 204, 21, 0.14);
 
 // Align date-picker background with other form inputs (default --surface-panel
 // matches the modal background, so the field would blend in).
-:host ::ng-deep .form app-date-picker .dp__input {
+:host ::ng-deep .form app-date-picker .dp__input,
+:host ::ng-deep .breakdown app-date-picker .dp__input {
   background: var(--surface-input);
+}
+
+// ─── Breakdown by participants dialog ───
+.breakdown {
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.breakdown__filters {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.breakdown__filter--full {
+  grid-column: 1 / -1;
+}
+
+.breakdown__total {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: $accent-soft;
+  border: 1px solid $accent-soft;
+  border-radius: 10px;
+  font-size: 13px;
+  color: var(--text-700);
+
+  strong {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--text-900);
+    letter-spacing: -0.01em;
+  }
+}
+
+.breakdown__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 32px 16px;
+  color: var(--text-500);
+  text-align: center;
+
+  .material-symbols-outlined { font-size: 36px; color: var(--text-400); }
+  p { margin: 0; font-size: 13px; }
+}
+
+.breakdown__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.breakdown__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(160px, 200px);
+  align-items: center;
+  gap: 16px;
+  padding: 10px 12px;
+  border: 1px solid var(--border-light);
+  border-radius: 10px;
+  background: var(--surface-input);
+}
+
+.breakdown__user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.breakdown__user-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.breakdown__user-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-900);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.breakdown__user-count {
+  font-size: 12px;
+  color: var(--text-500);
+}
+
+.breakdown__amount-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.breakdown__amount {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-900);
+  text-align: right;
+}
+
+.breakdown__bar {
+  height: 4px;
+  background: var(--surface-muted);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.breakdown__bar-fill {
+  height: 100%;
+  background: $accent;
+  border-radius: 999px;
+  transition: width 0.2s ease;
+}
+
+@media (max-width: 600px) {
+  .breakdown__filters {
+    grid-template-columns: 1fr;
+  }
+  .breakdown__row {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  .breakdown__amount {
+    text-align: left;
+  }
+  .breakdown-btn__label {
+    display: none;
+  }
 }
 
 .form__actions {
