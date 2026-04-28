@@ -26,6 +26,11 @@
         </button>
       </div>
 
+      <button class="breakdown-btn" type="button" (click)="openBreakdownDialog()" title="Траты по участникам">
+        <span class="material-symbols-outlined">groups</span>
+        <span class="breakdown-btn__label">По участникам</span>
+      </button>
+
       <button class="add-btn" type="button" (click)="openCreate()">
         <span class="material-symbols-outlined">add</span>
         <span>Запланировать</span>
@@ -316,4 +321,90 @@
     (cancel)="cancelDelete()"
     (confirm)="confirmDelete()"
   ></app-confirm-dialog>
+}
+
+<!-- ─── Breakdown by participants ─── -->
+@if (showBreakdownDialog()) {
+  <app-modal-overlay size="md" (close)="closeBreakdownDialog()">
+    <header class="form__header">
+      <h2 class="form__title">Траты по участникам</h2>
+      <button class="form__close" type="button" (click)="closeBreakdownDialog()" aria-label="Закрыть">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </header>
+
+    <div class="breakdown">
+      <div class="breakdown__filters">
+        <label class="form__field">
+          <span class="form__label">С</span>
+          <app-date-picker
+            [ngModel]="breakdownFromDate()"
+            (ngModelChange)="breakdownFromDate.set($event)"
+            placeholder="Начало периода"
+          ></app-date-picker>
+        </label>
+        <label class="form__field">
+          <span class="form__label">По</span>
+          <app-date-picker
+            [ngModel]="breakdownToDate()"
+            (ngModelChange)="breakdownToDate.set($event)"
+            placeholder="Конец периода"
+          ></app-date-picker>
+        </label>
+        <label class="form__field breakdown__filter--full">
+          <span class="form__label">Учитывать</span>
+          <app-select
+            [options]="breakdownStatusOptions"
+            icon="filter_list"
+            [ngModel]="breakdownStatus()"
+            (ngModelChange)="setBreakdownStatus($event)"
+          ></app-select>
+        </label>
+      </div>
+
+      <div class="breakdown__total">
+        <span>Итого за период</span>
+        <strong>{{ formatRub(breakdownGrandTotal()) }}</strong>
+      </div>
+
+      @if (breakdownGrandTotal() === 0) {
+        <div class="breakdown__empty">
+          <span class="material-symbols-outlined">person_search</span>
+          <p>В этом периоде нет покупок по выбранному фильтру.</p>
+        </div>
+      } @else {
+        <ul class="breakdown__list">
+          @for (r of breakdownRows(); track r.id) {
+            @if (r.total > 0) {
+              <li class="breakdown__row">
+                <div class="breakdown__user">
+                  @if (r.avatar) {
+                    <img class="avatar" [src]="r.avatar | avatar" [alt]="r.name" />
+                  } @else {
+                    <span class="avatar avatar--initial">{{ initialOf(r.name) }}</span>
+                  }
+                  <div class="breakdown__user-info">
+                    <span class="breakdown__user-name">{{ r.name }}</span>
+                    <span class="breakdown__user-count">{{ r.count }} шт.</span>
+                  </div>
+                </div>
+                <div class="breakdown__amount-wrap">
+                  <span class="breakdown__amount">{{ formatRub(r.total) }}</span>
+                  <div class="breakdown__bar">
+                    <div class="breakdown__bar-fill" [style.width.%]="barWidth(r.total)"></div>
+                  </div>
+                </div>
+              </li>
+            }
+          }
+        </ul>
+      }
+    </div>
+
+    <div class="form__actions">
+      <button class="form__btn form__btn--primary" type="button" (click)="closeBreakdownDialog()">
+        Закрыть
+      </button>
+    </div>
+  </app-modal-overlay>
 }
