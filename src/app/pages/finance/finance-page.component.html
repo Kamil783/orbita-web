@@ -1,5 +1,10 @@
 <app-app-shell>
-  <app-topbar [title]="title" placeholder="Поиск транзакций..."></app-topbar>
+  <app-topbar [title]="title" placeholder="Поиск транзакций...">
+    <a topbar-left-extra class="topbar-link" routerLink="/finance/plan" title="Запланированные покупки">
+      <span class="material-symbols-outlined">event_note</span>
+      <span class="topbar-link__label">Запланированные покупки</span>
+    </a>
+  </app-topbar>
 
   <main class="page">
     <!-- Action buttons bar -->
@@ -24,11 +29,6 @@
         <span class="material-symbols-outlined action-btn__icon">calendar_month</span>
         <span>Детализация</span>
       </button>
-
-      <a class="action-btn" routerLink="/finance/plan">
-        <span class="material-symbols-outlined action-btn__icon">event_note</span>
-        <span>Запланированные покупки</span>
-      </a>
 
       <div class="recurring-wrap" #recurringWrap>
         <button

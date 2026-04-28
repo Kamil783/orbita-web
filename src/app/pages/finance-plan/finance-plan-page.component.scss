@@ -191,6 +191,13 @@ $accent-soft: rgba(250, 204, 21, 0.14);
   min-width: 200px;
 }
 
+// On light theme `--surface-input` equals `--surface-app` (page background),
+// so the three filter selects blended into the page. Force a distinct surface
+// — same approach as the stat cards on this page.
+:host ::ng-deep .filters__group app-select .sel__input {
+  background: var(--surface-panel);
+}
+
 .filters__reset {
   display: inline-flex;
   align-items: center;
@@ -370,7 +377,9 @@ $accent-soft: rgba(250, 204, 21, 0.14);
   height: 36px;
   display: grid;
   place-items: center;
-  border-radius: 10px;
+  border-radius: 8px;
+  flex-shrink: 0;
+  background: color-mix(in srgb, currentColor 14%, transparent);
 
   .material-symbols-outlined { font-size: 20px; }
 }
@@ -593,7 +602,8 @@ $accent-soft: rgba(250, 204, 21, 0.14);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 20px 24px 0;
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--border-light);
 }
 
 .form__title {
@@ -620,7 +630,7 @@ $accent-soft: rgba(250, 204, 21, 0.14);
 }
 
 .form {
-  padding: 18px 24px 24px;
+  padding: 20px 24px;
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -636,6 +646,7 @@ $accent-soft: rgba(250, 204, 21, 0.14);
   display: flex;
   flex-direction: column;
   gap: 6px;
+  min-width: 0;
 }
 
 .form__label {
@@ -645,34 +656,45 @@ $accent-soft: rgba(250, 204, 21, 0.14);
 }
 
 .form__input {
-  height: 40px;
-  padding: 0 12px;
+  width: 100%;
+  height: 48px;
+  padding: 0 16px;
   border: 1px solid var(--border-color);
   border-radius: 10px;
-  background: var(--surface-panel);
+  background: var(--surface-input);
   color: var(--text-900);
   font-size: 14px;
   font-family: inherit;
-  transition: border-color 0.15s ease;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 
   &:focus {
     outline: none;
     border-color: var(--color-primary);
+    box-shadow: 0 0 0 4px rgba(37, 140, 244, 0.15);
   }
 
   &--area {
     height: auto;
-    padding: 10px 12px;
+    padding: 12px 16px;
     resize: vertical;
-    min-height: 60px;
+    min-height: 72px;
   }
+}
+
+// Align date-picker background with other form inputs (default --surface-panel
+// matches the modal background, so the field would blend in).
+:host ::ng-deep .form app-date-picker .dp__input {
+  background: var(--surface-input);
 }
 
 .form__actions {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
-  margin-top: 4px;
+  padding: 16px 24px;
+  margin: 0 -24px -20px;
+  border-top: 1px solid var(--border-light);
 }
 
 .form__btn {

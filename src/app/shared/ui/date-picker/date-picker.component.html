@@ -18,7 +18,11 @@
 
   <!-- Calendar dropdown -->
   @if (isOpen()) {
-    <div class="dp__dropdown" [class.dp__dropdown--right]="dropdownAlign() === 'right'">
+    <div
+      class="dp__dropdown"
+      [class.dp__dropdown--right]="dropdownAlign() === 'right'"
+      [class.dp__dropdown--up]="dropdownDirection() === 'up'"
+    >
       <!-- Month/year nav -->
       <div class="dp__nav">
         <button class="dp__nav-btn" type="button" (click)="prevMonth()">
