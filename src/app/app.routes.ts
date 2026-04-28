@@ -41,6 +41,12 @@ export const routes: Routes = [
       import('./pages/finance/finance-page.component').then(m => m.FinancePageComponent),
   },
   {
+    path: 'finance/plan',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./pages/finance-plan/finance-plan-page.component').then(m => m.FinancePlanPageComponent),
+  },
+  {
     path: 'profile',
     canActivate: [authGuard],
     loadComponent: () =>

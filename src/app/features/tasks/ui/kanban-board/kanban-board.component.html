@@ -35,9 +35,11 @@
     <div class="mobile-column" cdkDropListGroup>
       <app-kanban-column
         [column]="col"
+        [allColumns]="columns()"
         (menuAction)="menuAction.emit($event)"
         (taskDrop)="taskDrop.emit($event)"
         (headerAction)="headerAction.emit($event)"
+        (cardClick)="cardClick.emit($event)"
       ></app-kanban-column>
     </div>
   }

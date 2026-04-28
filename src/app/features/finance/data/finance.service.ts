@@ -29,6 +29,9 @@ import {
   RecurringPayment,
   CreateRecurringPaymentDto,
   UpdateRecurringPaymentDto,
+  PlannedPurchase,
+  CreatePlannedPurchaseDto,
+  UpdatePlannedPurchaseDto,
 } from '../models/finance.models';
 
 /**
@@ -59,6 +62,11 @@ import {
  * POST   /api/Finance/recurring-payments             → RecurringPayment            Create. Body: CreateRecurringPaymentDto
  * PATCH  /api/Finance/recurring-payments/:id         → RecurringPayment            Update. Body: UpdateRecurringPaymentDto
  * DELETE /api/Finance/recurring-payments/:id         → void                        Delete
+ *
+ * GET    /api/Finance/planned-purchases              → PlannedPurchase[]           Load planned purchases
+ * POST   /api/Finance/planned-purchases              → PlannedPurchase             Create. Body: CreatePlannedPurchaseDto
+ * PATCH  /api/Finance/planned-purchases/:id          → PlannedPurchase             Update. Body: UpdatePlannedPurchaseDto
+ * DELETE /api/Finance/planned-purchases/:id          → void                        Delete
  */
 
 @Injectable({ providedIn: 'root' })
@@ -549,6 +557,67 @@ export class FinanceService {
         },
         error: () => {
           this.limits.set(backup);
+        },
+      });
+  }
+
+  // ─── Planned purchases ───
+
+  readonly plannedPurchases = signal<PlannedPurchase[]>([]);
+
+  loadPlannedPurchases(): void {
+    this.http.get<PlannedPurchase[]>(`${this.apiUrl}/api/Finance/planned-purchases`)
+      .subscribe(list => {
+        this.plannedPurchases.set(list);
+      });
+  }
+
+  createPlannedPurchase(dto: CreatePlannedPurchaseDto): void {
+    this.http.post<PlannedPurchase>(`${this.apiUrl}/api/Finance/planned-purchases`, dto)
+      .subscribe(created => {
+        this.plannedPurchases.update(list => [...list, created]);
+      });
+  }
+
+  updatePlannedPurchase(id: string, dto: UpdatePlannedPurchaseDto): void {
+    const backup = this.plannedPurchases();
+
+    // Optimistic update
+    this.plannedPurchases.update(list =>
+      list.map(p => p.id === id
+        ? {
+            ...p,
+            ...(dto.title !== undefined ? { title: dto.title } : {}),
+            ...(dto.date !== undefined ? { date: dto.date } : {}),
+            ...(dto.amount !== undefined ? { amount: dto.amount } : {}),
+            ...(dto.assigneeId !== undefined ? { assigneeId: dto.assigneeId } : {}),
+            ...(dto.categoryId !== undefined ? { categoryId: dto.categoryId } : {}),
+            ...(dto.note !== undefined ? { note: dto.note } : {}),
+            ...(dto.status !== undefined ? { status: dto.status } : {}),
+          }
+        : p,
+      ),
+    );
+
+    this.http.patch<PlannedPurchase>(`${this.apiUrl}/api/Finance/planned-purchases/${id}`, dto)
+      .subscribe({
+        next: updated => {
+          this.plannedPurchases.update(list => list.map(p => p.id === id ? updated : p));
+        },
+        error: () => {
+          this.plannedPurchases.set(backup);
+        },
+      });
+  }
+
+  deletePlannedPurchase(id: string): void {
+    const backup = this.plannedPurchases();
+    this.plannedPurchases.update(list => list.filter(p => p.id !== id));
+
+    this.http.delete(`${this.apiUrl}/api/Finance/planned-purchases/${id}`)
+      .subscribe({
+        error: () => {
+          this.plannedPurchases.set(backup);
         },
       });
   }
