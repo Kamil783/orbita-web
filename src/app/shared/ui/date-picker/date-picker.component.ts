@@ -46,6 +46,10 @@ export class DatePickerComponent implements ControlValueAccessor {
   readonly viewYear = signal(new Date().getFullYear());
   readonly viewMonth = signal(new Date().getMonth());
   readonly selectedDate = signal<string>(''); // ISO 'YYYY-MM-DD'
+  // 'down' = open below input, 'up' = open above. Decided on each open by
+  // measuring available viewport space, so the calendar never gets clipped
+  // off-screen / under the modal scroll bottom.
+  readonly dropdownDirection = signal<'down' | 'up'>('down');
 
   readonly monthNames = MONTH_NAMES_RU;
   readonly dayNames = DAY_NAMES_SHORT_RU;
@@ -138,6 +142,25 @@ export class DatePickerComponent implements ControlValueAccessor {
         this.viewYear.set(y);
         this.viewMonth.set(m - 1);
       }
+      this.updateDropdownDirection();
+    }
+  }
+
+  /** Approx height of the open calendar dropdown in pixels. */
+  private static readonly DROPDOWN_HEIGHT = 340;
+
+  private updateDropdownDirection(): void {
+    const host: HTMLElement = this.elementRef.nativeElement;
+    const rect = host.getBoundingClientRect();
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const spaceAbove = rect.top;
+
+    // Prefer below; flip up only if it doesn't fit below AND fits better above.
+    const fitsBelow = spaceBelow >= DatePickerComponent.DROPDOWN_HEIGHT;
+    if (!fitsBelow && spaceAbove > spaceBelow) {
+      this.dropdownDirection.set('up');
+    } else {
+      this.dropdownDirection.set('down');
     }
   }
 

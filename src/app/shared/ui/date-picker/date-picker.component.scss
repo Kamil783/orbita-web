@@ -94,10 +94,22 @@
     left: auto;
     right: 0;
   }
+
+  // Auto-flip: open above the input when there's not enough space below.
+  &--up {
+    top: auto;
+    bottom: calc(100% + 6px);
+    animation-name: dpInUp;
+  }
 }
 
 @keyframes dpIn {
   from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes dpInUp {
+  from { opacity: 0; transform: translateY(4px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 

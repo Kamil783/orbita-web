@@ -133,13 +133,15 @@ export class FinancePlanPageComponent implements OnInit {
     ...this.categories().map(c => ({ value: c.id, label: c.name })),
   ]);
 
-  readonly memberOptions = computed<SelectOption[]>(() =>
-    this.members().map(m => ({ value: m.id, label: m.name })),
-  );
+  readonly memberOptions = computed<SelectOption[]>(() => [
+    { value: '', label: 'Не назначено' },
+    ...this.members().map(m => ({ value: m.id, label: m.name })),
+  ]);
 
-  readonly categorySelectOptions = computed<SelectOption[]>(() =>
-    this.categories().map(c => ({ value: c.id, label: c.name })),
-  );
+  readonly categorySelectOptions = computed<SelectOption[]>(() => [
+    { value: '', label: 'Без категории' },
+    ...this.categories().map(c => ({ value: c.id, label: c.name })),
+  ]);
 
   readonly statusValueOptions: SelectOption[] = [
     { value: 'planned', label: 'Запланировано' },
