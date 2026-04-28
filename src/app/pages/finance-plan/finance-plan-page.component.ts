@@ -109,6 +109,11 @@ export class FinancePlanPageComponent implements OnInit {
   formCategoryId = '';
   formNote = '';
 
+  // ─── Detail dialog (full info on a single planned purchase) ───
+  readonly showDetailDialog = signal(false);
+  readonly detailRow = signal<PurchaseRow | null>(null);
+  readonly detailDayIso = signal<string>(''); // for showing the date in detail dialog
+
   // ─── Per-user spending breakdown dialog ───
   readonly showBreakdownDialog = signal(false);
   readonly breakdownFromDate = signal('');
@@ -413,6 +418,81 @@ export class FinancePlanPageComponent implements OnInit {
 
   setStatusFilter(value: string): void {
     this.statusFilter.set(value as StatusFilter);
+  }
+
+  // ─── Detail dialog ───
+
+  openDetail(row: PurchaseRow, group: DayGroup): void {
+    this.detailRow.set(row);
+    this.detailDayIso.set(group.iso);
+    this.showDetailDialog.set(true);
+  }
+
+  closeDetail(): void {
+    this.showDetailDialog.set(false);
+    this.detailRow.set(null);
+  }
+
+  /** Re-resolve the detail row from latest data (e.g. after status change). */
+  private refreshDetail(): void {
+    const cur = this.detailRow();
+    if (!cur) return;
+    for (const g of this.groups()) {
+      const found = g.rows.find(r => r.id === cur.id);
+      if (found) {
+        this.detailRow.set(found);
+        this.detailDayIso.set(g.iso);
+        return;
+      }
+    }
+  }
+
+  detailEdit(): void {
+    const r = this.detailRow();
+    if (!r) return;
+    this.closeDetail();
+    this.openEdit(r);
+  }
+
+  detailDelete(): void {
+    const r = this.detailRow();
+    if (!r) return;
+    this.closeDetail();
+    this.openDelete(r);
+  }
+
+  detailMarkBought(): void {
+    const r = this.detailRow();
+    if (!r) return;
+    this.markBought(r);
+    this.refreshDetail();
+  }
+
+  detailMarkCancelled(): void {
+    const r = this.detailRow();
+    if (!r) return;
+    this.markCancelled(r);
+    this.refreshDetail();
+  }
+
+  detailMarkPlanned(): void {
+    const r = this.detailRow();
+    if (!r) return;
+    this.markPlanned(r);
+    this.refreshDetail();
+  }
+
+  /** Format ISO date as "27 апреля 2026, понедельник". */
+  formatLongDate(iso: string): string {
+    if (!iso) return '';
+    const d = new Date(iso + 'T00:00:00');
+    if (isNaN(d.getTime())) return iso;
+    return new Intl.DateTimeFormat('ru-RU', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+      weekday: 'long',
+    }).format(d);
   }
 
   // ─── Breakdown dialog ───

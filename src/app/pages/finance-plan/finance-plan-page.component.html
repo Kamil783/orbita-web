@@ -152,6 +152,7 @@
                 <li class="row"
                   [class.row--bought]="r.status === 'bought'"
                   [class.row--cancelled]="r.status === 'cancelled'"
+                  (click)="openDetail(r, g)"
                 >
                   <span class="row__icon" [style.color]="r.categoryColor">
                     <span class="material-symbols-outlined">{{ r.categoryIcon }}</span>
@@ -190,7 +191,7 @@
 
                   <span class="row__amount">{{ formatRub(r.amount) }}</span>
 
-                  <div class="row__actions">
+                  <div class="row__actions" (click)="$event.stopPropagation()">
                     @if (r.status === 'planned') {
                       <button class="row__btn row__btn--ok" type="button" title="Отметить купленным" (click)="markBought(r)">
                         <span class="material-symbols-outlined">check</span>
@@ -321,6 +322,102 @@
     (cancel)="cancelDelete()"
     (confirm)="confirmDelete()"
   ></app-confirm-dialog>
+}
+
+<!-- ─── Detail (full info on a planned purchase) ─── -->
+@if (showDetailDialog() && detailRow(); as detail) {
+  <app-modal-overlay size="md" (close)="closeDetail()">
+      <header class="form__header">
+        <div class="detail__heading">
+          <span class="detail__icon" [style.color]="detail.categoryColor">
+            <span class="material-symbols-outlined">{{ detail.categoryIcon }}</span>
+          </span>
+          <div class="detail__heading-text">
+            <h2 class="form__title">{{ detail.title }}</h2>
+            <span class="detail__status detail__status--{{ detail.status }}">
+              {{ statusLabel(detail.status) }}
+            </span>
+          </div>
+        </div>
+        <button class="form__close" type="button" (click)="closeDetail()" aria-label="Закрыть">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </header>
+
+      <div class="detail">
+        <div class="detail__amount">
+          <span class="detail__amount-label">Сумма</span>
+          <span class="detail__amount-value">{{ formatRub(detail.amount) }}</span>
+        </div>
+
+        <dl class="detail__props">
+          <div class="detail__prop">
+            <dt><span class="material-symbols-outlined">event</span> Дата</dt>
+            <dd>{{ formatLongDate(detailDayIso()) }}</dd>
+          </div>
+
+          <div class="detail__prop">
+            <dt><span class="material-symbols-outlined">category</span> Категория</dt>
+            <dd>{{ detail.categoryName }}</dd>
+          </div>
+
+          <div class="detail__prop">
+            <dt><span class="material-symbols-outlined">person</span> Кто покупает</dt>
+            <dd>
+              @if (detail.assignee) {
+                <span class="detail__assignee">
+                  @if (detail.assignee.avatar) {
+                    <img class="avatar" [src]="detail.assignee.avatar | avatar" [alt]="detail.assignee.name" />
+                  } @else {
+                    <span class="avatar avatar--initial">{{ initialOf(detail.assignee.name) }}</span>
+                  }
+                  <span>{{ detail.assignee.name }}</span>
+                </span>
+              } @else {
+                <span class="detail__muted">Не назначено</span>
+              }
+            </dd>
+          </div>
+
+          @if (detail.note) {
+            <div class="detail__prop detail__prop--note">
+              <dt><span class="material-symbols-outlined">sticky_note_2</span> Заметка</dt>
+              <dd class="detail__note">{{ detail.note }}</dd>
+            </div>
+          }
+        </dl>
+
+        <div class="detail__quick">
+          @if (detail.status === 'planned') {
+            <button class="detail__quick-btn detail__quick-btn--ok" type="button" (click)="detailMarkBought()">
+              <span class="material-symbols-outlined">check</span>
+              Отметить купленным
+            </button>
+            <button class="detail__quick-btn" type="button" (click)="detailMarkCancelled()">
+              <span class="material-symbols-outlined">block</span>
+              Отменить
+            </button>
+          } @else {
+            <button class="detail__quick-btn" type="button" (click)="detailMarkPlanned()">
+              <span class="material-symbols-outlined">restart_alt</span>
+              Вернуть в план
+            </button>
+          }
+        </div>
+      </div>
+
+      <div class="form__actions">
+        <button class="form__btn form__btn--danger" type="button" (click)="detailDelete()">
+          <span class="material-symbols-outlined">delete</span>
+          Удалить
+        </button>
+        <button class="form__btn" type="button" (click)="closeDetail()">Закрыть</button>
+        <button class="form__btn form__btn--primary" type="button" (click)="detailEdit()">
+          <span class="material-symbols-outlined">edit</span>
+          Редактировать
+        </button>
+      </div>
+    </app-modal-overlay>
 }
 
 <!-- ─── Breakdown by participants ─── -->
