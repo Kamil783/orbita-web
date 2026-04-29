@@ -60,6 +60,35 @@ export class TaskCardComponent {
     return col?.columnType === 'done';
   }
 
+  /**
+   * Remaining time text: estimate - logged, formatted as "Xч Yм осталось" or
+   * "превышено на Xч". Returns null when no estimate is set or task is done.
+   */
+  get remainingText(): string | null {
+    if (this.isDone) return null;
+    const t = this.task();
+    const est = t.estimateMinutes ?? 0;
+    if (est <= 0) return null;
+    const logged = t.loggedMinutes ?? 0;
+    const diff = est - logged;
+    if (diff === 0) return 'Время вышло';
+    const abs = Math.abs(diff);
+    const h = Math.floor(abs / 60);
+    const m = abs % 60;
+    const parts: string[] = [];
+    if (h > 0) parts.push(`${h} ч`);
+    if (m > 0) parts.push(`${m} м`);
+    const formatted = parts.length ? parts.join(' ') : '0 м';
+    return diff > 0 ? `Осталось ${formatted}` : `Превышение на ${formatted}`;
+  }
+
+  get remainingOver(): boolean {
+    const t = this.task();
+    const est = t.estimateMinutes ?? 0;
+    if (est <= 0) return false;
+    return (t.loggedMinutes ?? 0) > est;
+  }
+
   get moveTargets(): { columnId: string; label: string }[] {
     const current = this.task().status;
     return this.allColumns()

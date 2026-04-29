@@ -181,15 +181,30 @@
 
         @if (backlogTask?.weekLabels?.length) {
           <div class="detail__section">
-            <span class="detail__label">Недели</span>
-            <div class="detail__weeks">
-              @for (label of backlogTask!.weekLabels!; track label) {
-                <span class="detail__week-chip">
-                  <span class="material-symbols-outlined">date_range</span>
-                  {{ label }}
-                </span>
-              }
-            </div>
+            <button
+              type="button"
+              class="detail__weeks-toggle"
+              [class.detail__weeks-toggle--open]="weeksExpanded()"
+              (click)="toggleWeeksExpanded()"
+            >
+              <span class="material-symbols-outlined">date_range</span>
+              <span class="detail__weeks-summary">
+                {{ weeksSummary(backlogTask!.weekLabels!) }}
+              </span>
+              <span class="material-symbols-outlined detail__weeks-chevron">
+                {{ weeksExpanded() ? 'expand_less' : 'expand_more' }}
+              </span>
+            </button>
+            @if (weeksExpanded()) {
+              <div class="detail__weeks">
+                @for (label of backlogTask!.weekLabels!; track label) {
+                  <span class="detail__week-chip">
+                    <span class="material-symbols-outlined">date_range</span>
+                    {{ label }}
+                  </span>
+                }
+              </div>
+            }
           </div>
         }
 

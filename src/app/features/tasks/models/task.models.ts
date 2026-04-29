@@ -15,6 +15,10 @@ export interface TaskCardVm {
   backlogId?: string;
   /** Latest week label this task belongs to (e.g. "23 марта — 29 марта") */
   weekLabel?: string;
+  /** Planned estimate for the task in minutes (from backlog). */
+  estimateMinutes?: number;
+  /** Time already logged against the task in minutes (from backlog). */
+  loggedMinutes?: number;
 }
 
 /** Роль колонки на доске. Дефолтные три — всегда присутствуют, custom — пользовательские */

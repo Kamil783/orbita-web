@@ -55,17 +55,33 @@ export class TasksPageComponent implements OnInit {
   readonly filteredColumns = computed(() => {
     const all = this.tasksService.columns();
     const filterId = this.selectedFilterId();
+    // Enrich each card with estimate/logged-time from the matching backlog
+    // task — the API returns these on the backlog endpoint, not on the
+    // weekly-board endpoint, so we join on the client.
+    const backlog = this.tasksService.backlog();
+    const backlogById = new Map(backlog.map(t => [t.id, t]));
+
+    const enrich = (cards: TaskCardVm[]): TaskCardVm[] => cards.map(c => {
+      if (c.estimateMinutes != null && c.loggedMinutes != null) return c;
+      const bl = c.backlogId ? backlogById.get(c.backlogId) : undefined;
+      if (!bl) return c;
+      return {
+        ...c,
+        estimateMinutes: c.estimateMinutes ?? bl.estimateMinutes,
+        loggedMinutes: c.loggedMinutes ?? bl.loggedMinutes,
+      };
+    });
 
     if (filterId === 'all') {
-      return all;
+      return all.map(col => ({ ...col, cards: enrich(col.cards) }));
     }
 
     return all
       .map(col => ({
         ...col,
-        cards: col.cards.filter(
+        cards: enrich(col.cards.filter(
           card => card.assigneeIds?.map(String).includes(filterId),
-        ),
+        )),
       }))
       .map(col => ({ ...col, totalCount: col.cards.length }));
   });

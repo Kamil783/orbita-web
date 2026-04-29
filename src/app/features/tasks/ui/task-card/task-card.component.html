@@ -67,10 +67,10 @@
   }
 
   <div class="bottom">
-    @if (task().weekLabel) {
-      <div class="meta meta--week">
-        <span class="material-symbols-outlined">date_range</span>
-        <span>{{ task().weekLabel }}</span>
+    @if (remainingText; as txt) {
+      <div class="meta meta--remaining" [class.meta--over]="remainingOver">
+        <span class="material-symbols-outlined">{{ remainingOver ? 'warning' : 'hourglass_top' }}</span>
+        <span>{{ txt }}</span>
       </div>
     }
 
