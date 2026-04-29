@@ -34,6 +34,32 @@ export class TaskDetailDialogComponent {
 
   readonly assigneeDropdownOpen = signal(false);
   readonly isEditing = signal(false);
+  readonly weeksExpanded = signal(false);
+
+  toggleWeeksExpanded(): void {
+    this.weeksExpanded.update(v => !v);
+  }
+
+  /** "5 недель · 17 марта → 14 апреля" — short summary for collapsed state. */
+  weeksSummary(labels: string[]): string {
+    const count = labels.length;
+    const word = this.pluralWeeks(count);
+    if (count === 1) return `${count} ${word} · ${labels[0]}`;
+    // Take start of first label + end of last (label format "17 марта — 23 марта")
+    const first = labels[0]?.split(/\s*[—-]\s*/)[0] ?? '';
+    const lastLabel = labels[labels.length - 1] ?? '';
+    const lastParts = lastLabel.split(/\s*[—-]\s*/);
+    const last = lastParts[lastParts.length - 1] ?? '';
+    return `${count} ${word} · ${first} → ${last}`;
+  }
+
+  private pluralWeeks(n: number): string {
+    const mod10 = n % 10;
+    const mod100 = n % 100;
+    if (mod10 === 1 && mod100 !== 11) return 'неделя';
+    if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return 'недели';
+    return 'недель';
+  }
 
   readonly assigneeDropdownLabel = computed(() => {
     const ids = this.editAssigneeIds();

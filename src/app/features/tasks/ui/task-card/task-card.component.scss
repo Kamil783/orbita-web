@@ -229,6 +229,15 @@
   color: var(--color-primary);
 }
 
+.meta--remaining {
+  color: var(--text-700);
+  font-weight: 600;
+}
+
+.meta--over {
+  color: #dc2626;
+}
+
 .avatars {
   display: flex;
   align-items: center;
