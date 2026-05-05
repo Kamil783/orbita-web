@@ -36,7 +36,13 @@
   color: var(--text-main);
 }
 
-.dropdown__mark-all {
+.dropdown__header-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.dropdown__action {
   border: 0;
   background: transparent;
   font-size: 12px;
@@ -47,6 +53,10 @@
 
   &:hover {
     text-decoration: underline;
+  }
+
+  &--danger {
+    color: #ef4444;
   }
 }
 
@@ -80,10 +90,11 @@
 
 .notification-item__dot {
   position: absolute;
-  right: 16px;
-  top: 16px;
-  width: 8px;
-  height: 8px;
+  left: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   background: var(--color-primary);
 }
@@ -119,6 +130,41 @@
   margin: 4px 0 0;
   font-size: 11px;
   color: var(--icon-muted);
+}
+
+.notification-item__delete {
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--icon-muted);
+  cursor: pointer;
+  opacity: 0;
+  transition: all 0.15s ease;
+
+  .material-symbols-outlined { font-size: 16px; }
+
+  &:hover {
+    background: rgba(239, 68, 68, 0.14);
+    color: #ef4444;
+  }
+
+  // Reveal on row hover (or on touch via the unread state — always visible).
+  .notification-item:hover & {
+    opacity: 1;
+  }
+}
+
+// On touch devices `:hover` doesn't fire reliably — keep the trash button
+// always visible there.
+@media (hover: none) {
+  .notification-item__delete {
+    opacity: 0.6;
+  }
 }
 
 .dropdown__empty {

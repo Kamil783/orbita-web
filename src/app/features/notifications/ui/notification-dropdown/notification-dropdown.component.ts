@@ -13,6 +13,12 @@ export class NotificationDropdownComponent {
   protected readonly icons = NOTIFICATION_ICONS;
   protected readonly colors = NOTIFICATION_COLORS;
 
+  /** Stop the row click (mark-as-read) when the trash button is pressed. */
+  onDelete(event: MouseEvent, id: string): void {
+    event.stopPropagation();
+    this.notificationService.remove(id);
+  }
+
   formatTime(date: Date): string {
     const now = Date.now();
     const diff = now - new Date(date).getTime();

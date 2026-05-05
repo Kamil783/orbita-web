@@ -1,13 +1,27 @@
 <div class="dropdown">
   <div class="dropdown__header">
     <span class="dropdown__title">Уведомления</span>
-    <button
-      class="dropdown__mark-all"
-      type="button"
-      (click)="notificationService.markAllAsRead()"
-    >
-      Прочитать все
-    </button>
+    <div class="dropdown__header-actions">
+      @if (notificationService.unreadCount() > 0) {
+        <button
+          class="dropdown__action"
+          type="button"
+          (click)="notificationService.markAllAsRead()"
+        >
+          Прочитать все
+        </button>
+      }
+      @if (notificationService.notifications().length > 0) {
+        <button
+          class="dropdown__action dropdown__action--danger"
+          type="button"
+          title="Очистить все"
+          (click)="notificationService.removeAll()"
+        >
+          Очистить
+        </button>
+      }
+    </div>
   </div>
 
   <div class="dropdown__list">
@@ -33,6 +47,16 @@
           <p class="notification-item__title">{{ n.title }}</p>
           <p class="notification-item__time">{{ formatTime(n.createdAt) }}</p>
         </div>
+
+        <button
+          class="notification-item__delete"
+          type="button"
+          title="Удалить"
+          aria-label="Удалить уведомление"
+          (click)="onDelete($event, n.id)"
+        >
+          <span class="material-symbols-outlined">close</span>
+        </button>
       </div>
     } @empty {
       <div class="dropdown__empty">
