@@ -11,6 +11,8 @@ import { AppNotification, NotificationType } from '../models/notification.models
  * POST   /api/Notifications/test           → AppNotification    Send a test notification to the current user
  * PATCH  /api/Notifications/:id/read       → void               Mark a single notification as read
  * POST   /api/Notifications/read-all       → void               Mark all notifications as read
+ * DELETE /api/Notifications/:id            → void               Delete a single notification
+ * DELETE /api/Notifications                → void               Delete all notifications
  *
  * SignalR hub: /hubs/notifications
  *   Server → Client: ReceiveNotification(AppNotification)
@@ -94,6 +96,19 @@ export class NotificationService implements OnDestroy {
   markAllAsRead(): void {
     this._notifications.update(list => list.map(n => ({ ...n, read: true })));
     this.http.post(`${this.apiUrl}/api/Notifications/read-all`, {}).subscribe();
+  }
+
+  /** Remove a single notification (locally + on the server). */
+  remove(id: string): void {
+    this._notifications.update(list => list.filter(n => n.id !== id));
+    this._toasts.update(list => list.filter(n => n.id !== id));
+    this.http.delete(`${this.apiUrl}/api/Notifications/${id}`).subscribe();
+  }
+
+  /** Remove all notifications (locally + on the server). */
+  removeAll(): void {
+    this._notifications.set([]);
+    this.http.delete(`${this.apiUrl}/api/Notifications`).subscribe();
   }
 
   /**
