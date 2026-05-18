@@ -186,6 +186,10 @@
             <span class="material-symbols-outlined summary-bar__split-icon summary-bar__split-icon--shared">group</span>
             Общие: {{ formatRub(monthlySpendShared()) }}
           </span>
+          <span class="summary-bar__split-item">
+            <span class="material-symbols-outlined summary-bar__split-icon summary-bar__split-icon--team">groups</span>
+            Командные: {{ formatRub(monthlySpendTeam()) }}
+          </span>
         </div>
         @if (monthlyLimitStatus().hasLimit) {
           <div class="summary-bar__limit">
@@ -246,8 +250,10 @@
       <div class="chart-controls">
         <div class="chart-source-filter">
           <button class="chart-source-filter__btn" [class.chart-source-filter__btn--active]="chartFilter() === 'all'" (click)="chartFilter.set('all')">Суммарный</button>
+          <button class="chart-source-filter__btn" [class.chart-source-filter__btn--active]="chartFilter() === 'mine'" (click)="chartFilter.set('mine')" title="Личные + Общие">Свои</button>
           <button class="chart-source-filter__btn" [class.chart-source-filter__btn--active]="chartFilter() === 'personal'" (click)="chartFilter.set('personal')">Личные</button>
-          <button class="chart-source-filter__btn" [class.chart-source-filter__btn--active]="chartFilter() === 'shared'" (click)="chartFilter.set('shared')">Общий</button>
+          <button class="chart-source-filter__btn" [class.chart-source-filter__btn--active]="chartFilter() === 'shared'" (click)="chartFilter.set('shared')">Общие</button>
+          <button class="chart-source-filter__btn" [class.chart-source-filter__btn--active]="chartFilter() === 'team'" (click)="chartFilter.set('team')">Командные</button>
         </div>
         <div class="period-nav">
           <button class="period-nav__btn" type="button" (click)="goToPreviousPeriod()" title="Назад">
@@ -389,6 +395,16 @@
             </button>
             <button
               class="tx-tabs__btn"
+              [class.tx-tabs__btn--active]="txFilter() === 'mine'"
+              type="button"
+              title="Личные + Общие"
+              (click)="txFilter.set('mine')"
+            >
+              <span class="material-symbols-outlined tx-tabs__icon">account_balance_wallet</span>
+              Свои
+            </button>
+            <button
+              class="tx-tabs__btn"
               [class.tx-tabs__btn--active]="txFilter() === 'personal'"
               type="button"
               (click)="txFilter.set('personal')"
@@ -404,6 +420,15 @@
             >
               <span class="material-symbols-outlined tx-tabs__icon">group</span>
               Общие
+            </button>
+            <button
+              class="tx-tabs__btn"
+              [class.tx-tabs__btn--active]="txFilter() === 'team'"
+              type="button"
+              (click)="txFilter.set('team')"
+            >
+              <span class="material-symbols-outlined tx-tabs__icon">groups</span>
+              Командные
             </button>
             <button
               class="tx-tabs__btn tx-tabs__btn--icon"
@@ -462,10 +487,14 @@
                   <p class="transaction__title">{{ tx.title }}</p>
                   <p class="transaction__date">
                     {{ tx.categoryName }} &middot; {{ tx.date }}
-                    @if (txFilter() === 'all') {
+                    @if (txFilter() === 'all' || txFilter() === 'mine') {
                       &middot;
-                      <span class="transaction__source" [class.transaction__source--shared]="tx.fromBalance">
-                        {{ tx.fromBalance ? 'Общий' : 'Личный' }}
+                      <span
+                        class="transaction__source"
+                        [class.transaction__source--shared]="getTxType(tx) === 'shared'"
+                        [class.transaction__source--team]="getTxType(tx) === 'team'"
+                      >
+                        {{ txTypeLabel(getTxType(tx)) }}
                       </span>
                     }
                   </p>
