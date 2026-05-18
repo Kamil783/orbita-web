@@ -3,8 +3,9 @@ import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
 import { UserService } from '../../user/data/user.service';
 import {
-  BacklogTask, DEFAULT_CAPACITY, KanbanColumnVm, TaskCardVm,
-  TasksFilterItemVm, TimeEntry, WeekArchive, WeeklyCapacity,
+  BacklogTask, CreateRecurringTaskDto, DEFAULT_CAPACITY, KanbanColumnVm,
+  RecurringTask, TaskCardVm, TasksFilterItemVm, TimeEntry, UpdateRecurringTaskDto,
+  WeekArchive, WeeklyCapacity,
 } from '../models/task.models';
 
 /**
@@ -27,6 +28,11 @@ import {
  * POST   /api/Columns              → { id }                 Create a new board column. Body: { title }
  *
  * GET    /api/Weeks/current        → { startDate, endDate } Get the current active week
+ *
+ * GET    /api/Tasks/recurring      → RecurringTask[]        List of monthly recurring tasks (sorted by dayOfMonth, createdAt)
+ * POST   /api/Tasks/recurring      → RecurringTask          Create. Body: { title, description?, dayOfMonth }. Always starts with isCompleted=false.
+ * PATCH  /api/Tasks/recurring/:id  → RecurringTask          Update any field. Body fields are all optional. `clearDescription: true` resets description to null.
+ * DELETE /api/Tasks/recurring/:id  → void                   Delete a recurring task.
  */
 
 @Injectable({ providedIn: 'root' })
@@ -47,6 +53,7 @@ export class TasksService {
   ]);
   readonly backlog = signal<BacklogTask[]>([]);
   readonly weekArchives = signal<WeekArchive[]>([]);
+  readonly recurringTasks = signal<RecurringTask[]>([]);
 
   readonly currentWeekStart = signal<string>('');
   readonly currentWeekEnd = computed(() => {
@@ -497,5 +504,64 @@ export class TasksService {
         this.columns.update(cols => cols.filter(col => col.id !== tempId));
       },
     });
+  }
+
+  // ── Recurring (monthly) tasks ──
+
+  loadRecurringTasks(): void {
+    this.http.get<RecurringTask[]>(`${this.apiUrl}/api/Tasks/recurring`)
+      .subscribe(list => this.recurringTasks.set(list));
+  }
+
+  createRecurringTask(dto: CreateRecurringTaskDto): void {
+    this.http.post<RecurringTask>(`${this.apiUrl}/api/Tasks/recurring`, dto)
+      .subscribe(created => {
+        this.recurringTasks.update(list => [...list, created]);
+      });
+  }
+
+  updateRecurringTask(id: string, dto: UpdateRecurringTaskDto): void {
+    // Optimistic update — keep a backup so we can restore on error.
+    const backup = this.recurringTasks();
+    this.recurringTasks.update(list => list.map(t => {
+      if (t.id !== id) return t;
+      const next: RecurringTask = {
+        ...t,
+        ...(dto.title !== undefined ? { title: dto.title } : {}),
+        ...(dto.dayOfMonth !== undefined ? { dayOfMonth: dto.dayOfMonth } : {}),
+        ...(dto.isCompleted !== undefined ? { isCompleted: dto.isCompleted } : {}),
+      };
+      if (dto.clearDescription) {
+        next.description = undefined;
+      } else if (dto.description !== undefined) {
+        next.description = dto.description;
+      }
+      return next;
+    }));
+
+    this.http.patch<RecurringTask>(`${this.apiUrl}/api/Tasks/recurring/${id}`, dto)
+      .subscribe({
+        next: updated => {
+          this.recurringTasks.update(list => list.map(t => t.id === id ? updated : t));
+        },
+        error: () => {
+          // Rollback to the snapshot we took before the optimistic mutation.
+          this.recurringTasks.set(backup);
+        },
+      });
+  }
+
+  /** Convenience helper used by the checkbox: just flips `isCompleted`. */
+  toggleRecurringTaskCompleted(id: string, isCompleted: boolean): void {
+    this.updateRecurringTask(id, { isCompleted });
+  }
+
+  deleteRecurringTask(id: string): void {
+    const backup = this.recurringTasks();
+    this.recurringTasks.update(list => list.filter(t => t.id !== id));
+    this.http.delete(`${this.apiUrl}/api/Tasks/recurring/${id}`)
+      .subscribe({
+        error: () => this.recurringTasks.set(backup),
+      });
   }
 }
