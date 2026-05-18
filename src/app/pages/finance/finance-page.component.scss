@@ -177,6 +177,7 @@ $finance-accent-border: rgba(250, 204, 21, 0.30);
   font-size: 16px;
   &--personal { color: var(--color-primary); }
   &--shared { color: #8b5cf6; }
+  &--team { color: #16a34a; }
 }
 
 .summary-bar__limit {
@@ -449,6 +450,10 @@ $finance-accent-border: rgba(250, 204, 21, 0.30);
 
   &--shared {
     color: #8b5cf6;
+  }
+
+  &--team {
+    color: #16a34a;
   }
 }
 

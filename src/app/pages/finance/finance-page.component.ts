@@ -28,10 +28,34 @@ import {
   ShoppingList,
   ShoppingListItem,
   Transaction,
+  TransactionType,
   RecurringPayment,
   ICON_OPTIONS,
   COLOR_OPTIONS,
 } from '../../features/finance/models/finance.models';
+
+/**
+ * Source filter used by the chart toggle and the transaction list tabs.
+ * 5 modes — see `chartFilter` field comment for details.
+ */
+type TxSourceFilter = 'all' | 'mine' | 'personal' | 'shared' | 'team';
+
+/**
+ * Resolve a transaction's wallet, preferring the new `transactionType` field
+ * and falling back to the legacy `fromBalance` boolean for older payloads.
+ */
+function txType(tx: Transaction): TransactionType {
+  if (tx.transactionType) return tx.transactionType;
+  return tx.fromBalance ? 'shared' : 'personal';
+}
+
+/** Returns true if a transaction passes the given source filter. */
+function passesSourceFilter(tx: Transaction, filter: TxSourceFilter): boolean {
+  if (filter === 'all') return true;
+  const t = txType(tx);
+  if (filter === 'mine') return t === 'personal' || t === 'shared';
+  return t === filter;
+}
 
 Chart.register(...registerables);
 
@@ -58,7 +82,13 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
   private viewReady = false;
 
   readonly activeChartTab = signal<'weekly' | 'monthly' | 'yearly'>('weekly');
-  readonly chartFilter = signal<'all' | 'personal' | 'shared'>('all');
+  // 5 modes for the chart source filter:
+  //  - 'all'      — все транзакции (личные + общие + командные)
+  //  - 'mine'     — «Свои»: личные + общие (всё, кроме командных)
+  //  - 'personal' — только личные
+  //  - 'shared'   — только общие
+  //  - 'team'     — только командные
+  readonly chartFilter = signal<TxSourceFilter>('all');
 
   private spendingChartEffect = effect(() => {
     this.spendingTrendData();
@@ -113,7 +143,7 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   // ─── View state ───
 
-  readonly txFilter = signal<'all' | 'personal' | 'shared'>('all');
+  readonly txFilter = signal<TxSourceFilter>('all');
   readonly txCategoryFilter = signal<string>('');      // category id, '' = все
   readonly txDateFrom = signal<string>('');            // ISO 'YYYY-MM-DD'
   readonly txDateTo = signal<string>('');              // ISO 'YYYY-MM-DD'
@@ -123,40 +153,42 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   // ─── Computed ───
 
-  readonly monthlySpend = computed(() => {
+  /**
+   * Sum of all expenses (personal + shared + team) for the current month.
+   * Drives the «Расходы за месяц» counter in the summary bar.
+   */
+  readonly monthlySpend = computed(() => this.sumMonthlyExpenses());
+
+  readonly monthlySpendPersonal = computed(() =>
+    this.sumMonthlyExpenses('personal'),
+  );
+
+  readonly monthlySpendShared = computed(() =>
+    this.sumMonthlyExpenses('shared'),
+  );
+
+  readonly monthlySpendTeam = computed(() =>
+    this.sumMonthlyExpenses('team'),
+  );
+
+  /**
+   * Sum expenses of the current month, optionally filtered by wallet type.
+   * Pass `undefined` to count all wallets.
+   */
+  private sumMonthlyExpenses(only?: TransactionType): number {
     const now = new Date();
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
     const nextMonthStart = new Date(now.getFullYear(), now.getMonth() + 1, 1).getTime();
 
     return this.transactions()
-      .filter(
-        (t) =>
-          t.amount < 0 &&
-          t.timestamp >= monthStart &&
-          t.timestamp < nextMonthStart
+      .filter(t =>
+        t.amount < 0
+        && t.timestamp >= monthStart
+        && t.timestamp < nextMonthStart
+        && (only === undefined || txType(t) === only),
       )
       .reduce((sum, t) => sum + Math.abs(t.amount), 0);
-  });
-
-  readonly monthlySpendShared = computed(() => {
-    const now = new Date();
-    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
-    const nextMonthStart = new Date(now.getFullYear(), now.getMonth() + 1, 1).getTime();
-
-    return this.transactions()
-      .filter(t => t.amount < 0 && t.fromBalance && t.timestamp >= monthStart && t.timestamp < nextMonthStart)
-      .reduce((sum, t) => sum + Math.abs(t.amount), 0);
-  });
-
-  readonly monthlySpendPersonal = computed(() => {
-    const now = new Date();
-    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
-    const nextMonthStart = new Date(now.getFullYear(), now.getMonth() + 1, 1).getTime();
-
-    return this.transactions()
-      .filter(t => t.amount < 0 && !t.fromBalance && t.timestamp >= monthStart && t.timestamp < nextMonthStart)
-      .reduce((sum, t) => sum + Math.abs(t.amount), 0);
-  });
+  }
 
 
 
@@ -241,13 +273,11 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
     const filter = this.chartFilter();
     const { start, end } = this.activePeriodRange();
 
-    let txs = this.transactions();
-
-    // Apply source filter
-    if (filter === 'personal') txs = txs.filter(t => !t.fromBalance);
-    else if (filter === 'shared') txs = txs.filter(t => t.fromBalance);
-
-    return txs.filter(t => t.timestamp >= start && t.timestamp < end);
+    return this.transactions().filter(t =>
+      t.timestamp >= start
+      && t.timestamp < end
+      && passesSourceFilter(t, filter),
+    );
   });
 
   readonly periodSpend = computed(() => {
@@ -476,8 +506,7 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
     const toTs = to ? new Date(to + 'T23:59:59.999').getTime() : null;
 
     return all.filter(tx => {
-      if (filter === 'personal' && tx.fromBalance) return false;
-      if (filter === 'shared' && !tx.fromBalance) return false;
+      if (!passesSourceFilter(tx, filter)) return false;
       if (catId && tx.categoryId !== catId) return false;
       if (fromTs !== null && tx.timestamp < fromTs) return false;
       if (toTs !== null && tx.timestamp > toTs) return false;
@@ -931,6 +960,20 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   // ─── Formatters ───
 
+  /** Wallet type for a transaction (template-visible helper). */
+  getTxType(tx: Transaction): TransactionType {
+    return txType(tx);
+  }
+
+  /** Display label for a wallet type (Личный / Общий / Командный). */
+  txTypeLabel(t: TransactionType): string {
+    switch (t) {
+      case 'personal': return 'Личный';
+      case 'shared':   return 'Общий';
+      case 'team':     return 'Командный';
+    }
+  }
+
   formatRub(kopecks: number): string {
     const abs = Math.abs(kopecks);
     const rub = Math.floor(abs / 100);
@@ -1290,7 +1333,11 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
     this.editTxAmount = (absKopecks / 100).toString().replace('.', ',');
     this.editTxType = tx.amount < 0 ? 'expense' : 'income';
     this.editTxCategoryId = tx.categoryId;
-    this.editTxFromBalance = tx.fromBalance;
+    // Edit toggle is still boolean (shared vs. personal). Map the wallet:
+    //   shared → true, personal/team → false. Team transactions can't yet be
+    //   edited via this toggle (requires a separate UI), so they fall back to
+    //   personal — the wallet stays untouched unless the user toggles it.
+    this.editTxFromBalance = txType(tx) === 'shared';
     this.editTxDate = tx.date ?? '';
     this.showEditTransactionDialog.set(true);
   }

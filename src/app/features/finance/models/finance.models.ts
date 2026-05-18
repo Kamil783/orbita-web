@@ -10,14 +10,33 @@ export interface Category {
   monthlyLimit?: number; // kopecks, 0 or undefined = not set
 }
 
+/**
+ * Transaction "wallet" — which budget the operation belongs to.
+ *
+ * - `personal` — личные деньги пользователя (никак не влияют на общий баланс).
+ * - `shared`   — общий баланс (пара/семья); списывается с `/api/Finance/balance`.
+ * - `team`     — командный бюджет (рабочая команда, общий проект и т.п.).
+ *
+ * For backwards compatibility creation/update DTOs still send `fromBalance`
+ * (`true` ⇔ `shared`, `false` ⇔ `personal`) — the server may map it to
+ * `transactionType` on the way in. Responses always include `transactionType`.
+ */
+export type TransactionType = 'personal' | 'shared' | 'team';
+
 export interface Transaction {
   id: string;
   categoryId: string;
   title: string;
   date: string;
-  amount: number;       // kopecks, negative = expense, positive = income
-  timestamp: number;    // ms since epoch
-  fromBalance: boolean; // true = shared (общий), false = personal (личный)
+  amount: number;             // kopecks, negative = expense, positive = income
+  timestamp: number;          // ms since epoch
+  /** Wallet/source of the transaction (new field — preferred). */
+  transactionType: TransactionType;
+  /**
+   * Legacy boolean kept for backwards compatibility on older responses.
+   * `true` = shared, `false` = personal. Prefer `transactionType` when available.
+   */
+  fromBalance?: boolean;
 }
 
 export interface SavingsGoal {
