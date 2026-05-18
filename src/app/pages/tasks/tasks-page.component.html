@@ -31,10 +31,139 @@
           <span class="material-symbols-outlined week-bar__icon">date_range</span>
           <span class="week-bar__label">{{ weekLabel() }}</span>
         </div>
-        <button class="week-bar__btn" type="button" (click)="onNewWeek()">
-          <span class="material-symbols-outlined">restart_alt</span>
-          Новая неделя
-        </button>
+
+        <div class="week-bar__actions">
+          <div class="recurring-wrap" #recurringWrap>
+            <button
+              class="week-bar__btn"
+              type="button"
+              [class.week-bar__btn--active]="showRecurringPopover()"
+              (click)="toggleRecurringPopover($event)"
+            >
+              <span class="material-symbols-outlined">event_repeat</span>
+              Обязательные дела
+            </button>
+
+            @if (showRecurringPopover()) {
+              <div class="recurring-popover" (click)="$event.stopPropagation()">
+                <div class="recurring-popover__header">
+                  <div>
+                    <h3 class="recurring-popover__title">Обязательные дела</h3>
+                    <p class="recurring-popover__subtitle">
+                      Выполнено: <strong>{{ recurringDoneCount() }} / {{ recurringTasks().length }}</strong>
+                    </p>
+                  </div>
+                  <button
+                    class="recurring-popover__close"
+                    type="button"
+                    (click)="closeRecurringPopover()"
+                    aria-label="Закрыть"
+                  >
+                    <span class="material-symbols-outlined">close</span>
+                  </button>
+                </div>
+
+                <div class="recurring-popover__list">
+                  @for (t of sortedRecurringTasks(); track t.id) {
+                    <div
+                      class="recurring-row"
+                      [class.recurring-row--editing]="recurringEditingId() === t.id"
+                      [class.recurring-row--done]="t.isCompleted"
+                    >
+                      <label class="recurring-row__check">
+                        <input
+                          type="checkbox"
+                          [checked]="t.isCompleted"
+                          (change)="toggleRecurringDone(t)"
+                          (click)="$event.stopPropagation()"
+                          aria-label="Отметить выполненным"
+                        />
+                      </label>
+                      <span class="recurring-row__day">{{ t.dayOfMonth }}</span>
+                      <div class="recurring-row__info">
+                        <p class="recurring-row__title">{{ t.title }}</p>
+                        @if (t.description) {
+                          <p class="recurring-row__description">{{ t.description }}</p>
+                        }
+                      </div>
+                      <div class="recurring-row__actions">
+                        <button
+                          class="recurring-row__btn"
+                          type="button"
+                          title="Редактировать"
+                          (click)="startEditRecurring(t)"
+                        >
+                          <span class="material-symbols-outlined">edit</span>
+                        </button>
+                        <button
+                          class="recurring-row__btn recurring-row__btn--danger"
+                          type="button"
+                          title="Удалить"
+                          (click)="deleteRecurring(t.id, $event)"
+                        >
+                          <span class="material-symbols-outlined">delete</span>
+                        </button>
+                      </div>
+                    </div>
+                  } @empty {
+                    <p class="recurring-popover__empty">
+                      Пока нет обязательных дел. Добавьте первое ниже.
+                    </p>
+                  }
+                </div>
+
+                <form class="recurring-form" (ngSubmit)="submitRecurring()">
+                  <p class="recurring-form__title">
+                    {{ recurringEditingId() ? 'Редактирование' : 'Новое дело' }}
+                  </p>
+
+                  <input
+                    class="recurring-form__input"
+                    type="text"
+                    placeholder="Название (напр. «Сдать отчёт»)"
+                    [(ngModel)]="recurringTitleInput"
+                    name="recurringTitle"
+                  />
+
+                  <textarea
+                    class="recurring-form__input recurring-form__input--area"
+                    rows="2"
+                    placeholder="Описание (необязательно)"
+                    [(ngModel)]="recurringDescriptionInput"
+                    name="recurringDescription"
+                  ></textarea>
+
+                  <input
+                    class="recurring-form__input recurring-form__input--day"
+                    type="number"
+                    inputmode="numeric"
+                    min="1"
+                    max="31"
+                    placeholder="День месяца (1–31)"
+                    [(ngModel)]="recurringDayInput"
+                    name="recurringDay"
+                  />
+
+                  <div class="recurring-form__actions">
+                    @if (recurringEditingId()) {
+                      <button type="button" class="recurring-form__btn recurring-form__btn--ghost" (click)="cancelRecurringEdit()">
+                        Отмена
+                      </button>
+                    }
+                    <button type="submit" class="recurring-form__btn recurring-form__btn--primary">
+                      {{ recurringEditingId() ? 'Сохранить' : 'Добавить' }}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            }
+          </div>
+
+          <button class="week-bar__btn" type="button" (click)="onNewWeek()">
+            <span class="material-symbols-outlined">restart_alt</span>
+            Новая неделя
+          </button>
+        </div>
       </div>
       <app-kanban-board
         [columns]="filteredColumns()"

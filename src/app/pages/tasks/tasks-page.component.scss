@@ -94,6 +94,284 @@
     border-color: var(--color-primary);
     color: var(--color-primary);
   }
+
+  &--active {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+    background: rgba(37, 140, 244, 0.08);
+  }
+}
+
+.week-bar__actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* ── Recurring tasks popover ── */
+.recurring-wrap {
+  position: relative;
+}
+
+.recurring-popover {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 50;
+  width: 380px;
+  max-width: calc(100vw - 32px);
+  background: var(--surface-panel);
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.12);
+  overflow: hidden;
+  animation: recurringPopIn 0.15s ease-out;
+}
+
+@keyframes recurringPopIn {
+  from { opacity: 0; transform: translateY(-6px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.recurring-popover__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 16px 12px;
+  border-bottom: 1px solid var(--border-light);
+  background: linear-gradient(180deg, rgba(37, 140, 244, 0.10), transparent);
+}
+
+.recurring-popover__title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-900);
+}
+
+.recurring-popover__subtitle {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: var(--text-500);
+
+  strong { color: var(--text-900); font-weight: 700; }
+}
+
+.recurring-popover__close {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-500);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+
+  &:hover { background: var(--surface-hover); color: var(--text-900); }
+  .material-symbols-outlined { font-size: 18px; }
+}
+
+.recurring-popover__list {
+  max-height: 320px;
+  overflow-y: auto;
+  padding: 8px 8px 0;
+}
+
+.recurring-popover__empty {
+  margin: 0;
+  padding: 20px 8px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-500);
+}
+
+.recurring-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border-radius: 10px;
+  transition: background 0.12s ease;
+
+  &:hover { background: var(--surface-muted); }
+  &--editing { background: rgba(37, 140, 244, 0.10); }
+  &--done {
+    .recurring-row__title { text-decoration: line-through; color: var(--text-500); }
+    .recurring-row__day {
+      background: rgba(22, 163, 74, 0.14);
+      color: #16a34a;
+    }
+  }
+}
+
+.recurring-row__check {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  cursor: pointer;
+
+  // Inherits the global checkbox style from src/styles.scss; just size it
+  // consistently with the row.
+  input[type='checkbox'] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+  }
+}
+
+.recurring-row__day {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  background: rgba(37, 140, 244, 0.10);
+  color: var(--color-primary);
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.recurring-row__info {
+  flex: 1;
+  min-width: 0;
+}
+
+.recurring-row__title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-900);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.recurring-row__description {
+  margin: 2px 0 0;
+  font-size: 11px;
+  color: var(--text-500);
+  // 2-line clamp for long descriptions; falls back to overflow ellipsis on
+  // browsers without -webkit-line-clamp support.
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.recurring-row__actions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.recurring-row__btn {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-500);
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease;
+
+  &:hover {
+    background: var(--surface-hover);
+    color: var(--text-900);
+  }
+
+  &--danger:hover {
+    background: var(--color-danger-bg);
+    color: var(--color-danger);
+  }
+
+  .material-symbols-outlined { font-size: 18px; }
+}
+
+.recurring-form {
+  padding: 12px 16px 16px;
+  border-top: 1px solid var(--border-light);
+  background: var(--surface-muted);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.recurring-form__title {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-500);
+}
+
+.recurring-form__input {
+  width: 100%;
+  padding: 9px 12px;
+  font-size: 13px;
+  font-family: inherit;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--surface-panel);
+  color: var(--text-main);
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  box-sizing: border-box;
+
+  &::placeholder { color: var(--text-400); }
+
+  &:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(37, 140, 244, 0.15);
+  }
+
+  &--area {
+    resize: vertical;
+    min-height: 56px;
+  }
+
+  &--day {
+    max-width: 160px;
+  }
+}
+
+.recurring-form__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.recurring-form__btn {
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+
+  &--primary {
+    background: var(--color-primary);
+    color: #fff;
+    border: 1px solid var(--color-primary);
+
+    &:hover { background: var(--color-primary-hover); border-color: var(--color-primary-hover); }
+  }
+
+  &--ghost {
+    background: transparent;
+    color: var(--text-500);
+    border: 1px solid var(--border-color);
+
+    &:hover { background: var(--surface-hover); color: var(--text-900); }
+  }
 }
 
 /* ── FAB ── */
@@ -134,5 +412,22 @@
     height: 48px;
 
     .material-symbols-outlined { font-size: 24px; }
+  }
+
+  .week-bar__btn {
+    padding: 7px 10px;
+    font-size: 12px;
+  }
+
+  // Popover on mobile becomes a bottom-sheet-style fixed sheet so it doesn't
+  // get cut off by the right edge of a narrow viewport.
+  .recurring-popover {
+    position: fixed;
+    left: 16px;
+    right: 16px;
+    top: auto;
+    bottom: 96px;
+    width: auto;
+    max-width: none;
   }
 }

@@ -737,7 +737,9 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
   goalType: 'goal' | 'shoppingList' = 'goal';
   goalName = '';
   goalTarget = '';
-  goalListType: 'personal' | 'shared' | 'team' = 'personal';
+  // Shopping list creation wallet — mirrors transaction's fromBalance:
+  //   false → personal, true → shared. Team lists aren't created from this UI.
+  goalFromBalance = false;
 
   // Shopping list item form
   readonly showAddItemDialog = signal(false);
@@ -1064,7 +1066,7 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
     this.goalType = 'goal';
     this.goalName = '';
     this.goalTarget = '';
-    this.goalListType = 'personal';
+    this.goalFromBalance = false;
     this.showGoalDialog.set(true);
   }
 
@@ -1073,7 +1075,7 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!name) return;
 
     if (this.goalType === 'shoppingList') {
-      this.financeService.createShoppingList(name, this.goalListType);
+      this.financeService.createShoppingList(name, this.goalFromBalance);
       this.toast('Список покупок создан', name);
       this.showGoalDialog.set(false);
       return;

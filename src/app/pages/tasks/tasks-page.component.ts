@@ -1,4 +1,5 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, ElementRef, HostListener, OnInit, ViewChild, computed, inject, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { AppShellComponent } from '../../shared/ui/app-shell/app-shell.component';
 import { KanbanBoardComponent } from '../../features/tasks/ui/kanban-board/kanban-board.component';
 import { TopbarComponent } from '../../shared/ui/topbar/topbar.component';
@@ -14,7 +15,7 @@ import { CompletedTasksDialogComponent } from '../../features/tasks/ui/completed
 import { ColumnCreateDialogComponent } from '../../features/tasks/ui/column-create-dialog/column-create-dialog.component';
 import { TaskDetailDialogComponent } from '../../features/tasks/ui/task-detail-dialog/task-detail-dialog.component';
 import {
-  ColumnHeaderAction, TaskCardVm, TaskCreatePayload,
+  ColumnHeaderAction, RecurringTask, TaskCardVm, TaskCreatePayload,
   TaskDropEvent, TasksTab, TaskMenuAction,
 } from '../../features/tasks/models/task.models';
 
@@ -25,7 +26,7 @@ import {
     AppShellComponent, KanbanBoardComponent, TopbarComponent,
     TasksFilterComponent, ConfirmDialogComponent, TaskCreatePanelComponent,
     BacklogViewComponent, BacklogPickerDialogComponent, CompletedTasksDialogComponent,
-    ColumnCreateDialogComponent, TaskDetailDialogComponent,
+    ColumnCreateDialogComponent, TaskDetailDialogComponent, FormsModule,
   ],
   templateUrl: './tasks-page.component.html',
   styleUrl: './tasks-page.component.scss',
@@ -47,7 +48,117 @@ export class TasksPageComponent implements OnInit {
     this.tasksService.loadBacklog();
     this.tasksService.loadWeekArchives();
     this.tasksService.loadCapacity();
+    this.tasksService.loadRecurringTasks();
     this.userService.loadMembers();
+  }
+
+  // ─── Recurring tasks popover ───
+  @ViewChild('recurringWrap') recurringWrap?: ElementRef<HTMLElement>;
+
+  readonly recurringTasks = this.tasksService.recurringTasks;
+  readonly showRecurringPopover = signal(false);
+  readonly recurringEditingId = signal<string | null>(null);
+
+  recurringTitleInput = '';
+  recurringDescriptionInput = '';
+  recurringDayInput = '';
+
+  /** Sorted by due day, then alphabetically for ties. */
+  readonly sortedRecurringTasks = computed(() =>
+    [...this.recurringTasks()].sort((a, b) => {
+      if (a.dayOfMonth !== b.dayOfMonth) return a.dayOfMonth - b.dayOfMonth;
+      return a.title.localeCompare(b.title, 'ru');
+    }),
+  );
+
+  readonly recurringDoneCount = computed(() =>
+    this.recurringTasks().filter(t => t.isCompleted).length,
+  );
+
+  toggleRecurringPopover(event: MouseEvent): void {
+    event.stopPropagation();
+    this.showRecurringPopover.update(v => !v);
+    if (!this.showRecurringPopover()) {
+      this.cancelRecurringEdit();
+    }
+  }
+
+  closeRecurringPopover(): void {
+    this.showRecurringPopover.set(false);
+    this.cancelRecurringEdit();
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClickForRecurring(event: MouseEvent): void {
+    if (!this.showRecurringPopover()) return;
+    const target = event.target as Node;
+    if (this.recurringWrap && !this.recurringWrap.nativeElement.contains(target)) {
+      this.closeRecurringPopover();
+    }
+  }
+
+  private resetRecurringForm(): void {
+    this.recurringTitleInput = '';
+    this.recurringDescriptionInput = '';
+    this.recurringDayInput = '';
+  }
+
+  cancelRecurringEdit(): void {
+    this.recurringEditingId.set(null);
+    this.resetRecurringForm();
+  }
+
+  startEditRecurring(task: RecurringTask): void {
+    this.recurringEditingId.set(task.id);
+    this.recurringTitleInput = task.title;
+    this.recurringDescriptionInput = task.description ?? '';
+    this.recurringDayInput = task.dayOfMonth.toString();
+  }
+
+  submitRecurring(): void {
+    const title = String(this.recurringTitleInput ?? '').trim();
+    const description = String(this.recurringDescriptionInput ?? '').trim();
+    const day = parseInt(String(this.recurringDayInput ?? ''), 10);
+
+    if (!title) return;
+    if (!Number.isInteger(day) || day < 1 || day > 31) return;
+
+    const editingId = this.recurringEditingId();
+
+    if (editingId) {
+      // On edit, an empty description means "clear" (per API contract).
+      this.tasksService.updateRecurringTask(editingId, {
+        title,
+        dayOfMonth: day,
+        description: description || undefined,
+        clearDescription: !description,
+      });
+      this.toast('Дело обновлено', `${title} · ${day}-го числа`);
+    } else {
+      this.tasksService.createRecurringTask({
+        title,
+        dayOfMonth: day,
+        description: description || undefined,
+      });
+      this.toast('Дело добавлено', `${title} · ${day}-го числа`);
+    }
+
+    this.cancelRecurringEdit();
+  }
+
+  toggleRecurringDone(task: RecurringTask): void {
+    const next = !task.isCompleted;
+    this.tasksService.toggleRecurringTaskCompleted(task.id, next);
+  }
+
+  deleteRecurring(id: string, event: MouseEvent): void {
+    event.stopPropagation();
+    const removed = this.recurringTasks().find(t => t.id === id);
+    this.tasksService.deleteRecurringTask(id);
+    if (this.recurringEditingId() === id) {
+      this.cancelRecurringEdit();
+    }
+    this.toast('Дело удалено', removed?.title ?? '');
   }
 
   readonly selectedFilterId = signal('all');

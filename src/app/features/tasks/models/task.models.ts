@@ -124,3 +124,32 @@ export const PRIORITY_LABELS: Record<TaskPriority, string> = {
   medium: 'Средний',
   low: 'Низкий',
 };
+
+// ─── Recurring (mandatory monthly) tasks ───
+
+/**
+ * Monthly recurring task that has to be done by a given day each month.
+ * `isCompleted` is owned by the server — it's toggled via PATCH.
+ */
+export interface RecurringTask {
+  id: string;
+  title: string;
+  description?: string;
+  dayOfMonth: number;    // 1..31, due day each month
+  isCompleted: boolean;
+}
+
+export interface CreateRecurringTaskDto {
+  title: string;
+  description?: string;
+  dayOfMonth: number;    // 1..31
+}
+
+export interface UpdateRecurringTaskDto {
+  title?: string;
+  description?: string;
+  dayOfMonth?: number;   // 1..31
+  isCompleted?: boolean;
+  /** When `true`, server sets `description` to null regardless of `description` value. */
+  clearDescription?: boolean;
+}
