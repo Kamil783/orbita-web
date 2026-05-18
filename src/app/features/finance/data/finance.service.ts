@@ -18,7 +18,6 @@ import {
   SavingsGoal,
   ShoppingList,
   ShoppingListItem,
-  ShoppingListType,
   SpendingLimits,
   ReorderShoppingListItemsDto,
   ToggleShoppingListItemDto,
@@ -348,11 +347,21 @@ export class FinanceService {
       });
   }
 
-  createShoppingList(name: string, listType: ShoppingListType): void {
-    this.http.post<ShoppingList>(`${this.apiUrl}/api/Finance/shopping-lists`, { name, listType } as CreateShoppingListDto)
-      .subscribe(created => {
-        this.shoppingLists.update(lists => [...lists, created]);
-      });
+  /**
+   * Create a shopping list. `fromBalance` chooses the wallet:
+   *   `false` → personal список,
+   *   `true`  → shared список.
+   * The server is responsible for mapping the boolean to `listType`
+   * ('personal' / 'shared'). Team lists are managed elsewhere and are not
+   * created via this method.
+   */
+  createShoppingList(name: string, fromBalance: boolean): void {
+    this.http.post<ShoppingList>(
+      `${this.apiUrl}/api/Finance/shopping-lists`,
+      { name, fromBalance } as CreateShoppingListDto,
+    ).subscribe(created => {
+      this.shoppingLists.update(lists => [...lists, created]);
+    });
   }
 
   updateShoppingList(id: string, dto: UpdateShoppingListDto): void {

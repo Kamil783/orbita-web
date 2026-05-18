@@ -862,16 +862,23 @@
       }
       @if (goalType === 'shoppingList') {
         <div class="field">
-          <label class="field__label">Тип списка</label>
+          <label class="field__label">Источник</label>
           <div class="type-toggle">
-            <button class="type-toggle__btn" [class.type-toggle__btn--active-income]="goalListType === 'personal'" type="button" (click)="goalListType = 'personal'">
-              <span class="material-symbols-outlined">person</span> Личный
+            <button
+              class="type-toggle__btn"
+              [class.type-toggle__btn--active-income]="!goalFromBalance"
+              type="button"
+              (click)="goalFromBalance = false"
+            >
+              <span class="material-symbols-outlined">open_in_new</span> Личный
             </button>
-            <button class="type-toggle__btn" [class.type-toggle__btn--active-expense]="goalListType === 'shared'" type="button" (click)="goalListType = 'shared'">
-              <span class="material-symbols-outlined">group</span> Общий
-            </button>
-            <button class="type-toggle__btn" [class.type-toggle__btn--active-expense]="goalListType === 'team'" type="button" (click)="goalListType = 'team'">
-              <span class="material-symbols-outlined">groups</span> Командный
+            <button
+              class="type-toggle__btn"
+              [class.type-toggle__btn--active-expense]="goalFromBalance"
+              type="button"
+              (click)="goalFromBalance = true"
+            >
+              <span class="material-symbols-outlined">account_balance_wallet</span> Общий
             </button>
           </div>
         </div>

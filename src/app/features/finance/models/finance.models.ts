@@ -192,7 +192,14 @@ export interface WithdrawSavingsGoalDto {
 
 export interface CreateShoppingListDto {
   name: string;
-  listType: ShoppingListType;
+  /**
+   * Wallet source for the list, analogous to a transaction.
+   *   `false` → personal список,
+   *   `true`  → shared (общий) список.
+   * Team-type lists are created via a separate workspace flow, not from this DTO.
+   * The server is responsible for mapping `fromBalance` → `listType`.
+   */
+  fromBalance: boolean;
 }
 
 export interface CreateShoppingListItemDto {
