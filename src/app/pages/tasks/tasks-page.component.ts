@@ -14,6 +14,7 @@ import { BacklogPickerDialogComponent } from '../../features/tasks/ui/backlog-pi
 import { CompletedTasksDialogComponent } from '../../features/tasks/ui/completed-tasks-dialog/completed-tasks-dialog.component';
 import { ColumnCreateDialogComponent } from '../../features/tasks/ui/column-create-dialog/column-create-dialog.component';
 import { TaskDetailDialogComponent } from '../../features/tasks/ui/task-detail-dialog/task-detail-dialog.component';
+import { ModalOverlayComponent } from '../../shared/ui/modal-overlay/modal-overlay.component';
 import {
   ColumnHeaderAction, RecurringTask, TaskCardVm, TaskCreatePayload,
   TaskDropEvent, TasksTab, TaskMenuAction,
@@ -27,6 +28,7 @@ import {
     TasksFilterComponent, ConfirmDialogComponent, TaskCreatePanelComponent,
     BacklogViewComponent, BacklogPickerDialogComponent, CompletedTasksDialogComponent,
     ColumnCreateDialogComponent, TaskDetailDialogComponent, FormsModule,
+    ModalOverlayComponent,
   ],
   templateUrl: './tasks-page.component.html',
   styleUrl: './tasks-page.component.scss',
@@ -58,6 +60,16 @@ export class TasksPageComponent implements OnInit {
   readonly recurringTasks = this.tasksService.recurringTasks;
   readonly showRecurringPopover = signal(false);
   readonly recurringEditingId = signal<string | null>(null);
+
+  // ─── Recurring task detail dialog ───
+  /** Stores the id; the row itself is re-resolved from the signal so it stays
+   *  fresh when checkbox / edits / deletes happen elsewhere. */
+  readonly recurringDetailId = signal<string | null>(null);
+  readonly recurringDetailTask = computed<RecurringTask | null>(() => {
+    const id = this.recurringDetailId();
+    if (!id) return null;
+    return this.recurringTasks().find(t => t.id === id) ?? null;
+  });
 
   recurringTitleInput = '';
   recurringDescriptionInput = '';
@@ -149,6 +161,35 @@ export class TasksPageComponent implements OnInit {
   toggleRecurringDone(task: RecurringTask): void {
     const next = !task.isCompleted;
     this.tasksService.toggleRecurringTaskCompleted(task.id, next);
+  }
+
+  openRecurringDetail(task: RecurringTask, event?: MouseEvent): void {
+    event?.stopPropagation();
+    this.recurringDetailId.set(task.id);
+  }
+
+  closeRecurringDetail(): void {
+    this.recurringDetailId.set(null);
+  }
+
+  /** Edit-from-detail: close the detail modal, surface the row in the form. */
+  editRecurringFromDetail(): void {
+    const t = this.recurringDetailTask();
+    if (!t) return;
+    this.startEditRecurring(t);
+    this.closeRecurringDetail();
+  }
+
+  deleteRecurringFromDetail(): void {
+    const t = this.recurringDetailTask();
+    if (!t) return;
+    const removed = t;
+    this.tasksService.deleteRecurringTask(t.id);
+    if (this.recurringEditingId() === t.id) {
+      this.cancelRecurringEdit();
+    }
+    this.toast('Дело удалено', removed.title);
+    this.closeRecurringDetail();
   }
 
   deleteRecurring(id: string, event: MouseEvent): void {
