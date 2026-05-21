@@ -544,11 +544,16 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly periodDetailTransactions = computed(() => {
     const range = this.detailPeriodRange();
     if (!range) return [];
+    // Honor the same source filter as the chart (`all` / `mine` / `personal` /
+    // `shared` / `team`) — the dialog is launched FROM the chart, so it must
+    // reflect what the user currently sees there.
+    const filter = this.chartFilter();
     return this.transactionsWithCategory()
       .filter(tx =>
         tx.timestamp >= range.start &&
         tx.timestamp < range.end &&
-        (!range.catId || tx.categoryId === range.catId),
+        (!range.catId || tx.categoryId === range.catId) &&
+        passesSourceFilter(tx, filter),
       )
       .sort((a, b) => b.timestamp - a.timestamp);
   });

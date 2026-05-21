@@ -80,12 +80,17 @@
                         />
                       </label>
                       <span class="recurring-row__day">{{ t.dayOfMonth }}</span>
-                      <div class="recurring-row__info">
+                      <button
+                        type="button"
+                        class="recurring-row__info"
+                        (click)="openRecurringDetail(t, $event)"
+                        title="Открыть подробности"
+                      >
                         <p class="recurring-row__title">{{ t.title }}</p>
                         @if (t.description) {
                           <p class="recurring-row__description">{{ t.description }}</p>
                         }
-                      </div>
+                      </button>
                       <div class="recurring-row__actions">
                         <button
                           class="recurring-row__btn"
@@ -241,4 +246,80 @@
     (save)="onSaveColumn($event)"
     (cancel)="onCancelColumnCreate()"
   />
+}
+
+<!-- ─── Recurring task — full detail modal ─── -->
+@if (recurringDetailTask(); as task) {
+  <app-modal-overlay (close)="closeRecurringDetail()">
+    <div class="recurring-detail">
+      <div class="recurring-detail__head">
+        <span
+          class="recurring-detail__day"
+          [class.recurring-detail__day--done]="task.isCompleted"
+        >{{ task.dayOfMonth }}</span>
+        <div class="recurring-detail__heading">
+          <h3 class="recurring-detail__title">{{ task.title }}</h3>
+          <span
+            class="recurring-detail__status"
+            [class.recurring-detail__status--done]="task.isCompleted"
+          >
+            <span class="material-symbols-outlined">
+              {{ task.isCompleted ? 'check_circle' : 'pending' }}
+            </span>
+            {{ task.isCompleted ? 'Выполнено' : 'Не выполнено' }}
+          </span>
+        </div>
+        <button
+          class="recurring-detail__close"
+          type="button"
+          (click)="closeRecurringDetail()"
+          aria-label="Закрыть"
+        >
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <dl class="recurring-detail__props">
+        <div class="recurring-detail__prop">
+          <dt><span class="material-symbols-outlined">event</span> День месяца</dt>
+          <dd>{{ task.dayOfMonth }}-го числа каждого месяца</dd>
+        </div>
+        @if (task.description) {
+          <div class="recurring-detail__prop recurring-detail__prop--note">
+            <dt><span class="material-symbols-outlined">sticky_note_2</span> Описание</dt>
+            <dd class="recurring-detail__note">{{ task.description }}</dd>
+          </div>
+        } @else {
+          <div class="recurring-detail__prop">
+            <dt><span class="material-symbols-outlined">sticky_note_2</span> Описание</dt>
+            <dd class="recurring-detail__muted">Не указано</dd>
+          </div>
+        }
+      </dl>
+
+      <div class="recurring-detail__actions">
+        <button
+          class="recurring-detail__btn recurring-detail__btn--danger"
+          type="button"
+          (click)="deleteRecurringFromDetail()"
+        >
+          <span class="material-symbols-outlined">delete</span>
+          Удалить
+        </button>
+        <button
+          class="recurring-detail__btn"
+          type="button"
+          (click)="closeRecurringDetail()"
+        >Закрыть</button>
+        <button
+          class="recurring-detail__btn recurring-detail__btn--primary"
+          type="button"
+          (click)="editRecurringFromDetail()"
+        >
+          <span class="material-symbols-outlined">edit</span>
+          Редактировать
+        </button>
+      </div>
+    </div>
+  </app-modal-overlay>
 }
