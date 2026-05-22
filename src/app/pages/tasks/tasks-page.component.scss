@@ -499,7 +499,7 @@
 
 .recurring-detail__prop {
   display: grid;
-  grid-template-columns: 180px 1fr;
+  grid-template-columns: 160px 1fr;
   align-items: center;
   gap: 12px;
   font-size: 14px;
@@ -521,10 +521,12 @@
     overflow-wrap: anywhere;
   }
 
+  // Note prop: a long description deserves the full width, so the label sits
+  // on its own line above and the content stretches across the dialog.
   &--note {
-    align-items: flex-start;
-
-    dt { padding-top: 2px; }
+    grid-template-columns: 1fr;
+    gap: 8px;
+    align-items: stretch;
   }
 }
 
@@ -549,8 +551,8 @@
 
 .recurring-detail__actions {
   display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
+  align-items: center;
+  justify-content: space-between;
   gap: 8px;
   padding: 14px 24px;
   border-top: 1px solid var(--border-light);
@@ -559,8 +561,9 @@
 .recurring-detail__btn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
-  padding: 9px 16px;
+  padding: 9px 14px;
   font-size: 13px;
   font-weight: 600;
   border-radius: 8px;
@@ -568,6 +571,7 @@
   background: var(--surface-panel);
   color: var(--text-700);
   cursor: pointer;
+  white-space: nowrap;
   transition: all 0.15s ease;
 
   .material-symbols-outlined { font-size: 18px; }
