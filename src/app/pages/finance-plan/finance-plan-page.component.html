@@ -272,55 +272,50 @@
         </label>
       </div>
 
-      <div class="form__row">
-        <label class="form__field">
-          <span class="form__label">Категория</span>
-          <app-select
-            name="category"
-            [options]="categorySelectOptions()"
-            icon="category"
-            placeholder="Без категории"
-            [(ngModel)]="formCategoryId"
-          ></app-select>
-        </label>
+      <label class="form__field">
+        <span class="form__label">Категория</span>
+        <app-select
+          name="category"
+          [options]="categorySelectOptions()"
+          icon="category"
+          placeholder="Без категории"
+          [(ngModel)]="formCategoryId"
+        ></app-select>
+      </label>
 
-        <div class="form__field">
-          <span class="form__label">Кто покупает</span>
-          <div class="kind-toggle">
-            <button
-              type="button"
-              class="kind-toggle__btn"
-              [class.kind-toggle__btn--active]="formAssigneeKind === ''"
-              (click)="setFormAssigneeKind('')"
-            >
-              <span class="material-symbols-outlined">help_outline</span>
-              Не задано
-            </button>
-            <button
-              type="button"
-              class="kind-toggle__btn"
-              [class.kind-toggle__btn--active]="formAssigneeKind === 'user'"
-              (click)="setFormAssigneeKind('user')"
-            >
-              <span class="material-symbols-outlined">person</span>
-              Пользователь
-            </button>
-            <button
-              type="button"
-              class="kind-toggle__btn kind-toggle__btn--team"
-              [class.kind-toggle__btn--active]="formAssigneeKind === 'team'"
-              (click)="setFormAssigneeKind('team')"
-            >
-              <span class="material-symbols-outlined">groups</span>
-              Команда
-            </button>
-          </div>
+      <div class="form__field">
+        <span class="form__label">Кто покупает</span>
+        <div class="kind-toggle">
+          <button
+            type="button"
+            class="kind-toggle__btn"
+            [class.kind-toggle__btn--active]="formAssigneeKind === ''"
+            (click)="setFormAssigneeKind('')"
+          >
+            <span class="material-symbols-outlined">help_outline</span>
+            Не задано
+          </button>
+          <button
+            type="button"
+            class="kind-toggle__btn"
+            [class.kind-toggle__btn--active]="formAssigneeKind === 'user'"
+            (click)="setFormAssigneeKind('user')"
+          >
+            <span class="material-symbols-outlined">person</span>
+            Пользователь
+          </button>
+          <button
+            type="button"
+            class="kind-toggle__btn kind-toggle__btn--team"
+            [class.kind-toggle__btn--active]="formAssigneeKind === 'team'"
+            (click)="setFormAssigneeKind('team')"
+          >
+            <span class="material-symbols-outlined">groups</span>
+            Команда
+          </button>
         </div>
-      </div>
 
-      @if (formAssigneeKind === 'user') {
-        <label class="form__field">
-          <span class="form__label">Выбрать пользователя</span>
+        @if (formAssigneeKind === 'user') {
           <app-select
             name="assigneeUser"
             [options]="memberOptions()"
@@ -328,8 +323,8 @@
             placeholder="Выберите пользователя"
             [(ngModel)]="formAssigneeUserId"
           ></app-select>
-        </label>
-      }
+        }
+      </div>
 
       <label class="form__field">
         <span class="form__label">Заметка</span>
