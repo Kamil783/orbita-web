@@ -105,34 +105,50 @@ export interface ShoppingList {
 
 export type PlannedPurchaseStatus = 'planned' | 'bought' | 'cancelled';
 
+/**
+ * Who is responsible for a planned purchase.
+ *   'user' — a specific team member (`assigneeUserId` is required)
+ *   'team' — the whole team buys it together (no specific user)
+ *   null   — unassigned (no specific user)
+ */
+export type PlannedPurchaseAssigneeKind = 'user' | 'team' | null;
+
 export interface PlannedPurchase {
   id: string;
   title: string;
-  date: string;                   // ISO 'YYYY-MM-DD' — planned purchase date
-  amount: number;                 // kopecks, expected expense (positive)
-  assigneeId: string | null;      // team member id, null = unassigned
+  date: string;                            // ISO 'YYYY-MM-DD' — planned purchase date
+  amount: number;                          // kopecks, expected expense (positive)
+  assigneeKind: PlannedPurchaseAssigneeKind;
+  assigneeUserId: string | null;           // only when assigneeKind === 'user'
   categoryId: string | null;
-  note: string;                   // optional details, '' if not set
+  note: string;                            // optional details, '' if not set
   status: PlannedPurchaseStatus;
-  createdAt: number;              // ms since epoch
+  createdAt: number;                       // ms since epoch
 }
 
+/**
+ * Server constraints:
+ *   - `assigneeKind: 'team' | null` → `assigneeUserId` MUST be `null`.
+ *   - `assigneeKind: 'user'`        → `assigneeUserId` is REQUIRED.
+ */
 export interface CreatePlannedPurchaseDto {
   title: string;
-  date: string;                   // ISO 'YYYY-MM-DD'
-  amount: number;                 // kopecks, positive
-  assigneeId?: string | null;
-  categoryId?: string | null;
-  note?: string;
+  date: string;                            // ISO 'YYYY-MM-DD'
+  amount: number;                          // kopecks, positive
+  assigneeKind: PlannedPurchaseAssigneeKind;
+  assigneeUserId: string | null;
+  categoryId: string | null;
+  note: string | null;
 }
 
 export interface UpdatePlannedPurchaseDto {
   title?: string;
-  date?: string;                  // ISO 'YYYY-MM-DD'
-  amount?: number;                // kopecks, positive
-  assigneeId?: string | null;
+  date?: string;                           // ISO 'YYYY-MM-DD'
+  amount?: number;                         // kopecks, positive
+  assigneeKind?: PlannedPurchaseAssigneeKind;
+  assigneeUserId?: string | null;
   categoryId?: string | null;
-  note?: string;
+  note?: string | null;
   status?: PlannedPurchaseStatus;
 }
 

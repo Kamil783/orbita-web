@@ -599,9 +599,10 @@ export class FinanceService {
             ...(dto.title !== undefined ? { title: dto.title } : {}),
             ...(dto.date !== undefined ? { date: dto.date } : {}),
             ...(dto.amount !== undefined ? { amount: dto.amount } : {}),
-            ...(dto.assigneeId !== undefined ? { assigneeId: dto.assigneeId } : {}),
+            ...(dto.assigneeKind !== undefined ? { assigneeKind: dto.assigneeKind } : {}),
+            ...(dto.assigneeUserId !== undefined ? { assigneeUserId: dto.assigneeUserId } : {}),
             ...(dto.categoryId !== undefined ? { categoryId: dto.categoryId } : {}),
-            ...(dto.note !== undefined ? { note: dto.note } : {}),
+            ...(dto.note !== undefined ? { note: dto.note ?? '' } : {}),
             ...(dto.status !== undefined ? { status: dto.status } : {}),
           }
         : p,

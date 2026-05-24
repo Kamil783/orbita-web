@@ -20,6 +20,7 @@ import { NotificationService } from '../../features/notifications/data/notificat
 import { UserService, User } from '../../features/user/data/user.service';
 import {
   PlannedPurchase,
+  PlannedPurchaseAssigneeKind,
   PlannedPurchaseStatus,
 } from '../../features/finance/models/finance.models';
 
@@ -31,6 +32,8 @@ interface PurchaseRow {
   amount: number;
   status: PlannedPurchaseStatus;
   note: string;
+  assigneeKind: PlannedPurchaseAssigneeKind;
+  /** Resolved member when `assigneeKind === 'user'`; otherwise `null`. */
   assignee: User | null;
   categoryIcon: string;
   categoryName: string;
@@ -105,7 +108,10 @@ export class FinancePlanPageComponent implements OnInit {
   formTitle = '';
   formDate = '';
   formAmount = '';
-  formAssigneeId = '';
+  /** 'user' | 'team' | '' (no selection = unassigned). */
+  formAssigneeKind: 'user' | 'team' | '' = '';
+  /** Required when formAssigneeKind === 'user', otherwise empty. */
+  formAssigneeUserId = '';
   formCategoryId = '';
   formNote = '';
 
@@ -142,6 +148,7 @@ export class FinancePlanPageComponent implements OnInit {
   readonly assigneeOptions = computed<SelectOption[]>(() => [
     { value: '', label: 'Любой исполнитель' },
     { value: 'unassigned', label: 'Без исполнителя' },
+    { value: 'team', label: 'Команда' },
     ...this.members().map(m => ({ value: m.id, label: m.name })),
   ]);
 
@@ -150,10 +157,11 @@ export class FinancePlanPageComponent implements OnInit {
     ...this.categories().map(c => ({ value: c.id, label: c.name })),
   ]);
 
-  readonly memberOptions = computed<SelectOption[]>(() => [
-    { value: '', label: 'Не назначено' },
-    ...this.members().map(m => ({ value: m.id, label: m.name })),
-  ]);
+  // Only real members — the "kind" toggle covers the 'unassigned' / 'team'
+  // cases, so the user-picker just needs the list of teammates.
+  readonly memberOptions = computed<SelectOption[]>(() =>
+    this.members().map(m => ({ value: m.id, label: m.name })),
+  );
 
   readonly categorySelectOptions = computed<SelectOption[]>(() => [
     { value: '', label: 'Без категории' },
@@ -178,8 +186,14 @@ export class FinancePlanPageComponent implements OnInit {
       const [y, m] = p.date.split('-').map(Number);
       if (y !== year || m - 1 !== month) return false;
       if (status !== 'all' && p.status !== status) return false;
-      if (assignee === 'unassigned' && p.assigneeId !== null) return false;
-      if (assignee && assignee !== 'unassigned' && p.assigneeId !== assignee) return false;
+      // Assignee filter: '' = any, 'unassigned' = no kind, 'team' = team kind,
+      // anything else = specific user id (only matches when kind === 'user').
+      if (assignee === 'unassigned' && p.assigneeKind !== null) return false;
+      if (assignee === 'team' && p.assigneeKind !== 'team') return false;
+      if (
+        assignee && assignee !== 'unassigned' && assignee !== 'team'
+        && (p.assigneeKind !== 'user' || p.assigneeUserId !== assignee)
+      ) return false;
       if (category && p.categoryId !== category) return false;
       return true;
     });
@@ -246,7 +260,10 @@ export class FinancePlanPageComponent implements OnInit {
         amount: p.amount,
         status: p.status,
         note: p.note,
-        assignee: p.assigneeId ? (membersMap.get(p.assigneeId) ?? null) : null,
+        assigneeKind: p.assigneeKind,
+        assignee: p.assigneeKind === 'user' && p.assigneeUserId
+          ? (membersMap.get(p.assigneeUserId) ?? null)
+          : null,
         categoryIcon: cat?.icon ?? 'shopping_bag',
         categoryName: cat?.name ?? 'Без категории',
         categoryBg: cat?.bg ?? 'var(--surface-muted)',
@@ -299,10 +316,13 @@ export class FinancePlanPageComponent implements OnInit {
     const membersMap = this.userService.membersMap();
     const members = this.members();
 
-    // Build a lookup: userId -> { count, total } over filtered purchases
+    // Build a lookup: userId -> { count, total } over filtered purchases.
+    // Team purchases and unassigned purchases get their own rows.
     const stats = new Map<string, { count: number; total: number }>();
     let unassignedCount = 0;
     let unassignedTotal = 0;
+    let teamCount = 0;
+    let teamTotal = 0;
 
     for (const p of this.purchases()) {
       if (from && p.date < from) continue;
@@ -311,15 +331,20 @@ export class FinancePlanPageComponent implements OnInit {
       if (status === 'planned' && p.status !== 'planned') continue;
       if (status === 'all' && p.status === 'cancelled') continue;
 
-      if (p.assigneeId === null) {
+      if (p.assigneeKind === 'team') {
+        teamCount++;
+        teamTotal += p.amount;
+        continue;
+      }
+      if (p.assigneeKind === null || !p.assigneeUserId) {
         unassignedCount++;
         unassignedTotal += p.amount;
         continue;
       }
-      const cur = stats.get(p.assigneeId) ?? { count: 0, total: 0 };
+      const cur = stats.get(p.assigneeUserId) ?? { count: 0, total: 0 };
       cur.count++;
       cur.total += p.amount;
-      stats.set(p.assigneeId, cur);
+      stats.set(p.assigneeUserId, cur);
     }
 
     const rows = members.map((m) => {
@@ -332,6 +357,16 @@ export class FinancePlanPageComponent implements OnInit {
         total: s.total,
       };
     });
+
+    if (teamCount > 0) {
+      rows.push({
+        id: '__team__',
+        name: 'Команда',
+        avatar: undefined,
+        count: teamCount,
+        total: teamTotal,
+      });
+    }
 
     if (unassignedCount > 0) {
       rows.push({
@@ -527,7 +562,8 @@ export class FinancePlanPageComponent implements OnInit {
     const fallbackDay = sameMonth ? now.getDate() : 1;
     this.formDate = presetDateIso ?? this.toIso(new Date(this.viewYear(), this.viewMonth(), fallbackDay));
     this.formAmount = '';
-    this.formAssigneeId = '';
+    this.formAssigneeKind = '';
+    this.formAssigneeUserId = '';
     this.formCategoryId = '';
     this.formNote = '';
     this.showFormDialog.set(true);
@@ -540,10 +576,17 @@ export class FinancePlanPageComponent implements OnInit {
     this.formTitle = item.title;
     this.formDate = item.date;
     this.formAmount = (item.amount / 100).toString().replace('.', ',');
-    this.formAssigneeId = item.assigneeId ?? '';
+    this.formAssigneeKind = item.assigneeKind ?? '';
+    this.formAssigneeUserId = item.assigneeKind === 'user' ? (item.assigneeUserId ?? '') : '';
     this.formCategoryId = item.categoryId ?? '';
     this.formNote = item.note ?? '';
     this.showFormDialog.set(true);
+  }
+
+  /** Called when the kind toggle changes — clears stale user selection. */
+  setFormAssigneeKind(kind: 'user' | 'team' | ''): void {
+    this.formAssigneeKind = kind;
+    if (kind !== 'user') this.formAssigneeUserId = '';
   }
 
   closeFormDialog(): void {
@@ -559,19 +602,35 @@ export class FinancePlanPageComponent implements OnInit {
     if (!Number.isFinite(val) || val <= 0) return;
 
     const amount = Math.round(val * 100);
-    const assigneeId = this.formAssigneeId || null;
     const categoryId = this.formCategoryId || null;
     const note = this.formNote.trim();
     const editingId = this.editingId();
+
+    // Build the assignee payload following the server contract:
+    //   kind 'team' | null → userId must be null
+    //   kind 'user'        → userId is required (guard below)
+    const kind: PlannedPurchaseAssigneeKind = this.formAssigneeKind === ''
+      ? null
+      : this.formAssigneeKind;
+    let assigneeUserId: string | null;
+    if (kind === 'user') {
+      assigneeUserId = this.formAssigneeUserId || null;
+      // No user picked while kind === 'user' → bail; UI already shows the user
+      // dropdown, the user just hasn't chosen yet.
+      if (!assigneeUserId) return;
+    } else {
+      assigneeUserId = null;
+    }
 
     if (editingId) {
       this.financeService.updatePlannedPurchase(editingId, {
         title,
         date: this.formDate,
         amount,
-        assigneeId,
+        assigneeKind: kind,
+        assigneeUserId,
         categoryId,
-        note,
+        note: note || null,
       });
       this.toast('Покупка обновлена', `${title} · ${this.formatRub(amount)}`);
     } else {
@@ -579,9 +638,10 @@ export class FinancePlanPageComponent implements OnInit {
         title,
         date: this.formDate,
         amount,
-        assigneeId,
+        assigneeKind: kind,
+        assigneeUserId,
         categoryId,
-        note,
+        note: note || null,
       });
       this.toast('Покупка запланирована', `${title} · ${this.formatRub(amount)}`);
     }
