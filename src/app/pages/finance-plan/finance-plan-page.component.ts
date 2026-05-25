@@ -21,7 +21,9 @@ import { UserService, User } from '../../features/user/data/user.service';
 import {
   PlannedPurchase,
   PlannedPurchaseAssigneeKind,
+  PlannedPurchaseDirection,
   PlannedPurchaseStatus,
+  UpdatePlannedPurchaseDto,
 } from '../../features/finance/models/finance.models';
 
 type StatusFilter = 'all' | PlannedPurchaseStatus;
@@ -29,7 +31,9 @@ type StatusFilter = 'all' | PlannedPurchaseStatus;
 interface PurchaseRow {
   id: string;
   title: string;
+  direction: PlannedPurchaseDirection;
   amount: number;
+  actualAmount: number | null;
   status: PlannedPurchaseStatus;
   note: string;
   assigneeKind: PlannedPurchaseAssigneeKind;
@@ -47,7 +51,10 @@ interface DayGroup {
   dayOfWeek: string;      // 'Пн' .. 'Вс'
   isToday: boolean;
   isPast: boolean;
-  total: number;          // kopecks (active only — not cancelled)
+  /** Expenses only (active rows, not cancelled), kopecks. */
+  expenseTotal: number;
+  /** Incomes only (active rows, not cancelled), kopecks. */
+  incomeTotal: number;
   rows: PurchaseRow[];
 }
 
@@ -96,6 +103,7 @@ export class FinancePlanPageComponent implements OnInit {
   readonly statusFilter = signal<StatusFilter>('all');
   readonly assigneeFilter = signal<string>('');     // user id, '' = all
   readonly categoryFilter = signal<string>('');     // category id, '' = all
+  readonly directionFilter = signal<'all' | PlannedPurchaseDirection>('all');
 
   // ─── Dialog state ───
   readonly showFormDialog = signal(false);
@@ -108,6 +116,8 @@ export class FinancePlanPageComponent implements OnInit {
   formTitle = '';
   formDate = '';
   formAmount = '';
+  /** Default is expense — matches server's default for `direction: null`. */
+  formDirection: PlannedPurchaseDirection = 'expense';
   /** 'user' | 'team' | '' (no selection = unassigned). */
   formAssigneeKind: 'user' | 'team' | '' = '';
   /** Required when formAssigneeKind === 'user', otherwise empty. */
@@ -143,6 +153,12 @@ export class FinancePlanPageComponent implements OnInit {
     { value: 'planned', label: 'Запланировано' },
     { value: 'bought', label: 'Куплено' },
     { value: 'cancelled', label: 'Отменено' },
+  ];
+
+  readonly directionFilterOptions: SelectOption[] = [
+    { value: 'all', label: 'Доходы и расходы' },
+    { value: 'expense', label: 'Только расходы' },
+    { value: 'income', label: 'Только доходы' },
   ];
 
   readonly assigneeOptions = computed<SelectOption[]>(() => [
@@ -181,11 +197,13 @@ export class FinancePlanPageComponent implements OnInit {
     const status = this.statusFilter();
     const assignee = this.assigneeFilter();
     const category = this.categoryFilter();
+    const direction = this.directionFilter();
 
     return this.purchases().filter(p => {
       const [y, m] = p.date.split('-').map(Number);
       if (y !== year || m - 1 !== month) return false;
       if (status !== 'all' && p.status !== status) return false;
+      if (direction !== 'all' && p.direction !== direction) return false;
       // Assignee filter: '' = any, 'unassigned' = no kind, 'team' = team kind,
       // anything else = specific user id (only matches when kind === 'user').
       if (assignee === 'unassigned' && p.assigneeKind !== null) return false;
@@ -211,28 +229,44 @@ export class FinancePlanPageComponent implements OnInit {
 
   readonly stats = computed(() => {
     const all = this.monthPurchases();
-    let plannedTotal = 0;
-    let boughtTotal = 0;
+    // Direction-aware buckets. For realised entries we use actualAmount when
+    // present; for still-planned ones the planned amount.
+    let plannedExpense = 0;
+    let plannedIncome = 0;
+    let boughtExpense = 0;
+    let boughtIncome = 0;
     let plannedCount = 0;
     let boughtCount = 0;
     let cancelledCount = 0;
 
     for (const p of all) {
+      const value = p.actualAmount ?? p.amount;
+      const isIncome = p.direction === 'income';
       if (p.status === 'planned') {
-        plannedTotal += p.amount;
+        if (isIncome) plannedIncome += value; else plannedExpense += value;
         plannedCount++;
       } else if (p.status === 'bought') {
-        boughtTotal += p.amount;
+        if (isIncome) boughtIncome += value; else boughtExpense += value;
         boughtCount++;
       } else {
         cancelledCount++;
       }
     }
 
+    const plannedTotalExpense = plannedExpense + boughtExpense; // forecast outflow
+    const plannedTotalIncome = plannedIncome + boughtIncome;    // forecast inflow
+
     return {
-      plannedTotal,
-      boughtTotal,
-      forecastTotal: plannedTotal + boughtTotal,
+      plannedExpense,
+      plannedIncome,
+      boughtExpense,
+      boughtIncome,
+      /** Forecasted total expense for the month (planned + already bought). */
+      forecastExpense: plannedTotalExpense,
+      /** Forecasted total income for the month. */
+      forecastIncome: plannedTotalIncome,
+      /** Net = income − expense. */
+      forecastNet: plannedTotalIncome - plannedTotalExpense,
       plannedCount,
       boughtCount,
       cancelledCount,
@@ -241,7 +275,10 @@ export class FinancePlanPageComponent implements OnInit {
   });
 
   readonly hasActiveFilters = computed(
-    () => this.statusFilter() !== 'all' || !!this.assigneeFilter() || !!this.categoryFilter(),
+    () => this.statusFilter() !== 'all'
+      || this.directionFilter() !== 'all'
+      || !!this.assigneeFilter()
+      || !!this.categoryFilter(),
   );
 
   readonly groups = computed<DayGroup[]>(() => {
@@ -257,7 +294,9 @@ export class FinancePlanPageComponent implements OnInit {
       list.push({
         id: p.id,
         title: p.title,
+        direction: p.direction,
         amount: p.amount,
+        actualAmount: p.actualAmount,
         status: p.status,
         note: p.note,
         assigneeKind: p.assigneeKind,
@@ -280,9 +319,16 @@ export class FinancePlanPageComponent implements OnInit {
         if (order[a.status] !== order[b.status]) return order[a.status] - order[b.status];
         return b.amount - a.amount;
       });
-      const total = rows
-        .filter(r => r.status !== 'cancelled')
-        .reduce((s, r) => s + r.amount, 0);
+      // Use actualAmount when set (status==='bought'), otherwise the planned
+      // amount. Cancelled rows are dropped from totals.
+      const effective = (r: PurchaseRow): number => r.actualAmount ?? r.amount;
+      let expenseTotal = 0;
+      let incomeTotal = 0;
+      for (const r of rows) {
+        if (r.status === 'cancelled') continue;
+        if (r.direction === 'income') incomeTotal += effective(r);
+        else expenseTotal += effective(r);
+      }
       const [, , dayStr] = iso.split('-');
       const dateObj = new Date(iso + 'T00:00:00');
       groups.push({
@@ -291,7 +337,8 @@ export class FinancePlanPageComponent implements OnInit {
         dayOfWeek: DOW_SHORT[dateObj.getDay()],
         isToday: iso === todayIso,
         isPast: iso < todayIso,
-        total,
+        expenseTotal,
+        incomeTotal,
         rows,
       });
     }
@@ -330,20 +377,23 @@ export class FinancePlanPageComponent implements OnInit {
       if (status === 'bought' && p.status !== 'bought') continue;
       if (status === 'planned' && p.status !== 'planned') continue;
       if (status === 'all' && p.status === 'cancelled') continue;
+      // Breakdown is about "who spends" — only expenses are aggregated here.
+      if (p.direction === 'income') continue;
 
+      const value = p.actualAmount ?? p.amount;
       if (p.assigneeKind === 'team') {
         teamCount++;
-        teamTotal += p.amount;
+        teamTotal += value;
         continue;
       }
       if (p.assigneeKind === null || !p.assigneeUserId) {
         unassignedCount++;
-        unassignedTotal += p.amount;
+        unassignedTotal += value;
         continue;
       }
       const cur = stats.get(p.assigneeUserId) ?? { count: 0, total: 0 };
       cur.count++;
-      cur.total += p.amount;
+      cur.total += value;
       stats.set(p.assigneeUserId, cur);
     }
 
@@ -449,6 +499,7 @@ export class FinancePlanPageComponent implements OnInit {
     this.statusFilter.set('all');
     this.assigneeFilter.set('');
     this.categoryFilter.set('');
+    this.directionFilter.set('all');
   }
 
   setStatusFilter(value: string): void {
@@ -562,6 +613,7 @@ export class FinancePlanPageComponent implements OnInit {
     const fallbackDay = sameMonth ? now.getDate() : 1;
     this.formDate = presetDateIso ?? this.toIso(new Date(this.viewYear(), this.viewMonth(), fallbackDay));
     this.formAmount = '';
+    this.formDirection = 'expense';
     this.formAssigneeKind = '';
     this.formAssigneeUserId = '';
     this.formCategoryId = '';
@@ -576,6 +628,7 @@ export class FinancePlanPageComponent implements OnInit {
     this.formTitle = item.title;
     this.formDate = item.date;
     this.formAmount = (item.amount / 100).toString().replace('.', ',');
+    this.formDirection = item.direction;
     this.formAssigneeKind = item.assigneeKind ?? '';
     this.formAssigneeUserId = item.assigneeKind === 'user' ? (item.assigneeUserId ?? '') : '';
     this.formCategoryId = item.categoryId ?? '';
@@ -583,10 +636,18 @@ export class FinancePlanPageComponent implements OnInit {
     this.showFormDialog.set(true);
   }
 
+  setFormDirection(direction: PlannedPurchaseDirection): void {
+    this.formDirection = direction;
+  }
+
   /** Called when the kind toggle changes — clears stale user selection. */
   setFormAssigneeKind(kind: 'user' | 'team' | ''): void {
     this.formAssigneeKind = kind;
     if (kind !== 'user') this.formAssigneeUserId = '';
+  }
+
+  setDirectionFilter(value: string): void {
+    this.directionFilter.set(value as 'all' | PlannedPurchaseDirection);
   }
 
   closeFormDialog(): void {
@@ -622,28 +683,40 @@ export class FinancePlanPageComponent implements OnInit {
       assigneeUserId = null;
     }
 
+    const direction = this.formDirection;
+    const isIncome = direction === 'income';
+
     if (editingId) {
       this.financeService.updatePlannedPurchase(editingId, {
         title,
         date: this.formDate,
+        direction,
         amount,
         assigneeKind: kind,
         assigneeUserId,
         categoryId,
         note: note || null,
       });
-      this.toast('Покупка обновлена', `${title} · ${this.formatRub(amount)}`);
+      this.toast(
+        isIncome ? 'Доход обновлён' : 'Покупка обновлена',
+        `${title} · ${this.formatRub(amount)}`,
+      );
     } else {
       this.financeService.createPlannedPurchase({
         title,
         date: this.formDate,
+        direction,
         amount,
+        actualAmount: null,
         assigneeKind: kind,
         assigneeUserId,
         categoryId,
         note: note || null,
       });
-      this.toast('Покупка запланирована', `${title} · ${this.formatRub(amount)}`);
+      this.toast(
+        isIncome ? 'Доход запланирован' : 'Покупка запланирована',
+        `${title} · ${this.formatRub(amount)}`,
+      );
     }
 
     this.closeFormDialog();
@@ -651,22 +724,65 @@ export class FinancePlanPageComponent implements OnInit {
 
   // ─── Status actions ───
 
+  /**
+   * Build a PATCH payload that **only** changes status (+ optional actualAmount).
+   * The new server contract treats `null` as a reset, and our DTOs would
+   * normally omit unrelated fields. But some bindings round-trip missing
+   * nullable fields back to `null` and silently drop the assignee /
+   * category / note. To be safe we explicitly pass through the current
+   * values of every field the server might otherwise wipe.
+   */
+  private preservedPatch(row: PurchaseRow): UpdatePlannedPurchaseDto {
+    return {
+      assigneeKind: row.assigneeKind,
+      assigneeUserId: row.assigneeKind === 'user'
+        ? this.purchases().find(p => p.id === row.id)?.assigneeUserId ?? null
+        : null,
+      categoryId: this.purchases().find(p => p.id === row.id)?.categoryId ?? null,
+      note: row.note ? row.note : null,
+    };
+  }
+
+  /**
+   * Mark a planned row as realised. Sends `actualAmount` together with
+   * `status: 'bought'` — by default we treat the planned amount as the actual
+   * one. The detail dialog offers a separate flow for editing actualAmount.
+   */
   markBought(row: PurchaseRow): void {
     if (row.status === 'bought') return;
-    this.financeService.updatePlannedPurchase(row.id, { status: 'bought' });
-    this.toast('Отмечено как купленное', row.title);
+    const actual = row.actualAmount ?? row.amount;
+    this.financeService.updatePlannedPurchase(row.id, {
+      ...this.preservedPatch(row),
+      status: 'bought',
+      actualAmount: actual,
+    });
+    this.toast(
+      row.direction === 'income' ? 'Доход получен' : 'Отмечено как купленное',
+      row.title,
+    );
   }
 
   markPlanned(row: PurchaseRow): void {
     if (row.status === 'planned') return;
-    this.financeService.updatePlannedPurchase(row.id, { status: 'planned' });
+    // Roll back the realised state: clear actualAmount and return to planned.
+    this.financeService.updatePlannedPurchase(row.id, {
+      ...this.preservedPatch(row),
+      status: 'planned',
+      actualAmount: null,
+    });
     this.toast('Возвращено в план', row.title);
   }
 
   markCancelled(row: PurchaseRow): void {
     if (row.status === 'cancelled') return;
-    this.financeService.updatePlannedPurchase(row.id, { status: 'cancelled' });
-    this.toast('Покупка отменена', row.title);
+    this.financeService.updatePlannedPurchase(row.id, {
+      ...this.preservedPatch(row),
+      status: 'cancelled',
+    });
+    this.toast(
+      row.direction === 'income' ? 'Доход отменён' : 'Покупка отменена',
+      row.title,
+    );
   }
 
   // ─── Delete ───

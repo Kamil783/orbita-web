@@ -106,6 +106,13 @@ export interface ShoppingList {
 export type PlannedPurchaseStatus = 'planned' | 'bought' | 'cancelled';
 
 /**
+ * Direction of the cashflow:
+ *   'expense' — outgoing (a purchase). Default when omitted on create.
+ *   'income'  — incoming (planned earnings, refund, etc.)
+ */
+export type PlannedPurchaseDirection = 'expense' | 'income';
+
+/**
  * Who is responsible for a planned purchase.
  *   'user' — a specific team member (`assigneeUserId` is required)
  *   'team' — the whole team buys it together (no specific user)
@@ -116,8 +123,15 @@ export type PlannedPurchaseAssigneeKind = 'user' | 'team' | null;
 export interface PlannedPurchase {
   id: string;
   title: string;
-  date: string;                            // ISO 'YYYY-MM-DD' — planned purchase date
-  amount: number;                          // kopecks, expected expense (positive)
+  date: string;                            // ISO 'YYYY-MM-DD' — planned date
+  direction: PlannedPurchaseDirection;     // 'expense' or 'income'
+  amount: number;                          // kopecks, planned amount (positive)
+  /**
+   * Actual amount once the operation is realised, in kopecks.
+   * Set on PATCH together with `status: 'bought'`. `null` = not realised yet
+   * or rolled back to planned.
+   */
+  actualAmount: number | null;
   assigneeKind: PlannedPurchaseAssigneeKind;
   assigneeUserId: string | null;           // only when assigneeKind === 'user'
   categoryId: string | null;
@@ -134,17 +148,29 @@ export interface PlannedPurchase {
 export interface CreatePlannedPurchaseDto {
   title: string;
   date: string;                            // ISO 'YYYY-MM-DD'
+  /** `null` → server defaults to 'expense'. */
+  direction: PlannedPurchaseDirection | null;
   amount: number;                          // kopecks, positive
+  /** Optional — when set on create, the entry is immediately realised. */
+  actualAmount: number | null;
   assigneeKind: PlannedPurchaseAssigneeKind;
   assigneeUserId: string | null;
   categoryId: string | null;
   note: string | null;
 }
 
+/**
+ * All fields optional. Server-side semantics:
+ *   - `direction` omitted/undefined → not touched.
+ *   - `actualAmount: null`         → clear the actual amount (mark not-yet-realised).
+ *   - `actualAmount: number`       → set actual amount (typically together with `status: 'bought'`).
+ */
 export interface UpdatePlannedPurchaseDto {
   title?: string;
   date?: string;                           // ISO 'YYYY-MM-DD'
+  direction?: PlannedPurchaseDirection | null;
   amount?: number;                         // kopecks, positive
+  actualAmount?: number | null;
   assigneeKind?: PlannedPurchaseAssigneeKind;
   assigneeUserId?: string | null;
   categoryId?: string | null;
