@@ -63,16 +63,18 @@
       }
     </div>
 
-    <!-- Income / expense / net balance summary bar -->
+    <!-- Income / expense / net balance summary bar.
+         Income/expense cells go signless — the label already says which one
+         it is. Only the net balance keeps `+/−` because it can flip sign. -->
     <div class="month-balance">
       <div class="month-balance__cell">
         <span class="month-balance__label">Доход за месяц</span>
-        <span class="month-balance__value">+{{ formatRub(stats().forecastIncome) }}</span>
+        <span class="month-balance__value">{{ formatRub(stats().forecastIncome) }}</span>
       </div>
       <div class="month-balance__divider"></div>
       <div class="month-balance__cell">
         <span class="month-balance__label">Расход за месяц</span>
-        <span class="month-balance__value">−{{ formatRub(stats().forecastExpense) }}</span>
+        <span class="month-balance__value">{{ formatRub(stats().forecastExpense) }}</span>
       </div>
       <div class="month-balance__divider"></div>
       <div class="month-balance__cell month-balance__cell--total">
@@ -88,7 +90,7 @@
             {{ stats().expenseVariance <= 0 ? 'Сэкономлено' : 'Перерасход' }}
           </span>
           <span class="month-balance__value">
-            {{ stats().expenseVariance <= 0 ? '−' : '+' }}{{ formatRub(stats().expenseVariance < 0 ? -stats().expenseVariance : stats().expenseVariance) }}
+            {{ formatRub(stats().expenseVariance < 0 ? -stats().expenseVariance : stats().expenseVariance) }}
           </span>
         </div>
       }
@@ -181,7 +183,7 @@
               <div class="day__totals">
                 <div class="day__total-stack">
                   @if (g.expenseTotal > 0) {
-                    <span class="day__total-amount day__total-amount--expense">−{{ formatRub(g.expenseTotal) }}</span>
+                    <span class="day__total-amount day__total-amount--expense">{{ formatRub(g.expenseTotal) }}</span>
                   }
                   @if (g.incomeTotal > 0) {
                     <span class="day__total-amount day__total-amount--income">+{{ formatRub(g.incomeTotal) }}</span>
@@ -248,7 +250,9 @@
                     [class.row__amount--income]="r.direction === 'income'"
                     [class.row__amount--expense]="r.direction === 'expense'"
                   >
-                    {{ r.direction === 'income' ? '+' : '−' }}{{ formatRub(r.actualAmount ?? r.amount) }}
+                    <!-- Sign: `+` for income (helps distinguish in a mixed list);
+                         expenses are signless — the column itself is the cost. -->
+                    {{ r.direction === 'income' ? '+' : '' }}{{ formatRub(r.actualAmount ?? r.amount) }}
                     @if (r.actualAmount !== null && r.actualAmount !== r.amount) {
                       <span class="row__amount-plan" [title]="'План: ' + formatRub(r.amount)">
                         план {{ formatRub(r.amount) }}
@@ -539,7 +543,7 @@
           </span>
           <div class="detail__amount-stack">
             <span class="detail__amount-value">
-              {{ detail.direction === 'income' ? '+' : '−' }}{{ formatRub(detail.actualAmount ?? detail.amount) }}
+              {{ detail.direction === 'income' ? '+' : '' }}{{ formatRub(detail.actualAmount ?? detail.amount) }}
             </span>
             @if (detail.actualAmount !== null && detail.actualAmount !== detail.amount) {
               <span class="detail__amount-plan">План: {{ formatRub(detail.amount) }}</span>
