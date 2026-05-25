@@ -43,28 +43,6 @@
         <span class="stat__label">Запланировано</span>
         <span class="stat__value">{{ formatRub(stats().plannedExpense) }}</span>
         <span class="stat__hint">{{ stats().plannedCount }} шт.</span>
-
-        <!-- Inline breakdown: income / expense / balance for the month -->
-        <ul class="stat__breakdown">
-          <li class="stat__breakdown-row">
-            <span class="stat__breakdown-key">Доход</span>
-            <span class="stat__breakdown-val stat__breakdown-val--income">
-              +{{ formatRub(stats().forecastIncome) }}
-            </span>
-          </li>
-          <li class="stat__breakdown-row">
-            <span class="stat__breakdown-key">Расход</span>
-            <span class="stat__breakdown-val stat__breakdown-val--expense">
-              −{{ formatRub(stats().forecastExpense) }}
-            </span>
-          </li>
-          <li class="stat__breakdown-row stat__breakdown-row--total">
-            <span class="stat__breakdown-key">Баланс месяца</span>
-            <span class="stat__breakdown-val">
-              {{ stats().forecastNet >= 0 ? '+' : '−' }}{{ formatRub(stats().forecastNet < 0 ? -stats().forecastNet : stats().forecastNet) }}
-            </span>
-          </li>
-        </ul>
       </div>
       <div class="stat stat--bought">
         <span class="stat__label">Куплено</span>
@@ -83,6 +61,26 @@
           <span class="stat__hint">не учитывается в прогнозе</span>
         </div>
       }
+    </div>
+
+    <!-- Income / expense / net balance summary bar -->
+    <div class="month-balance">
+      <div class="month-balance__cell">
+        <span class="month-balance__label">Доход за месяц</span>
+        <span class="month-balance__value">+{{ formatRub(stats().forecastIncome) }}</span>
+      </div>
+      <div class="month-balance__divider"></div>
+      <div class="month-balance__cell">
+        <span class="month-balance__label">Расход за месяц</span>
+        <span class="month-balance__value">−{{ formatRub(stats().forecastExpense) }}</span>
+      </div>
+      <div class="month-balance__divider"></div>
+      <div class="month-balance__cell month-balance__cell--total">
+        <span class="month-balance__label">Баланс месяца</span>
+        <span class="month-balance__value">
+          {{ stats().forecastNet >= 0 ? '+' : '−' }}{{ formatRub(stats().forecastNet < 0 ? -stats().forecastNet : stats().forecastNet) }}
+        </span>
+      </div>
     </div>
 
     <!-- Filters -->
