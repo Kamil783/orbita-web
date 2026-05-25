@@ -81,6 +81,17 @@
           {{ stats().forecastNet >= 0 ? '+' : '−' }}{{ formatRub(stats().forecastNet < 0 ? -stats().forecastNet : stats().forecastNet) }}
         </span>
       </div>
+      @if (stats().boughtCount > 0) {
+        <div class="month-balance__divider"></div>
+        <div class="month-balance__cell">
+          <span class="month-balance__label">
+            {{ stats().expenseVariance <= 0 ? 'Сэкономлено' : 'Перерасход' }}
+          </span>
+          <span class="month-balance__value">
+            {{ stats().expenseVariance <= 0 ? '−' : '+' }}{{ formatRub(stats().expenseVariance < 0 ? -stats().expenseVariance : stats().expenseVariance) }}
+          </span>
+        </div>
+      }
     </div>
 
     <!-- Filters -->
@@ -277,7 +288,7 @@
 
 <!-- ─── Add / Edit dialog ─── -->
 @if (showFormDialog()) {
-  <app-modal-overlay (close)="closeFormDialog()">
+  <app-modal-overlay size="lg" (close)="closeFormDialog()">
     <header class="form__header">
       <h2 class="form__title">
         @if (editingId()) {
@@ -336,7 +347,7 @@
         </label>
 
         <label class="form__field">
-          <span class="form__label">Сумма, ₽</span>
+          <span class="form__label">Сумма по плану, ₽</span>
           <input
             class="form__input"
             type="text"
@@ -348,6 +359,21 @@
           />
         </label>
       </div>
+
+      <label class="form__field">
+        <span class="form__label">
+          Сумма по факту, ₽
+          <span class="form__label-hint">необязательно — заполните, когда станет известно</span>
+        </span>
+        <input
+          class="form__input"
+          type="text"
+          inputmode="decimal"
+          name="actualAmount"
+          [(ngModel)]="formActualAmount"
+          placeholder="Оставьте пустым, если ещё неизвестно"
+        />
+      </label>
 
       <label class="form__field">
         <span class="form__label">Категория</span>
@@ -434,6 +460,52 @@
     (cancel)="cancelDelete()"
     (confirm)="confirmDelete()"
   ></app-confirm-dialog>
+}
+
+<!-- ─── Mark-bought prompt (asks for actual amount) ─── -->
+@if (showMarkBoughtDialog() && markBoughtRow(); as row) {
+  <app-modal-overlay (close)="cancelMarkBought()">
+    <header class="form__header">
+      <h2 class="form__title">
+        {{ row.direction === 'income' ? 'Доход получен' : 'Сколько потратили?' }}
+      </h2>
+      <button class="form__close" type="button" (click)="cancelMarkBought()" aria-label="Закрыть">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </header>
+
+    <form class="form" (ngSubmit)="confirmMarkBought()">
+      <div class="mark-bought">
+        <div class="mark-bought__title">{{ row.title }}</div>
+        <div class="mark-bought__plan">
+          План: {{ formatRub(row.amount) }}
+        </div>
+      </div>
+
+      <label class="form__field">
+        <span class="form__label">Сумма по факту, ₽</span>
+        <input
+          class="form__input"
+          type="text"
+          inputmode="decimal"
+          name="markBoughtAmount"
+          [(ngModel)]="markBoughtAmountInput"
+          placeholder="0,00"
+          autofocus
+        />
+        <span class="form__label-hint">
+          Оставьте как есть, если сумма совпала с планом.
+        </span>
+      </label>
+
+      <div class="form__actions">
+        <button class="form__btn" type="button" (click)="cancelMarkBought()">Отмена</button>
+        <button class="form__btn form__btn--primary" type="submit">
+          {{ row.direction === 'income' ? 'Получено' : 'Купил' }}
+        </button>
+      </div>
+    </form>
+  </app-modal-overlay>
 }
 
 <!-- ─── Detail (full info on a planned purchase) ─── -->
