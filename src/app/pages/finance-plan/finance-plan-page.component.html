@@ -288,7 +288,7 @@
 
 <!-- ─── Add / Edit dialog ─── -->
 @if (showFormDialog()) {
-  <app-modal-overlay (close)="closeFormDialog()">
+  <app-modal-overlay size="lg" (close)="closeFormDialog()">
     <header class="form__header">
       <h2 class="form__title">
         @if (editingId()) {
