@@ -161,6 +161,22 @@ $accent-soft: rgba(250, 204, 21, 0.14);
   gap: 4px;
   border-left: 3px solid var(--color-primary);
 
+  &--expense {
+    border-left-color: #dc2626;
+    .stat__value { color: #dc2626; }
+  }
+  &--income {
+    border-left-color: #16a34a;
+    .stat__value { color: #16a34a; }
+  }
+  &--net-positive {
+    border-left-color: #16a34a;
+    .stat__value { color: #16a34a; }
+  }
+  &--net-negative {
+    border-left-color: #dc2626;
+    .stat__value { color: #dc2626; }
+  }
   &--bought {
     border-left-color: #10b981;
   }
@@ -334,10 +350,21 @@ $accent-soft: rgba(250, 204, 21, 0.14);
   gap: 10px;
 }
 
+.day__total-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  line-height: 1.2;
+}
+
 .day__total-amount {
   font-size: 16px;
   font-weight: 700;
   color: var(--text-900);
+
+  &--expense { color: #dc2626; }
+  &--income  { color: #16a34a; }
 }
 
 .day__add {
@@ -542,10 +569,25 @@ $accent-soft: rgba(250, 204, 21, 0.14);
 }
 
 .row__amount {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-end;
   font-size: 15px;
   font-weight: 700;
   color: var(--text-900);
   white-space: nowrap;
+  line-height: 1.2;
+
+  &--expense { color: #dc2626; }
+  &--income  { color: #16a34a; }
+}
+
+.row__amount-plan {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-500);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .row__actions {
@@ -697,6 +739,47 @@ $accent-soft: rgba(250, 204, 21, 0.14);
   font-size: 12px;
   font-weight: 600;
   color: var(--text-500);
+}
+
+// ─── Direction toggle (Расход / Доход) ───
+.direction-toggle {
+  display: flex;
+  gap: 8px;
+}
+
+.direction-toggle__btn {
+  flex: 1 1 0;
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px 14px;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  background: var(--surface-input);
+  color: var(--text-700);
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  .material-symbols-outlined { font-size: 18px; flex-shrink: 0; }
+
+  &--expense:hover,
+  &--expense.direction-toggle__btn--active {
+    border-color: #dc2626;
+    color: #dc2626;
+    background: rgba(220, 38, 38, 0.08);
+  }
+
+  &--income:hover,
+  &--income.direction-toggle__btn--active {
+    border-color: #16a34a;
+    color: #16a34a;
+    background: rgba(22, 163, 74, 0.08);
+  }
 }
 
 // ─── Assignee-kind toggle (Не задано / Пользователь / Команда) ───
@@ -1060,11 +1143,23 @@ $accent-soft: rgba(250, 204, 21, 0.14);
 
 .detail__amount {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
   padding: 14px 18px;
   background: $accent-soft;
   border-radius: 12px;
+
+  &--income {
+    background: rgba(22, 163, 74, 0.10);
+
+    .detail__amount-value { color: #16a34a; }
+  }
+
+  &--expense {
+    background: rgba(220, 38, 38, 0.08);
+
+    .detail__amount-value { color: #dc2626; }
+  }
 }
 
 .detail__amount-label {
@@ -1073,11 +1168,27 @@ $accent-soft: rgba(250, 204, 21, 0.14);
   color: var(--text-700);
 }
 
+.detail__amount-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
 .detail__amount-value {
   font-size: 24px;
   font-weight: 800;
   color: var(--text-900);
   letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.detail__amount-plan {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-500);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .detail__props {

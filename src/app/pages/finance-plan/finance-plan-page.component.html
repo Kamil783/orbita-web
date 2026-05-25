@@ -39,19 +39,21 @@
 
     <!-- Stats summary -->
     <div class="stats">
-      <div class="stat">
-        <span class="stat__label">Запланировано</span>
-        <span class="stat__value">{{ formatRub(stats().plannedTotal) }}</span>
-        <span class="stat__hint">{{ stats().plannedCount }} шт.</span>
+      <div class="stat stat--expense">
+        <span class="stat__label">Расходы</span>
+        <span class="stat__value">{{ formatRub(stats().forecastExpense) }}</span>
+        <span class="stat__hint">план + куплено</span>
       </div>
-      <div class="stat stat--bought">
-        <span class="stat__label">Куплено</span>
-        <span class="stat__value">{{ formatRub(stats().boughtTotal) }}</span>
-        <span class="stat__hint">{{ stats().boughtCount }} шт.</span>
+      <div class="stat stat--income">
+        <span class="stat__label">Доходы</span>
+        <span class="stat__value">+{{ formatRub(stats().forecastIncome) }}</span>
+        <span class="stat__hint">план + получено</span>
       </div>
-      <div class="stat stat--forecast">
-        <span class="stat__label">Прогноз на месяц</span>
-        <span class="stat__value">{{ formatRub(stats().forecastTotal) }}</span>
+      <div class="stat" [class.stat--net-positive]="stats().forecastNet >= 0" [class.stat--net-negative]="stats().forecastNet < 0">
+        <span class="stat__label">Баланс месяца</span>
+        <span class="stat__value">
+          {{ stats().forecastNet >= 0 ? '+' : '−' }}{{ formatRub(stats().forecastNet < 0 ? -stats().forecastNet : stats().forecastNet) }}
+        </span>
         <span class="stat__hint">{{ stats().total }} позиций</span>
       </div>
       @if (stats().cancelledCount > 0) {
@@ -66,6 +68,14 @@
     <!-- Filters -->
     <div class="filters">
       <div class="filters__group">
+        <app-select
+          [options]="directionFilterOptions"
+          icon="swap_vert"
+          placeholder="Доходы и расходы"
+          [ngModel]="directionFilter()"
+          (ngModelChange)="setDirectionFilter($event)"
+        ></app-select>
+
         <app-select
           [options]="statusFilterOptions"
           icon="flag"
@@ -140,7 +150,17 @@
                 }
               </div>
               <div class="day__totals">
-                <span class="day__total-amount">{{ formatRub(g.total) }}</span>
+                <div class="day__total-stack">
+                  @if (g.expenseTotal > 0) {
+                    <span class="day__total-amount day__total-amount--expense">−{{ formatRub(g.expenseTotal) }}</span>
+                  }
+                  @if (g.incomeTotal > 0) {
+                    <span class="day__total-amount day__total-amount--income">+{{ formatRub(g.incomeTotal) }}</span>
+                  }
+                  @if (g.expenseTotal === 0 && g.incomeTotal === 0) {
+                    <span class="day__total-amount">{{ formatRub(0) }}</span>
+                  }
+                </div>
                 <button class="day__add" type="button" (click)="openCreate(g.iso)" aria-label="Добавить на этот день">
                   <span class="material-symbols-outlined">add</span>
                 </button>
@@ -194,7 +214,18 @@
                     }
                   </div>
 
-                  <span class="row__amount">{{ formatRub(r.amount) }}</span>
+                  <span
+                    class="row__amount"
+                    [class.row__amount--income]="r.direction === 'income'"
+                    [class.row__amount--expense]="r.direction === 'expense'"
+                  >
+                    {{ r.direction === 'income' ? '+' : '−' }}{{ formatRub(r.actualAmount ?? r.amount) }}
+                    @if (r.actualAmount !== null && r.actualAmount !== r.amount) {
+                      <span class="row__amount-plan" [title]="'План: ' + formatRub(r.amount)">
+                        план {{ formatRub(r.amount) }}
+                      </span>
+                    }
+                  </span>
 
                   <div class="row__actions" (click)="$event.stopPropagation()">
                     @if (r.status === 'planned') {
@@ -231,7 +262,11 @@
   <app-modal-overlay (close)="closeFormDialog()">
     <header class="form__header">
       <h2 class="form__title">
-        {{ editingId() ? 'Редактировать покупку' : 'Запланировать покупку' }}
+        @if (editingId()) {
+          {{ formDirection === 'income' ? 'Редактировать доход' : 'Редактировать покупку' }}
+        } @else {
+          {{ formDirection === 'income' ? 'Запланировать доход' : 'Запланировать покупку' }}
+        }
       </h2>
       <button class="form__close" type="button" (click)="closeFormDialog()" aria-label="Закрыть">
         <span class="material-symbols-outlined">close</span>
@@ -239,6 +274,30 @@
     </header>
 
     <form class="form" (ngSubmit)="saveForm()">
+      <div class="form__field">
+        <span class="form__label">Тип</span>
+        <div class="direction-toggle">
+          <button
+            type="button"
+            class="direction-toggle__btn direction-toggle__btn--expense"
+            [class.direction-toggle__btn--active]="formDirection === 'expense'"
+            (click)="setFormDirection('expense')"
+          >
+            <span class="material-symbols-outlined">south_west</span>
+            Расход
+          </button>
+          <button
+            type="button"
+            class="direction-toggle__btn direction-toggle__btn--income"
+            [class.direction-toggle__btn--active]="formDirection === 'income'"
+            (click)="setFormDirection('income')"
+          >
+            <span class="material-symbols-outlined">north_east</span>
+            Доход
+          </button>
+        </div>
+      </div>
+
       <label class="form__field">
         <span class="form__label">Название</span>
         <input
@@ -246,7 +305,7 @@
           type="text"
           name="title"
           [(ngModel)]="formTitle"
-          placeholder="Например: продукты на неделю"
+          [placeholder]="formDirection === 'income' ? 'Например: премия' : 'Например: продукты на неделю'"
           autofocus
           required
         />
@@ -380,9 +439,22 @@
       </header>
 
       <div class="detail">
-        <div class="detail__amount">
-          <span class="detail__amount-label">Сумма</span>
-          <span class="detail__amount-value">{{ formatRub(detail.amount) }}</span>
+        <div
+          class="detail__amount"
+          [class.detail__amount--income]="detail.direction === 'income'"
+          [class.detail__amount--expense]="detail.direction === 'expense'"
+        >
+          <span class="detail__amount-label">
+            {{ detail.direction === 'income' ? 'Доход' : 'Расход' }}
+          </span>
+          <div class="detail__amount-stack">
+            <span class="detail__amount-value">
+              {{ detail.direction === 'income' ? '+' : '−' }}{{ formatRub(detail.actualAmount ?? detail.amount) }}
+            </span>
+            @if (detail.actualAmount !== null && detail.actualAmount !== detail.amount) {
+              <span class="detail__amount-plan">План: {{ formatRub(detail.amount) }}</span>
+            }
+          </div>
         </div>
 
         <dl class="detail__props">

@@ -62,7 +62,7 @@ import {
  * PATCH  /api/Finance/recurring-payments/:id         → RecurringPayment            Update. Body: UpdateRecurringPaymentDto
  * DELETE /api/Finance/recurring-payments/:id         → void                        Delete
  *
- * GET    /api/Finance/planned-purchases              → PlannedPurchase[]           Load planned purchases
+ * GET    /api/Finance/planned-purchases              → PlannedPurchase[]           Load planned purchases. Optional `?direction=expense|income` filter.
  * POST   /api/Finance/planned-purchases              → PlannedPurchase             Create. Body: CreatePlannedPurchaseDto
  * PATCH  /api/Finance/planned-purchases/:id          → PlannedPurchase             Update. Body: UpdatePlannedPurchaseDto
  * DELETE /api/Finance/planned-purchases/:id          → void                        Delete
@@ -598,7 +598,11 @@ export class FinanceService {
             ...p,
             ...(dto.title !== undefined ? { title: dto.title } : {}),
             ...(dto.date !== undefined ? { date: dto.date } : {}),
+            // `direction: null` on the wire means "don't touch", so we only
+            // apply real values here.
+            ...(dto.direction != null ? { direction: dto.direction } : {}),
             ...(dto.amount !== undefined ? { amount: dto.amount } : {}),
+            ...(dto.actualAmount !== undefined ? { actualAmount: dto.actualAmount } : {}),
             ...(dto.assigneeKind !== undefined ? { assigneeKind: dto.assigneeKind } : {}),
             ...(dto.assigneeUserId !== undefined ? { assigneeUserId: dto.assigneeUserId } : {}),
             ...(dto.categoryId !== undefined ? { categoryId: dto.categoryId } : {}),
