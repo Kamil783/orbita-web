@@ -172,49 +172,64 @@ $accent-soft: rgba(250, 204, 21, 0.14);
   }
 }
 
-// Compact breakdown inside the "Запланировано" stat card.
-// Subdued by default — only the +/− sign carries a tiny hint of colour so the
-// card stays calm against the rest of the page.
-.stat__breakdown {
-  list-style: none;
-  margin: 12px 0 0;
-  padding: 12px 0 0;
-  border-top: 1px dashed var(--border-light);
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+// Compact horizontal bar with the month-level totals.
+// Sits under the three big stat cards so the cards stay short and identical
+// in height, and the bar gives a single structured summary.
+.month-balance {
+  display: grid;
+  grid-template-columns: 1fr 1px 1fr 1px 1fr;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 20px;
+  margin-bottom: 24px;
+  background: var(--surface-panel);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
 }
 
-.stat__breakdown-row {
+.month-balance__cell {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 8px;
-  font-size: 12px;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
 
-  &--total {
-    margin-top: 4px;
-    padding-top: 6px;
-    border-top: 1px solid var(--border-light);
-    font-weight: 700;
-
-    .stat__breakdown-key { color: var(--text-700); }
-    .stat__breakdown-val { color: var(--text-900); font-size: 14px; }
+  &--total .month-balance__value {
+    font-size: 18px;
+    font-weight: 800;
   }
 }
 
-.stat__breakdown-key {
+.month-balance__label {
+  font-size: 11px;
+  font-weight: 600;
   color: var(--text-500);
-  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
-.stat__breakdown-val {
+.month-balance__value {
+  font-size: 16px;
+  font-weight: 700;
   color: var(--text-900);
-  font-weight: 600;
   font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
 
-  &--income { color: #15803d; }
-  &--expense { color: #b91c1c; }
+.month-balance__divider {
+  width: 1px;
+  height: 32px;
+  background: var(--border-color);
+}
+
+@media (max-width: 640px) {
+  .month-balance {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .month-balance__divider {
+    width: 100%;
+    height: 1px;
+  }
 }
 
 .stat__label {
@@ -392,8 +407,9 @@ $accent-soft: rgba(250, 204, 21, 0.14);
   font-weight: 700;
   color: var(--text-900);
 
-  &--expense { color: #dc2626; }
-  &--income  { color: #16a34a; }
+  // Direction is conveyed by the +/− sign only, no colour highlight —
+  // keeps the page calm.
+  &--income { color: var(--text-700); font-size: 13px; font-weight: 600; }
 }
 
 .day__add {
@@ -606,9 +622,7 @@ $accent-soft: rgba(250, 204, 21, 0.14);
   color: var(--text-900);
   white-space: nowrap;
   line-height: 1.2;
-
-  &--expense { color: #dc2626; }
-  &--income  { color: #16a34a; }
+  // Direction is shown by the +/− sign only — no red/green highlight.
 }
 
 .row__amount-plan {
@@ -796,18 +810,13 @@ $accent-soft: rgba(250, 204, 21, 0.14);
 
   .material-symbols-outlined { font-size: 18px; flex-shrink: 0; }
 
-  &--expense:hover,
-  &--expense.direction-toggle__btn--active {
-    border-color: #dc2626;
-    color: #dc2626;
-    background: rgba(220, 38, 38, 0.08);
-  }
-
-  &--income:hover,
-  &--income.direction-toggle__btn--active {
-    border-color: #16a34a;
-    color: #16a34a;
-    background: rgba(22, 163, 74, 0.08);
+  // Both directions use the page's primary accent when active — no
+  // red/green so the page stays visually calm.
+  &:hover,
+  &.direction-toggle__btn--active {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+    background: rgba(37, 140, 244, 0.08);
   }
 }
 
@@ -1177,18 +1186,7 @@ $accent-soft: rgba(250, 204, 21, 0.14);
   padding: 14px 18px;
   background: $accent-soft;
   border-radius: 12px;
-
-  &--income {
-    background: rgba(22, 163, 74, 0.10);
-
-    .detail__amount-value { color: #16a34a; }
-  }
-
-  &--expense {
-    background: rgba(220, 38, 38, 0.08);
-
-    .detail__amount-value { color: #dc2626; }
-  }
+  // The +/− on the value carries direction; no extra tint.
 }
 
 .detail__amount-label {
