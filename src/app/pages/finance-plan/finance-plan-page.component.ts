@@ -116,6 +116,11 @@ export class FinancePlanPageComponent implements OnInit {
   formTitle = '';
   formDate = '';
   formAmount = '';
+  /**
+   * Actual amount (rub, as a string with `,` or `.`). Empty string means
+   * "not realised yet" (sent as `null` to the server).
+   */
+  formActualAmount = '';
   /** Default is expense — matches server's default for `direction: null`. */
   formDirection: PlannedPurchaseDirection = 'expense';
   /** 'user' | 'team' | '' (no selection = unassigned). */
@@ -124,6 +129,11 @@ export class FinancePlanPageComponent implements OnInit {
   formAssigneeUserId = '';
   formCategoryId = '';
   formNote = '';
+
+  // ─── Mark-bought confirmation (asks for actual amount) ───
+  readonly showMarkBoughtDialog = signal(false);
+  readonly markBoughtRow = signal<PurchaseRow | null>(null);
+  markBoughtAmountInput = '';
 
   // ─── Detail dialog (full info on a single planned purchase) ───
   readonly showDetailDialog = signal(false);
@@ -238,6 +248,9 @@ export class FinancePlanPageComponent implements OnInit {
     let plannedCount = 0;
     let boughtCount = 0;
     let cancelledCount = 0;
+    // Variance for realised expense rows: sum of (actual − planned).
+    // Positive = perezhgli (overspend); negative = saved.
+    let expenseVariance = 0;
 
     for (const p of all) {
       const value = p.actualAmount ?? p.amount;
@@ -248,6 +261,9 @@ export class FinancePlanPageComponent implements OnInit {
       } else if (p.status === 'bought') {
         if (isIncome) boughtIncome += value; else boughtExpense += value;
         boughtCount++;
+        if (!isIncome && p.actualAmount !== null) {
+          expenseVariance += p.actualAmount - p.amount;
+        }
       } else {
         cancelledCount++;
       }
@@ -267,6 +283,11 @@ export class FinancePlanPageComponent implements OnInit {
       forecastIncome: plannedTotalIncome,
       /** Net = income − expense. */
       forecastNet: plannedTotalIncome - plannedTotalExpense,
+      /**
+       * Total saved (negative) or overspent (positive) on already-bought
+       * expense rows: Σ(actual − planned). Zero when nothing realised yet.
+       */
+      expenseVariance,
       plannedCount,
       boughtCount,
       cancelledCount,
@@ -550,8 +571,10 @@ export class FinancePlanPageComponent implements OnInit {
   detailMarkBought(): void {
     const r = this.detailRow();
     if (!r) return;
+    // Close the detail card first so the mark-bought prompt isn't stacked on
+    // top of it. The prompt handles the actual PATCH itself.
+    this.closeDetail();
     this.markBought(r);
-    this.refreshDetail();
   }
 
   detailMarkCancelled(): void {
@@ -613,6 +636,7 @@ export class FinancePlanPageComponent implements OnInit {
     const fallbackDay = sameMonth ? now.getDate() : 1;
     this.formDate = presetDateIso ?? this.toIso(new Date(this.viewYear(), this.viewMonth(), fallbackDay));
     this.formAmount = '';
+    this.formActualAmount = '';
     this.formDirection = 'expense';
     this.formAssigneeKind = '';
     this.formAssigneeUserId = '';
@@ -628,6 +652,9 @@ export class FinancePlanPageComponent implements OnInit {
     this.formTitle = item.title;
     this.formDate = item.date;
     this.formAmount = (item.amount / 100).toString().replace('.', ',');
+    this.formActualAmount = item.actualAmount !== null
+      ? (item.actualAmount / 100).toString().replace('.', ',')
+      : '';
     this.formDirection = item.direction;
     this.formAssigneeKind = item.assigneeKind ?? '';
     this.formAssigneeUserId = item.assigneeKind === 'user' ? (item.assigneeUserId ?? '') : '';
@@ -686,12 +713,21 @@ export class FinancePlanPageComponent implements OnInit {
     const direction = this.formDirection;
     const isIncome = direction === 'income';
 
+    // Parse actualAmount: empty → null (not realised), otherwise kopecks.
+    let actualAmount: number | null = null;
+    const actualRaw = this.formActualAmount.replace(',', '.').trim();
+    if (actualRaw !== '') {
+      const av = parseFloat(actualRaw);
+      if (Number.isFinite(av) && av > 0) actualAmount = Math.round(av * 100);
+    }
+
     if (editingId) {
       this.financeService.updatePlannedPurchase(editingId, {
         title,
         date: this.formDate,
         direction,
         amount,
+        actualAmount,
         assigneeKind: kind,
         assigneeUserId,
         categoryId,
@@ -707,7 +743,7 @@ export class FinancePlanPageComponent implements OnInit {
         date: this.formDate,
         direction,
         amount,
-        actualAmount: null,
+        actualAmount,
         assigneeKind: kind,
         assigneeUserId,
         categoryId,
@@ -744,22 +780,54 @@ export class FinancePlanPageComponent implements OnInit {
   }
 
   /**
-   * Mark a planned row as realised. Sends `actualAmount` together with
-   * `status: 'bought'` — by default we treat the planned amount as the actual
-   * one. The detail dialog offers a separate flow for editing actualAmount.
+   * Open a small dialog asking for the real-life amount before flipping the
+   * row to `bought`. Pre-fills the input with the planned (or previously
+   * recorded actual) amount so users can confirm with one tap if it matched.
    */
   markBought(row: PurchaseRow): void {
     if (row.status === 'bought') return;
-    const actual = row.actualAmount ?? row.amount;
+    this.markBoughtRow.set(row);
+    const initial = row.actualAmount ?? row.amount;
+    this.markBoughtAmountInput = (initial / 100).toString().replace('.', ',');
+    this.showMarkBoughtDialog.set(true);
+  }
+
+  cancelMarkBought(): void {
+    this.showMarkBoughtDialog.set(false);
+    this.markBoughtRow.set(null);
+    this.markBoughtAmountInput = '';
+  }
+
+  confirmMarkBought(): void {
+    const row = this.markBoughtRow();
+    if (!row) return;
+
+    // Parse the actual amount; fall back to plan if empty/invalid.
+    const raw = this.markBoughtAmountInput.replace(',', '.').trim();
+    let actual = row.amount;
+    if (raw !== '') {
+      const v = parseFloat(raw);
+      if (Number.isFinite(v) && v > 0) actual = Math.round(v * 100);
+    }
+
     this.financeService.updatePlannedPurchase(row.id, {
       ...this.preservedPatch(row),
       status: 'bought',
       actualAmount: actual,
     });
+
+    const variance = actual - row.amount;
+    let message = row.title;
+    if (variance !== 0) {
+      const sign = variance > 0 ? 'перерасход' : 'экономия';
+      message = `${row.title} · ${sign} ${this.formatRub(Math.abs(variance))}`;
+    }
     this.toast(
       row.direction === 'income' ? 'Доход получен' : 'Отмечено как купленное',
-      row.title,
+      message,
     );
+
+    this.cancelMarkBought();
   }
 
   markPlanned(row: PurchaseRow): void {

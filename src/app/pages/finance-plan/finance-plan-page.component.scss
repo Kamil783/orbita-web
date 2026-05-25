@@ -176,8 +176,10 @@ $accent-soft: rgba(250, 204, 21, 0.14);
 // Sits under the three big stat cards so the cards stay short and identical
 // in height, and the bar gives a single structured summary.
 .month-balance {
-  display: grid;
-  grid-template-columns: 1fr 1px 1fr 1px 1fr;
+  // Auto-fit columns: works with 3 base cells + dividers, and gracefully
+  // accommodates the optional "savings" cell when it's rendered.
+  display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 16px;
   padding: 14px 20px;
@@ -188,10 +190,11 @@ $accent-soft: rgba(250, 204, 21, 0.14);
 }
 
 .month-balance__cell {
+  flex: 1 1 0;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 4px;
-  min-width: 0;
 
   &--total .month-balance__value {
     font-size: 18px;
@@ -216,6 +219,7 @@ $accent-soft: rgba(250, 204, 21, 0.14);
 }
 
 .month-balance__divider {
+  flex: 0 0 1px;
   width: 1px;
   height: 32px;
   background: var(--border-color);
@@ -223,7 +227,8 @@ $accent-soft: rgba(250, 204, 21, 0.14);
 
 @media (max-width: 640px) {
   .month-balance {
-    grid-template-columns: 1fr;
+    flex-direction: column;
+    align-items: stretch;
     gap: 12px;
   }
   .month-balance__divider {
@@ -782,6 +787,40 @@ $accent-soft: rgba(250, 204, 21, 0.14);
   font-size: 12px;
   font-weight: 600;
   color: var(--text-500);
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.form__label-hint {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-400);
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+// ─── Mark-bought prompt ───
+.mark-bought {
+  padding: 14px 16px;
+  background: $accent-soft;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mark-bought__title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-900);
+}
+
+.mark-bought__plan {
+  font-size: 12px;
+  color: var(--text-500);
+  font-weight: 500;
 }
 
 // ─── Direction toggle (Расход / Доход) ───
