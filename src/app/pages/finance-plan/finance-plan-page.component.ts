@@ -23,6 +23,7 @@ import {
   PlannedPurchaseAssigneeKind,
   PlannedPurchaseDirection,
   PlannedPurchaseStatus,
+  UpdatePlannedPurchaseDto,
 } from '../../features/finance/models/finance.models';
 
 type StatusFilter = 'all' | PlannedPurchaseStatus;
@@ -724,6 +725,25 @@ export class FinancePlanPageComponent implements OnInit {
   // ─── Status actions ───
 
   /**
+   * Build a PATCH payload that **only** changes status (+ optional actualAmount).
+   * The new server contract treats `null` as a reset, and our DTOs would
+   * normally omit unrelated fields. But some bindings round-trip missing
+   * nullable fields back to `null` and silently drop the assignee /
+   * category / note. To be safe we explicitly pass through the current
+   * values of every field the server might otherwise wipe.
+   */
+  private preservedPatch(row: PurchaseRow): UpdatePlannedPurchaseDto {
+    return {
+      assigneeKind: row.assigneeKind,
+      assigneeUserId: row.assigneeKind === 'user'
+        ? this.purchases().find(p => p.id === row.id)?.assigneeUserId ?? null
+        : null,
+      categoryId: this.purchases().find(p => p.id === row.id)?.categoryId ?? null,
+      note: row.note ? row.note : null,
+    };
+  }
+
+  /**
    * Mark a planned row as realised. Sends `actualAmount` together with
    * `status: 'bought'` — by default we treat the planned amount as the actual
    * one. The detail dialog offers a separate flow for editing actualAmount.
@@ -732,6 +752,7 @@ export class FinancePlanPageComponent implements OnInit {
     if (row.status === 'bought') return;
     const actual = row.actualAmount ?? row.amount;
     this.financeService.updatePlannedPurchase(row.id, {
+      ...this.preservedPatch(row),
       status: 'bought',
       actualAmount: actual,
     });
@@ -745,6 +766,7 @@ export class FinancePlanPageComponent implements OnInit {
     if (row.status === 'planned') return;
     // Roll back the realised state: clear actualAmount and return to planned.
     this.financeService.updatePlannedPurchase(row.id, {
+      ...this.preservedPatch(row),
       status: 'planned',
       actualAmount: null,
     });
@@ -753,7 +775,10 @@ export class FinancePlanPageComponent implements OnInit {
 
   markCancelled(row: PurchaseRow): void {
     if (row.status === 'cancelled') return;
-    this.financeService.updatePlannedPurchase(row.id, { status: 'cancelled' });
+    this.financeService.updatePlannedPurchase(row.id, {
+      ...this.preservedPatch(row),
+      status: 'cancelled',
+    });
     this.toast(
       row.direction === 'income' ? 'Доход отменён' : 'Покупка отменена',
       row.title,
