@@ -20,5 +20,6 @@ export class SlimSidebarComponent {
     { icon: 'calendar_month', label: 'Календарь', route: '/calendar' },
     { icon: 'nutrition', label: 'Здоровье', route: '/health' },
     { icon: 'payments', label: 'Финансы', route: '/finance' },
+    { icon: 'account_balance', label: 'Счета', route: '/accounts' },
   ];
 }
