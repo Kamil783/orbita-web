@@ -1,0 +1,191 @@
+<app-app-shell>
+  <app-topbar [title]="title" placeholder="Поиск по счетам..."></app-topbar>
+
+  <main class="page">
+    <!-- Hero: aggregate balance in RUB -->
+    <section class="hero">
+      <div class="hero__main">
+        <span class="hero__label">Общий баланс</span>
+        <h1 class="hero__value">{{ formatRub(effectiveTotalRub()) }}</h1>
+        <span class="hero__sub">
+          {{ summary().includedCount }} из {{ summary().totalAccounts }} счетов учитываются
+        </span>
+      </div>
+
+      <div class="hero__split">
+        @if (summary().excludedCount > 0) {
+          <div class="hero__split-cell">
+            <span class="hero__split-label">Отключено</span>
+            <span class="hero__split-value">{{ formatRub(summary().excludedSum) }}</span>
+            <span class="hero__split-hint">{{ summary().excludedCount }} шт.</span>
+          </div>
+        }
+        @if (summary().noRateCount > 0) {
+          <div class="hero__split-cell">
+            <span class="hero__split-label">Без курса</span>
+            <span class="hero__split-value">{{ summary().noRateCount }}</span>
+            <span class="hero__split-hint">не учитываются</span>
+          </div>
+        }
+      </div>
+
+      <button class="hero__cta" type="button" (click)="openCreate()">
+        <span class="material-symbols-outlined">add</span>
+        <span>Новый счёт</span>
+      </button>
+    </section>
+
+    @if (rows().length === 0) {
+      <div class="empty">
+        <span class="material-symbols-outlined empty__icon">account_balance</span>
+        <h3>Нет счетов</h3>
+        <p>Добавьте первый счёт — рублёвый, валютный или криптовалютный.</p>
+        <button class="empty__btn" type="button" (click)="openCreate()">
+          <span class="material-symbols-outlined">add</span>
+          Создать счёт
+        </button>
+      </div>
+    } @else {
+      <div class="accounts">
+        @for (r of rows(); track r.id) {
+          <article
+            class="account"
+            [class.account--excluded]="!r.included"
+            [class.account--no-rate]="!r.hasRate"
+          >
+            <header class="account__head">
+              <div class="account__head-text">
+                <h3 class="account__name">{{ r.name }}</h3>
+                <div class="account__chips">
+                  <span class="chip" [class.chip--crypto]="r.kind === 'crypto'">
+                    <span class="material-symbols-outlined">
+                      {{ r.kind === 'crypto' ? 'currency_bitcoin' : 'payments' }}
+                    </span>
+                    {{ r.currencyCode }}
+                  </span>
+                  <span class="chip chip--muted">{{ r.currencyName }}</span>
+                </div>
+              </div>
+
+              <div class="account__actions">
+                <button class="iconbtn" type="button" title="Редактировать" (click)="openEdit(r)">
+                  <span class="material-symbols-outlined">edit</span>
+                </button>
+                <button class="iconbtn iconbtn--danger" type="button" title="Удалить" (click)="openDelete(r)">
+                  <span class="material-symbols-outlined">delete</span>
+                </button>
+              </div>
+            </header>
+
+            <div class="account__body">
+              <div class="account__balance">
+                <span class="account__balance-label">Баланс</span>
+                <span class="account__balance-value">{{ formatBalance(r.balance, r.currencyCode) }}</span>
+              </div>
+
+              <div class="account__convert">
+                @if (r.hasRate) {
+                  <span class="account__convert-value">≈ {{ formatRub(r.convertedRub ?? 0) }}</span>
+                  <span class="account__convert-rate">{{ formatRate(r) }}</span>
+                  @if (r.rateFetchedAt) {
+                    <span class="account__convert-age">{{ formatRateAgeNote(r.rateFetchedAt) }}</span>
+                  }
+                } @else {
+                  <span class="account__convert-novalue">
+                    <span class="material-symbols-outlined">help</span>
+                    Курс не найден
+                  </span>
+                  <span class="account__convert-age">не учитывается в общем балансе</span>
+                }
+              </div>
+            </div>
+
+            <footer class="account__foot">
+              <label class="account__toggle">
+                <input
+                  type="checkbox"
+                  [checked]="r.included"
+                  [disabled]="!r.hasRate"
+                  (change)="toggleIncluded(r)"
+                />
+                <span>Учитывать в общем балансе</span>
+              </label>
+            </footer>
+          </article>
+        }
+      </div>
+    }
+  </main>
+</app-app-shell>
+
+<!-- ─── Create / Edit dialog ─── -->
+@if (showFormDialog()) {
+  <app-modal-overlay size="md" (close)="closeFormDialog()">
+    <header class="form__header">
+      <h2 class="form__title">
+        {{ editingId() ? 'Редактировать счёт' : 'Новый счёт' }}
+      </h2>
+      <button class="form__close" type="button" (click)="closeFormDialog()" aria-label="Закрыть">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </header>
+
+    <form class="form" (ngSubmit)="saveForm()">
+      <label class="form__field">
+        <span class="form__label">Название</span>
+        <input
+          class="form__input"
+          type="text"
+          name="name"
+          [(ngModel)]="formName"
+          placeholder="Например: Тинькофф USD"
+          autofocus
+          required
+        />
+      </label>
+
+      <label class="form__field">
+        <span class="form__label">Валюта</span>
+        <app-select
+          name="currency"
+          icon="payments"
+          placeholder="Выбрать валюту"
+          [options]="currencyOptions()"
+          [(ngModel)]="formCurrencyCode"
+        ></app-select>
+      </label>
+
+      <label class="form__field">
+        <span class="form__label">Текущий баланс</span>
+        <input
+          class="form__input"
+          type="text"
+          inputmode="decimal"
+          name="balance"
+          [(ngModel)]="formBalance"
+          placeholder="0,00"
+        />
+        <span class="form__hint">Сумма в валюте счёта. Для крипты можно указать до 8 знаков после запятой.</span>
+      </label>
+
+      <div class="form__actions">
+        <button class="form__btn" type="button" (click)="closeFormDialog()">Отмена</button>
+        <button class="form__btn form__btn--primary" type="submit">
+          {{ editingId() ? 'Сохранить' : 'Создать' }}
+        </button>
+      </div>
+    </form>
+  </app-modal-overlay>
+}
+
+<!-- ─── Delete confirm ─── -->
+@if (showDeleteDialog()) {
+  <app-confirm-dialog
+    icon="delete"
+    title="Удалить счёт?"
+    [message]="'Счёт «' + deleteTargetName() + '» будет удалён. Это действие нельзя отменить.'"
+    confirmText="Удалить"
+    (cancel)="cancelDelete()"
+    (confirm)="confirmDelete()"
+  ></app-confirm-dialog>
+}

@@ -126,6 +126,21 @@
   line-height: 1.4;
 }
 
+.notification-item__message {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: var(--text-500);
+  line-height: 1.4;
+  // Clamp the body to two lines so long messages don't blow the dropdown
+  // out vertically; the user opens the source page for the full text.
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-word;
+}
+
 .notification-item__time {
   margin: 4px 0 0;
   font-size: 11px;

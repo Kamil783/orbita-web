@@ -45,6 +45,9 @@
 
         <div class="notification-item__body">
           <p class="notification-item__title">{{ n.title }}</p>
+          @if (n.message) {
+            <p class="notification-item__message">{{ n.message }}</p>
+          }
           <p class="notification-item__time">{{ formatTime(n.createdAt) }}</p>
         </div>
 

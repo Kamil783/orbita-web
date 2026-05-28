@@ -28,7 +28,14 @@ export class TopbarComponent {
   }
 
   toggleNotifications(): void {
-    this.showNotifications.update(v => !v);
+    const opening = !this.showNotifications();
+    this.showNotifications.set(opening);
+    // Mark everything as read the moment the dropdown opens — that's
+    // the conventional behaviour for a bell-style center: opening it is
+    // proof the user saw the list.
+    if (opening && this.notificationService.unreadCount() > 0) {
+      this.notificationService.markAllAsRead();
+    }
   }
 
   @HostListener('document:click', ['$event'])
