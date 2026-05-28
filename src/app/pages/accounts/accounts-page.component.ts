@@ -70,6 +70,29 @@ export class AccountsPageComponent implements OnInit {
   formCurrencyCode = '';
   formBalance = '';
 
+  /** Set to `true` after the first failed save attempt — turns on inline error UI. */
+  readonly formAttempted = signal(false);
+
+  /** Field-level error keys; missing keys mean "ok". Computed on-the-fly. */
+  formErrors(): { name?: string; currency?: string; balance?: string } {
+    const errors: { name?: string; currency?: string; balance?: string } = {};
+    if (!this.formName.trim()) {
+      errors.name = 'Введите название счёта';
+    } else if (this.formName.trim().length > 100) {
+      errors.name = 'Максимум 100 символов';
+    }
+    if (!this.formCurrencyCode) {
+      errors.currency = 'Выберите валюту';
+    }
+    if (this.formBalance.trim() !== '') {
+      const v = parseFloat(this.formBalance.replace(',', '.').trim());
+      if (!Number.isFinite(v)) {
+        errors.balance = 'Сумма должна быть числом';
+      }
+    }
+    return errors;
+  }
+
   readonly showDeleteDialog = signal(false);
   readonly deleteTargetId = signal<string | null>(null);
   readonly deleteTargetName = signal('');
@@ -144,6 +167,7 @@ export class AccountsPageComponent implements OnInit {
     // Pre-select the first currency (server should always return RUB at least).
     this.formCurrencyCode = this.currencies()[0]?.code ?? '';
     this.formBalance = '';
+    this.formAttempted.set(false);
     this.showFormDialog.set(true);
   }
 
@@ -152,18 +176,26 @@ export class AccountsPageComponent implements OnInit {
     this.formName = row.name;
     this.formCurrencyCode = row.currencyCode;
     this.formBalance = row.balance.toString().replace('.', ',');
+    this.formAttempted.set(false);
     this.showFormDialog.set(true);
   }
 
   closeFormDialog(): void {
     this.showFormDialog.set(false);
+    this.formAttempted.set(false);
   }
 
   saveForm(): void {
+    const errors = this.formErrors();
+    if (Object.keys(errors).length > 0) {
+      // Surface inline errors and bail. The button itself is not disabled
+      // because we want the user to discover what's wrong by clicking.
+      this.formAttempted.set(true);
+      return;
+    }
+
     const name = this.formName.trim();
-    if (!name || !this.formCurrencyCode) return;
     const balance = parseFloat(this.formBalance.replace(',', '.').trim() || '0');
-    if (!Number.isFinite(balance)) return;
 
     const editingId = this.editingId();
     if (editingId) {

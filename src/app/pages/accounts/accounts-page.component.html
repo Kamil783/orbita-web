@@ -130,18 +130,24 @@
       </button>
     </header>
 
-    <form class="form" (ngSubmit)="saveForm()">
+    <form class="form" (ngSubmit)="saveForm()" novalidate>
       <label class="form__field">
         <span class="form__label">Название</span>
         <input
           class="form__input"
+          [class.form__input--invalid]="formAttempted() && formErrors().name"
           type="text"
           name="name"
           [(ngModel)]="formName"
           placeholder="Например: Тинькофф USD"
           autofocus
-          required
         />
+        @if (formAttempted() && formErrors().name; as err) {
+          <span class="form__error" role="alert">
+            <span class="material-symbols-outlined">error</span>
+            {{ err }}
+          </span>
+        }
       </label>
 
       <label class="form__field">
@@ -153,19 +159,33 @@
           [options]="currencyOptions()"
           [(ngModel)]="formCurrencyCode"
         ></app-select>
+        @if (formAttempted() && formErrors().currency; as err) {
+          <span class="form__error" role="alert">
+            <span class="material-symbols-outlined">error</span>
+            {{ err }}
+          </span>
+        }
       </label>
 
       <label class="form__field">
         <span class="form__label">Текущий баланс</span>
         <input
           class="form__input"
+          [class.form__input--invalid]="formAttempted() && formErrors().balance"
           type="text"
           inputmode="decimal"
           name="balance"
           [(ngModel)]="formBalance"
           placeholder="0,00"
         />
-        <span class="form__hint">Сумма в валюте счёта. Для крипты можно указать до 8 знаков после запятой.</span>
+        @if (formAttempted() && formErrors().balance; as err) {
+          <span class="form__error" role="alert">
+            <span class="material-symbols-outlined">error</span>
+            {{ err }}
+          </span>
+        } @else {
+          <span class="form__hint">Сумма в валюте счёта. Для крипты можно указать до 8 знаков после запятой.</span>
+        }
       </label>
 
       <div class="form__actions">
