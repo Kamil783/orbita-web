@@ -71,6 +71,12 @@ export class AccountsPageComponent implements OnInit {
     })),
   );
 
+  /** Categories for the transaction modal — `''` = "no category". */
+  readonly categorySelectOptions = computed<SelectOption[]>(() => [
+    { value: '', label: 'Без категории' },
+    ...this.categories().map(c => ({ value: c.id, label: c.name })),
+  ]);
+
   // ─── Dialog state ───
   readonly showFormDialog = signal(false);
   readonly editingId = signal<string | null>(null);
