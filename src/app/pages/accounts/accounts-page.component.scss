@@ -1,3 +1,9 @@
+// ─── Accent palette (primary blue, app-wide CSS vars) ───
+$accent: var(--color-primary);
+$accent-dark: var(--color-primary-hover);
+$accent-soft: rgba(37, 140, 244, 0.12);
+$accent-text: var(--color-primary);
+
 // ─── Page layout ───
 .page {
   flex: 1;
@@ -184,7 +190,7 @@
   transition: border-color 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
 
   &:hover {
-    border-color: var(--color-primary);
+    border-color: $accent;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
   }
 
@@ -236,14 +242,14 @@
   text-transform: uppercase;
   letter-spacing: 0.04em;
   border-radius: 999px;
-  background: rgba(37, 140, 244, 0.10);
-  color: var(--color-primary);
+  background: $accent-soft;
+  color: $accent-text;
 
   .material-symbols-outlined { font-size: 13px; }
 
   &--crypto {
-    background: rgba(245, 158, 11, 0.14);
-    color: #b45309;
+    background: rgba(124, 58, 237, 0.14);
+    color: #6d28d9;
   }
 
   &--muted {
@@ -458,9 +464,27 @@
   &::placeholder { color: var(--text-400); }
 
   &:focus {
-    border-color: var(--color-primary);
-    box-shadow: 0 0 0 3px rgba(37, 140, 244, 0.15);
+    border-color: $accent;
+    box-shadow: 0 0 0 3px $accent-soft;
   }
+
+  &.form__input--invalid,
+  &.form__input--invalid:focus {
+    border-color: var(--color-danger);
+    box-shadow: 0 0 0 3px var(--color-danger-bg);
+  }
+}
+
+.form__error {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-danger);
+  margin-top: 2px;
+
+  .material-symbols-outlined { font-size: 14px; }
 }
 
 .form__actions {
@@ -487,8 +511,8 @@
   transition: all 0.15s ease;
 
   &:hover {
-    border-color: var(--color-primary);
-    color: var(--color-primary);
+    border-color: $accent;
+    color: $accent-dark;
   }
 
   &--primary {
@@ -501,5 +525,204 @@
       border-color: var(--color-primary-hover);
       color: #fff;
     }
+  }
+}
+
+// ─── Transaction dialog extras ───
+.form__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+
+  > .form__field { min-width: 0; }
+}
+
+@media (max-width: 600px) {
+  .form__row {
+    grid-template-columns: 1fr;
+  }
+}
+
+// Type toggle (Расход / Доход)
+.type-toggle {
+  display: flex;
+  gap: 8px;
+}
+
+.type-toggle__btn {
+  flex: 1 1 0;
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px 14px;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  background: var(--surface-input);
+  color: var(--text-700);
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  .material-symbols-outlined { font-size: 18px; flex-shrink: 0; }
+
+  &:hover,
+  &--active {
+    border-color: $accent;
+    color: $accent-dark;
+    background: $accent-soft;
+  }
+}
+
+// Account picker — scrollable grid of pills, just like the category picker.
+.account-picker {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 8px;
+  max-height: 240px;
+  overflow-y: auto;
+  padding: 4px;
+  margin: -4px;
+  border-radius: 10px;
+}
+
+.account-picker__btn {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 4px 10px;
+  padding: 10px 12px;
+  min-width: 0;
+  border: 1.5px solid var(--border-color);
+  border-radius: 10px;
+  background: var(--surface-input);
+  color: var(--text-700);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s ease;
+
+  .material-symbols-outlined {
+    grid-row: 1 / span 2;
+    font-size: 22px;
+    color: var(--text-500);
+  }
+
+  .account-picker__name {
+    grid-column: 2;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .account-picker__balance {
+    grid-column: 2;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-500);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &:hover {
+    border-color: $accent;
+  }
+
+  &--active {
+    border-color: $accent;
+    background: $accent-soft;
+    color: $accent-dark;
+
+    .material-symbols-outlined { color: $accent-dark; }
+    .account-picker__balance { color: $accent-dark; opacity: 0.85; }
+  }
+}
+
+// Category picker — same scrollable grid pattern as the Finance modal.
+.category-select {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 8px;
+  max-height: 220px;
+  overflow-y: auto;
+  padding: 4px;
+  margin: -4px;
+  border-radius: 10px;
+}
+
+.category-select__item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  min-width: 0;
+  border: 1.5px solid var(--border-color);
+  border-radius: 10px;
+  background: var(--surface-input);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-600);
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s ease;
+
+  > span:not(.material-symbols-outlined) {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+  }
+
+  &:hover { border-color: $accent; }
+
+  &--active {
+    border-color: $accent;
+    background: $accent-soft;
+    color: $accent-dark;
+  }
+}
+
+.category-select__icon {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+// FAB — primary-blue circle, same shape as the Finance/Tasks FAB.
+.fab {
+  position: fixed;
+  right: 32px;
+  bottom: 32px;
+  width: 56px;
+  height: 56px;
+  border-radius: 9999px;
+  border: 0;
+  cursor: pointer;
+  background: var(--color-primary);
+  color: #fff;
+  box-shadow: 0 14px 30px rgba(17, 24, 39, 0.18);
+  display: grid;
+  place-items: center;
+  transition: transform 0.15s ease, background 0.15s ease;
+  z-index: 20;
+
+  &:hover { transform: scale(1.05); background: var(--color-primary-hover); }
+  &:active { transform: scale(0.95); }
+
+  .material-symbols-outlined { font-size: 28px; }
+}
+
+@media (max-width: 768px) {
+  .fab {
+    right: 16px;
+    bottom: 80px;  // clear of mobile bottom nav
+    width: 48px;
+    height: 48px;
+
+    .material-symbols-outlined { font-size: 24px; }
   }
 }
