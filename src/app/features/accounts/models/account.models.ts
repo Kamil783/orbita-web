@@ -65,3 +65,49 @@ export interface UpdateAccountDto {
   currencyCode?: string;
   balance?: number;
 }
+
+// ─── Account transactions ───
+
+/**
+ * A single operation against an Account. The sign of `amount` carries the
+ * direction (just like FinanceTransaction): negative = expense, positive = income.
+ *
+ * Stored on the server under `/api/Accounts/transactions`. Each create / update /
+ * delete is atomic with the corresponding `Account.Balance` change.
+ */
+export interface AccountTransaction {
+  id: string;
+  accountId: string;
+  categoryId: string | null;
+  title: string;
+  amount: number;          // signed, in the account's native currency (decimal, not kopecks)
+  date: string;            // ISO date 'YYYY-MM-DD'
+  timestamp: number;       // ms since epoch
+}
+
+export interface CreateAccountTransactionDto {
+  accountId: string;
+  title: string;           // 1..200
+  /** Signed; must be non-zero. Server applies `Balance += amount` atomically. */
+  amount: number;
+  categoryId: string | null;
+  /** ISO datetime. `null` → server uses `DateTime.UtcNow`. */
+  date: string | null;
+}
+
+/**
+ * PATCH semantics, exactly as documented on the server:
+ *   - `title`, `amount`, `date`: `null` (or omitted) means "don't touch".
+ *   - `categoryId`: ALWAYS applied when present in the body — `null` clears the
+ *     category, a guid replaces it. Omit the key to leave it untouched.
+ *
+ * Changing `amount` re-runs the same atomic balance adjustment by
+ * `(newAmount − oldAmount)`. Changing the source account is not supported by
+ * the server.
+ */
+export interface UpdateAccountTransactionDto {
+  title?: string | null;
+  amount?: number | null;
+  categoryId?: string | null;
+  date?: string | null;
+}

@@ -4,9 +4,12 @@ import { environment } from '../../../../environments/environment';
 import {
   Account,
   AccountsTotal,
+  AccountTransaction,
   CreateAccountDto,
+  CreateAccountTransactionDto,
   Currency,
   UpdateAccountDto,
+  UpdateAccountTransactionDto,
 } from '../models/account.models';
 
 /**
@@ -22,6 +25,17 @@ import {
  * GET    /api/Accounts/total        → AccountsTotal     Per-account RUB conversion + totalRub.
  *                                                       Accounts whose currency has no rate get convertedRub=null
  *                                                       and are excluded from totalRub.
+ *
+ * GET    /api/Accounts/transactions               → AccountTransaction[]   All team transactions, sorted by createdAt desc.
+ * GET    /api/Accounts/transactions?accountId=ID  → AccountTransaction[]   Only this account (ownership-checked).
+ * POST   /api/Accounts/transactions               → AccountTransaction     Body: CreateAccountTransactionDto.
+ *                                                                          Atomic with `Account.Balance += amount`.
+ * PATCH  /api/Accounts/transactions/:id           → AccountTransaction     Body: UpdateAccountTransactionDto.
+ *                                                                          `title|amount|date`: null = don't touch.
+ *                                                                          `categoryId` is always applied; null clears.
+ *                                                                          Changing amount → atomic `Balance += (new − old)`.
+ *                                                                          Changing the source account is NOT supported.
+ * DELETE /api/Accounts/transactions/:id           → 204 NoContent          Atomic with `Account.Balance -= amount`.
  */
 
 const EXCLUDED_STORAGE_KEY = 'orbita.accounts.excludedIds';
@@ -35,6 +49,8 @@ export class AccountsService {
   readonly currencies = signal<Currency[]>([]);
   readonly accounts = signal<Account[]>([]);
   readonly total = signal<AccountsTotal | null>(null);
+  /** All team account-transactions, sorted by `timestamp` desc (server-side). */
+  readonly transactions = signal<AccountTransaction[]>([]);
 
   /**
    * Account ids the user has toggled OFF from the "общий баланс" calculation.
@@ -156,6 +172,67 @@ export class AccountsService {
       next: () => this.loadTotal(),
       error: () => this.accounts.set(backup),
     });
+  }
+
+  // ─── Account transactions ───
+
+  /** Load all transactions (or just one account's) into the `transactions` signal. */
+  loadAccountTransactions(accountId?: string): void {
+    const url = accountId
+      ? `${this.apiUrl}/api/Accounts/transactions?accountId=${encodeURIComponent(accountId)}`
+      : `${this.apiUrl}/api/Accounts/transactions`;
+    this.http.get<AccountTransaction[]>(url)
+      .subscribe(list => this.transactions.set(list));
+  }
+
+  createAccountTransaction(
+    dto: CreateAccountTransactionDto,
+    onSuccess?: (created: AccountTransaction) => void,
+  ): void {
+    this.http.post<AccountTransaction>(`${this.apiUrl}/api/Accounts/transactions`, dto)
+      .subscribe(created => {
+        this.transactions.update(list => [created, ...list]);
+        // Server atomically adjusts Account.Balance — refresh local view.
+        this.refresh();
+        onSuccess?.(created);
+      });
+  }
+
+  updateAccountTransaction(id: string, dto: UpdateAccountTransactionDto): void {
+    const backup = this.transactions();
+    // Optimistic patch. For PATCH semantics:
+    //   title / amount / date / categoryId — apply when present (not undefined).
+    //   `categoryId === null` is a legal "clear" value per server contract.
+    this.transactions.update(list => list.map(t => t.id === id
+      ? {
+          ...t,
+          ...(dto.title != null ? { title: dto.title } : {}),
+          ...(dto.amount != null ? { amount: dto.amount } : {}),
+          ...(dto.date != null ? { date: dto.date } : {}),
+          ...('categoryId' in dto ? { categoryId: dto.categoryId ?? null } : {}),
+        }
+      : t,
+    ));
+
+    this.http.patch<AccountTransaction>(`${this.apiUrl}/api/Accounts/transactions/${id}`, dto)
+      .subscribe({
+        next: updated => {
+          this.transactions.update(list => list.map(t => t.id === id ? updated : t));
+          // Amount may have changed → balance shifted; refresh.
+          this.refresh();
+        },
+        error: () => this.transactions.set(backup),
+      });
+  }
+
+  deleteAccountTransaction(id: string): void {
+    const backup = this.transactions();
+    this.transactions.update(list => list.filter(t => t.id !== id));
+    this.http.delete(`${this.apiUrl}/api/Accounts/transactions/${id}`)
+      .subscribe({
+        next: () => this.refresh(),
+        error: () => this.transactions.set(backup),
+      });
   }
 
   // ─── Exclusion toggle (client-only) ───

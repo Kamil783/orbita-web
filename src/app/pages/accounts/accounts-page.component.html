@@ -115,6 +115,11 @@
         }
       </div>
     }
+    @if (rows().length > 0) {
+      <button class="fab" type="button" (click)="openTxDialog()" aria-label="Внести операцию">
+        <span class="material-symbols-outlined">add</span>
+      </button>
+    }
   </main>
 </app-app-shell>
 
@@ -208,4 +213,152 @@
     (cancel)="cancelDelete()"
     (confirm)="confirmDelete()"
   ></app-confirm-dialog>
+}
+
+<!-- ─── Transaction dialog (operations are always personal; account is required) ─── -->
+@if (showTxDialog()) {
+  <app-modal-overlay size="md" (close)="closeTxDialog()">
+    <header class="form__header">
+      <h2 class="form__title">Новая операция</h2>
+      <button class="form__close" type="button" (click)="closeTxDialog()" aria-label="Закрыть">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </header>
+
+    <form class="form" (ngSubmit)="saveTransaction()" novalidate>
+      <!-- Type: expense / income -->
+      <div class="form__field">
+        <span class="form__label">Тип операции</span>
+        <div class="type-toggle">
+          <button
+            type="button"
+            class="type-toggle__btn"
+            [class.type-toggle__btn--active]="txType === 'expense'"
+            (click)="txType = 'expense'"
+          >
+            <span class="material-symbols-outlined">remove</span>
+            Расход
+          </button>
+          <button
+            type="button"
+            class="type-toggle__btn"
+            [class.type-toggle__btn--active]="txType === 'income'"
+            (click)="txType = 'income'"
+          >
+            <span class="material-symbols-outlined">add</span>
+            Доход
+          </button>
+        </div>
+      </div>
+
+      <!-- Description -->
+      <label class="form__field">
+        <span class="form__label">Описание</span>
+        <input
+          class="form__input"
+          [class.form__input--invalid]="txAttempted() && txErrors().title"
+          type="text"
+          name="txTitle"
+          [(ngModel)]="txTitle"
+          placeholder="Например: продукты"
+          autofocus
+        />
+        @if (txAttempted() && txErrors().title; as err) {
+          <span class="form__error" role="alert">
+            <span class="material-symbols-outlined">error</span>
+            {{ err }}
+          </span>
+        }
+      </label>
+
+      <!-- Amount + date -->
+      <div class="form__row">
+        <label class="form__field">
+          <span class="form__label">Сумма{{ txAmountCurrencyHint() }}</span>
+          <input
+            class="form__input"
+            [class.form__input--invalid]="txAttempted() && txErrors().amount"
+            type="text"
+            inputmode="decimal"
+            name="txAmount"
+            [(ngModel)]="txAmount"
+            placeholder="0,00"
+          />
+          @if (txAttempted() && txErrors().amount; as err) {
+            <span class="form__error" role="alert">
+              <span class="material-symbols-outlined">error</span>
+              {{ err }}
+            </span>
+          }
+        </label>
+
+        <label class="form__field">
+          <span class="form__label">Дата</span>
+          <app-date-picker name="txDate" [(ngModel)]="txDate" placeholder="Сегодня"></app-date-picker>
+        </label>
+      </div>
+
+      <!-- Account picker (replaces "Личный/Общий" toggle from finance page) -->
+      <div class="form__field">
+        <span class="form__label">Счёт</span>
+        <div class="account-picker">
+          @for (a of accounts(); track a.id) {
+            <button
+              type="button"
+              class="account-picker__btn"
+              [class.account-picker__btn--active]="txAccountId === a.id"
+              (click)="txAccountId = a.id"
+            >
+              <span class="material-symbols-outlined">account_balance_wallet</span>
+              <span class="account-picker__name">{{ a.name }}</span>
+              <span class="account-picker__balance">{{ formatBalance(a.balance, a.currencyCode) }}</span>
+            </button>
+          }
+        </div>
+        @if (txAttempted() && txErrors().account; as err) {
+          <span class="form__error" role="alert">
+            <span class="material-symbols-outlined">error</span>
+            {{ err }}
+          </span>
+        }
+      </div>
+
+      <!-- Category -->
+      @if (categories().length > 0) {
+        <div class="form__field">
+          <span class="form__label">Категория</span>
+          <div class="category-select">
+            <button
+              class="category-select__item"
+              [class.category-select__item--active]="txCategoryId === ''"
+              type="button"
+              (click)="txCategoryId = ''"
+            >
+              <span class="material-symbols-outlined category-select__icon" style="color: #6b7280">receipt</span>
+              <span>Без категории</span>
+            </button>
+            @for (cat of categories(); track cat.id) {
+              <button
+                class="category-select__item"
+                [class.category-select__item--active]="txCategoryId === cat.id"
+                type="button"
+                (click)="txCategoryId = cat.id"
+              >
+                <span
+                  class="material-symbols-outlined category-select__icon"
+                  [style.color]="cat.color"
+                >{{ cat.icon }}</span>
+                <span>{{ cat.name }}</span>
+              </button>
+            }
+          </div>
+        </div>
+      }
+
+      <div class="form__actions">
+        <button class="form__btn" type="button" (click)="closeTxDialog()">Отмена</button>
+        <button class="form__btn form__btn--primary" type="submit">Добавить</button>
+      </div>
+    </form>
+  </app-modal-overlay>
 }

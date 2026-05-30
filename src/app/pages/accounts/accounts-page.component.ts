@@ -5,7 +5,9 @@ import { TopbarComponent } from '../../shared/ui/topbar/topbar.component';
 import { ModalOverlayComponent } from '../../shared/ui/modal-overlay/modal-overlay.component';
 import { ConfirmDialogComponent } from '../../shared/ui/confirm-dialog/confirm-dialog.component';
 import { SelectComponent, SelectOption } from '../../shared/ui/select/select.component';
+import { DatePickerComponent } from '../../shared/ui/date-picker/date-picker.component';
 import { AccountsService } from '../../features/accounts/data/accounts.service';
+import { FinanceService } from '../../features/finance/data/finance.service';
 import { NotificationService } from '../../features/notifications/data/notification.service';
 import {
   Account,
@@ -37,6 +39,7 @@ interface AccountRow {
     ModalOverlayComponent,
     ConfirmDialogComponent,
     SelectComponent,
+    DatePickerComponent,
     FormsModule,
   ],
   templateUrl: './accounts-page.component.html',
@@ -44,7 +47,12 @@ interface AccountRow {
 })
 export class AccountsPageComponent implements OnInit {
   private readonly accountsService = inject(AccountsService);
+  private readonly financeService = inject(FinanceService);
   private readonly notifications = inject(NotificationService);
+
+  // Categories are still owned by FinanceService — Account-transactions
+  // reuse the same category dictionary.
+  readonly categories = this.financeService.categories;
 
   readonly title = 'Счета';
 
@@ -151,6 +159,9 @@ export class AccountsPageComponent implements OnInit {
     this.accountsService.loadCurrencies();
     this.accountsService.loadAccounts();
     this.accountsService.loadTotal();
+    // Categories are needed for the transaction modal; they may already be
+    // loaded by the Finance page in this session, but a defensive load is safe.
+    if (this.categories().length === 0) this.financeService.loadCategories();
   }
 
   // ─── Toggle inclusion ───
@@ -234,6 +245,83 @@ export class AccountsPageComponent implements OnInit {
     this.accountsService.deleteAccount(id);
     this.toast('Счёт удалён', name);
     this.cancelDelete();
+  }
+
+  // ─── Transaction dialog (always `fromBalance: false`; account is required) ───
+  readonly showTxDialog = signal(false);
+  readonly txAttempted = signal(false);
+  txTitle = '';
+  txAmount = '';
+  txType: 'expense' | 'income' = 'expense';
+  txCategoryId = '';
+  txAccountId = '';
+  txDate = '';
+
+  /** Returns " · USD" (etc.) for the amount label so the user sees the currency. */
+  txAmountCurrencyHint(): string {
+    const a = this.accounts().find(x => x.id === this.txAccountId);
+    return a ? ` · ${a.currencyCode}` : '';
+  }
+
+  txErrors(): { title?: string; amount?: string; account?: string } {
+    const errors: { title?: string; amount?: string; account?: string } = {};
+    if (!this.txTitle.trim()) errors.title = 'Введите описание';
+    const v = parseFloat(this.txAmount.replace(',', '.').trim());
+    if (!Number.isFinite(v) || v <= 0) errors.amount = 'Введите сумму больше нуля';
+    if (!this.txAccountId) errors.account = 'Выберите счёт';
+    return errors;
+  }
+
+  openTxDialog(presetAccountId?: string): void {
+    this.txTitle = '';
+    this.txAmount = '';
+    this.txType = 'expense';
+    this.txCategoryId = '';
+    this.txAccountId = presetAccountId ?? this.accounts()[0]?.id ?? '';
+    this.txDate = '';
+    this.txAttempted.set(false);
+    this.showTxDialog.set(true);
+  }
+
+  closeTxDialog(): void {
+    this.showTxDialog.set(false);
+    this.txAttempted.set(false);
+  }
+
+  saveTransaction(): void {
+    const errors = this.txErrors();
+    if (Object.keys(errors).length > 0) {
+      this.txAttempted.set(true);
+      return;
+    }
+
+    const title = this.txTitle.trim();
+    // Amount is in the account's native currency (decimal — NOT kopecks).
+    // Crypto needs sub-cent precision, so we keep the parsed float as-is.
+    const value = parseFloat(this.txAmount.replace(',', '.'));
+    const signed = this.txType === 'expense' ? -Math.abs(value) : Math.abs(value);
+
+    const account = this.accounts().find(a => a.id === this.txAccountId);
+
+    this.accountsService.createAccountTransaction(
+      {
+        accountId: this.txAccountId,
+        title,
+        amount: signed,
+        categoryId: this.txCategoryId || null,
+        // Server expects an ISO datetime or `null` for "now".
+        date: this.txDate ? new Date(`${this.txDate}T00:00:00`).toISOString() : null,
+      },
+      (created) => {
+        const accName = account?.name ?? '';
+        const cur = account?.currencyCode ?? '';
+        this.toast(
+          created.amount < 0 ? 'Расход добавлен' : 'Доход добавлен',
+          `${created.title} · ${this.formatBalance(Math.abs(created.amount), cur)} · ${accName}`,
+        );
+      },
+    );
+    this.closeTxDialog();
   }
 
   // ─── Formatters ───
