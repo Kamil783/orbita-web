@@ -324,36 +324,16 @@
       </div>
 
       <!-- Category -->
-      @if (categories().length > 0) {
-        <div class="form__field">
-          <span class="form__label">Категория</span>
-          <div class="category-select">
-            <button
-              class="category-select__item"
-              [class.category-select__item--active]="txCategoryId === ''"
-              type="button"
-              (click)="txCategoryId = ''"
-            >
-              <span class="material-symbols-outlined category-select__icon" style="color: #6b7280">receipt</span>
-              <span>Без категории</span>
-            </button>
-            @for (cat of categories(); track cat.id) {
-              <button
-                class="category-select__item"
-                [class.category-select__item--active]="txCategoryId === cat.id"
-                type="button"
-                (click)="txCategoryId = cat.id"
-              >
-                <span
-                  class="material-symbols-outlined category-select__icon"
-                  [style.color]="cat.color"
-                >{{ cat.icon }}</span>
-                <span>{{ cat.name }}</span>
-              </button>
-            }
-          </div>
-        </div>
-      }
+      <label class="form__field">
+        <span class="form__label">Категория</span>
+        <app-select
+          name="txCategory"
+          icon="category"
+          placeholder="Без категории"
+          [options]="categorySelectOptions()"
+          [(ngModel)]="txCategoryId"
+        ></app-select>
+      </label>
 
       <div class="form__actions">
         <button class="form__btn" type="button" (click)="closeTxDialog()">Отмена</button>
