@@ -806,7 +806,9 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
   txAmount = '';
   txType: 'expense' | 'income' = 'expense';
   txCategoryId = '';
-  txFromBalance = false;
+  // Default `true` — the typical case is that the operation actually moves
+  // money through the team balance. `false` is for record-keeping only.
+  txFromBalance = true;
   txDate = '';
 
   // Edit transaction
@@ -1298,7 +1300,8 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
     this.txAmount = '';
     this.txType = 'expense';
     this.txCategoryId = '';
-    this.txFromBalance = false;
+    // Default to "Со счёта" — most transactions actually affect the balance.
+    this.txFromBalance = true;
     this.txDate = '';
     this.showTransactionDialog.set(true);
   }
