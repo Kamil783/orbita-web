@@ -931,19 +931,10 @@
         </div>
       </div>
 
-      <!-- Source toggle -->
+      <!-- Source toggle: списывать со счёта или нет -->
       <div class="field">
-        <label class="field__label">Источник</label>
+        <label class="field__label">Списать со счёта?</label>
         <div class="type-toggle">
-           <button
-            class="type-toggle__btn"
-            [class.type-toggle__btn--active-income]="!txFromBalance"
-            type="button"
-            (click)="txFromBalance = false"
-          >
-            <span class="material-symbols-outlined">open_in_new</span>
-            Личный
-          </button>
           <button
             class="type-toggle__btn"
             [class.type-toggle__btn--active-expense]="txFromBalance"
@@ -951,9 +942,17 @@
             (click)="txFromBalance = true"
           >
             <span class="material-symbols-outlined">account_balance_wallet</span>
-            Общий
+            Со счёта
           </button>
-
+          <button
+            class="type-toggle__btn"
+            [class.type-toggle__btn--active-income]="!txFromBalance"
+            type="button"
+            (click)="txFromBalance = false"
+          >
+            <span class="material-symbols-outlined">block</span>
+            Без счёта
+          </button>
         </div>
       </div>
 
@@ -1153,19 +1152,10 @@
         </div>
       </div>
 
-      <!-- Source toggle -->
+      <!-- Source toggle: списывать со счёта или нет -->
       <div class="field">
-        <label class="field__label">Источник</label>
+        <label class="field__label">Списать со счёта?</label>
         <div class="type-toggle">
-          <button
-            class="type-toggle__btn"
-            [class.type-toggle__btn--active-income]="!editTxFromBalance"
-            type="button"
-            (click)="editTxFromBalance = false"
-          >
-            <span class="material-symbols-outlined">open_in_new</span>
-            Личный
-          </button>
           <button
             class="type-toggle__btn"
             [class.type-toggle__btn--active-expense]="editTxFromBalance"
@@ -1173,7 +1163,16 @@
             (click)="editTxFromBalance = true"
           >
             <span class="material-symbols-outlined">account_balance_wallet</span>
-            Общий
+            Со счёта
+          </button>
+          <button
+            class="type-toggle__btn"
+            [class.type-toggle__btn--active-income]="!editTxFromBalance"
+            type="button"
+            (click)="editTxFromBalance = false"
+          >
+            <span class="material-symbols-outlined">block</span>
+            Без счёта
           </button>
         </div>
       </div>
