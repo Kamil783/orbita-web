@@ -56,6 +56,14 @@ export class UserService {
     return map;
   });
 
+  /**
+   * `true` when the user is effectively alone in their team (the member list
+   * contains only themselves, or hasn't been loaded yet). Pages use this to
+   * hide team-specific UI — filters, summaries, buttons — that aren't useful
+   * for a one-person team.
+   */
+  readonly isSolo = computed(() => this.members().length <= 1);
+
   loadMembers(): void {
     this.http.get<User[]>(`${this.apiUrl}/api/Team/members`).subscribe(members => {
       this.members.set(members);

@@ -19,6 +19,7 @@ import { TopbarComponent } from '../../shared/ui/topbar/topbar.component';
 import { Chart, registerables } from 'chart.js';
 import { FinanceService } from '../../features/finance/data/finance.service';
 import { NotificationService } from '../../features/notifications/data/notification.service';
+import { UserService } from '../../features/user/data/user.service';
 import { ModalOverlayComponent } from '../../shared/ui/modal-overlay/modal-overlay.component';
 import { DatePickerComponent } from '../../shared/ui/date-picker/date-picker.component';
 import { SelectComponent } from '../../shared/ui/select/select.component';
@@ -69,6 +70,10 @@ Chart.register(...registerables);
 export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly financeService = inject(FinanceService);
   private readonly notifications = inject(NotificationService);
+  private readonly userService = inject(UserService);
+
+  /** Exposed to the template to hide team-specific UI when the user is solo. */
+  readonly isSolo = this.userService.isSolo;
 
   readonly title = 'Финансы';
   readonly iconOptions = ICON_OPTIONS;
@@ -932,7 +937,28 @@ export class FinancePageComponent implements OnInit, AfterViewInit, OnDestroy {
     this.financeService.loadShoppingLists();
     this.financeService.loadLimits();
     this.financeService.loadRecurringPayments();
+    // Team members drive the `isSolo` flag — used to hide team-only UI on
+    // this page when the user has no teammates.
+    if (this.userService.members().length === 0) this.userService.loadMembers();
   }
+
+  /**
+   * Defensive: if a "team"-flavoured filter is somehow active (e.g. left over
+   * from when the user had a team), fall back to "all" the moment we know
+   * the user is solo. Declared as a class field so it runs in the DI context.
+   */
+  private readonly _soloFilterGuard = effect(() => {
+    if (!this.isSolo()) return;
+    if (this.chartFilter() === 'team' || this.chartFilter() === 'mine') {
+      this.chartFilter.set('all');
+    }
+    if (this.txFilter() === 'team' || this.txFilter() === 'mine') {
+      this.txFilter.set('all');
+    }
+    if (this.slFilter() === 'team') {
+      this.slFilter.set('all');
+    }
+  });
 
   ngAfterViewInit(): void {
     this.viewReady = true;
