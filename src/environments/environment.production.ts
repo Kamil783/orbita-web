@@ -1,4 +1,4 @@
 export const environment = {
   apiUrl: '',
-  appVersion: '0.9.3',
+  appVersion: '1.1.0',
 };
