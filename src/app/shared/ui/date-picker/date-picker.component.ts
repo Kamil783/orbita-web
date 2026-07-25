@@ -1,5 +1,5 @@
 import {
-  Component, ElementRef, HostListener, computed, effect,
+  Component, DestroyRef, ElementRef, HostListener, computed, effect,
   forwardRef, inject, input, signal, viewChild,
 } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
@@ -10,6 +10,12 @@ const MONTH_NAMES_RU = [
 ];
 
 const DAY_NAMES_SHORT_RU = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+
+/** Default dropdown size in px — used before the calendar has rendered. */
+const DROPDOWN_WIDTH = 280;
+const DROPDOWN_HEIGHT = 340;
+/** Minimum gap kept between the dropdown and the viewport edges. */
+const VIEWPORT_MARGIN = 8;
 
 export interface CalendarDay {
   date: number;
@@ -41,15 +47,21 @@ export class DatePickerComponent implements ControlValueAccessor {
   private static openInstance: DatePickerComponent | null = null;
 
   private readonly elementRef = inject(ElementRef);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly isOpen = signal(false);
   readonly viewYear = signal(new Date().getFullYear());
   readonly viewMonth = signal(new Date().getMonth());
   readonly selectedDate = signal<string>(''); // ISO 'YYYY-MM-DD'
-  // 'down' = open below input, 'up' = open above. Decided on each open by
-  // measuring available viewport space, so the calendar never gets clipped
-  // off-screen / under the modal scroll bottom.
-  readonly dropdownDirection = signal<'down' | 'up'>('down');
+
+  // The dropdown is `position: fixed` and placed from JS: several hosts
+  // (transactions card, dialogs) clip it with `overflow: hidden`, and an
+  // absolutely positioned calendar would simply get cut off there.
+  readonly dropdownPos = signal<{ top: number; left: number; width: number }>({
+    top: 0, left: 0, width: DROPDOWN_WIDTH,
+  });
+
+  private readonly dropdownRef = viewChild<ElementRef<HTMLElement>>('dropdown');
 
   readonly monthNames = MONTH_NAMES_RU;
   readonly dayNames = DAY_NAMES_SHORT_RU;
@@ -124,6 +136,29 @@ export class DatePickerComponent implements ControlValueAccessor {
     }
   }
 
+  constructor() {
+    // Re-place with the real height once the calendar is in the DOM: the first
+    // placement runs before it renders and has to guess.
+    effect(() => {
+      const el = this.dropdownRef()?.nativeElement;
+      if (el) this.updateDropdownPosition(el.offsetHeight);
+    });
+
+    // `fixed` doesn't move with the scrolling ancestor, so follow it manually.
+    // Capture phase: scroll doesn't bubble out of the inner scroll containers.
+    const reposition = () => {
+      if (this.isOpen()) {
+        this.updateDropdownPosition(this.dropdownRef()?.nativeElement.offsetHeight);
+      }
+    };
+    window.addEventListener('scroll', reposition, true);
+    window.addEventListener('resize', reposition);
+    this.destroyRef.onDestroy(() => {
+      window.removeEventListener('scroll', reposition, true);
+      window.removeEventListener('resize', reposition);
+    });
+  }
+
   toggle(): void {
     // Close any other open date picker before toggling
     if (DatePickerComponent.openInstance && DatePickerComponent.openInstance !== this) {
@@ -142,26 +177,32 @@ export class DatePickerComponent implements ControlValueAccessor {
         this.viewYear.set(y);
         this.viewMonth.set(m - 1);
       }
-      this.updateDropdownDirection();
+      this.updateDropdownPosition();
     }
   }
 
-  /** Approx height of the open calendar dropdown in pixels. */
-  private static readonly DROPDOWN_HEIGHT = 340;
+  /**
+   * Places the calendar right below the input. It always opens downwards; when
+   * it would run past the bottom of the screen it slides up just enough to stay
+   * fully visible instead of flipping above the input.
+   */
+  private updateDropdownPosition(measuredHeight?: number): void {
+    const rect: DOMRect = this.elementRef.nativeElement.getBoundingClientRect();
+    const margin = VIEWPORT_MARGIN;
+    const viewportW = window.innerWidth;
+    const viewportH = window.innerHeight;
 
-  private updateDropdownDirection(): void {
-    const host: HTMLElement = this.elementRef.nativeElement;
-    const rect = host.getBoundingClientRect();
-    const spaceBelow = window.innerHeight - rect.bottom;
-    const spaceAbove = rect.top;
+    const width = Math.min(DROPDOWN_WIDTH, viewportW - margin * 2);
+    const height = measuredHeight || DROPDOWN_HEIGHT;
 
-    // Prefer below; flip up only if it doesn't fit below AND fits better above.
-    const fitsBelow = spaceBelow >= DatePickerComponent.DROPDOWN_HEIGHT;
-    if (!fitsBelow && spaceAbove > spaceBelow) {
-      this.dropdownDirection.set('up');
-    } else {
-      this.dropdownDirection.set('down');
-    }
+    let left = this.dropdownAlign() === 'right' ? rect.right - width : rect.left;
+    left = Math.min(Math.max(left, margin), viewportW - width - margin);
+
+    let top = rect.bottom + 6;
+    const maxTop = viewportH - height - margin;
+    if (top > maxTop) top = Math.max(margin, maxTop);
+
+    this.dropdownPos.set({ top, left, width });
   }
 
   prevMonth(): void {
