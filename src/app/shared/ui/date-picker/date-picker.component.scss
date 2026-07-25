@@ -77,39 +77,22 @@
 }
 
 /* ── Dropdown ── */
+// Fixed, with top/left/width set from the component: several hosts (the
+// transactions card, dialogs) clip their content with `overflow: hidden`, and
+// an absolutely positioned calendar would be cut off inside them.
 .dp__dropdown {
-  position: absolute;
-  top: calc(100% + 6px);
-  left: 0;
+  position: fixed;
   z-index: 200;
-  width: 280px;
   background: var(--surface-panel);
   border: 1px solid var(--border-color);
   border-radius: 12px;
   box-shadow: var(--shadow-md);
   padding: 12px;
   animation: dpIn 0.15s ease-out;
-
-  &--right {
-    left: auto;
-    right: 0;
-  }
-
-  // Auto-flip: open above the input when there's not enough space below.
-  &--up {
-    top: auto;
-    bottom: calc(100% + 6px);
-    animation-name: dpInUp;
-  }
 }
 
 @keyframes dpIn {
   from { opacity: 0; transform: translateY(-4px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes dpInUp {
-  from { opacity: 0; transform: translateY(4px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 

@@ -1,9 +1,15 @@
 .shell {
   height: 100vh;
+  // Dynamic viewport height: follows Safari's collapsing URL bar on iOS, so the
+  // shell always matches the visible area instead of the taller `100vh` box.
+  height: 100dvh;
   display: flex;
   overflow: hidden;
   background: var(--surface-app);
   color: var(--text-main);
+  // Landscape notch on iPhone.
+  padding-left: var(--safe-left);
+  padding-right: var(--safe-right);
 }
 
 .main {
@@ -20,7 +26,7 @@
   }
 
   .main {
-    // Leave room for bottom nav
-    padding-bottom: 64px;
+    // Leave room for bottom nav (which itself grows by the home-indicator inset)
+    padding-bottom: calc(var(--bottom-nav-h) + var(--safe-bottom));
   }
 }

@@ -20,7 +20,11 @@
 .shell {
   position: relative;
   z-index: 1;
+  // svh, not vh: the landing page scrolls, so it must be sized against the
+  // viewport with Safari's URL bar *visible*, otherwise the last screenful sits
+  // under the browser chrome.
   min-height: 100vh;
+  min-height: 100svh;
   display: flex;
   flex-direction: column;
 }

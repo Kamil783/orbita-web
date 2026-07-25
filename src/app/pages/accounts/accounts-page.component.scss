@@ -719,7 +719,7 @@ $accent-text: var(--color-primary);
 @media (max-width: 768px) {
   .fab {
     right: 16px;
-    bottom: 80px;  // clear of mobile bottom nav
+    bottom: calc(80px + var(--safe-bottom));  // clear of mobile bottom nav
     width: 48px;
     height: 48px;
 

@@ -19,9 +19,11 @@
   <!-- Calendar dropdown -->
   @if (isOpen()) {
     <div
+      #dropdown
       class="dp__dropdown"
-      [class.dp__dropdown--right]="dropdownAlign() === 'right'"
-      [class.dp__dropdown--up]="dropdownDirection() === 'up'"
+      [style.top.px]="dropdownPos().top"
+      [style.left.px]="dropdownPos().left"
+      [style.width.px]="dropdownPos().width"
     >
       <!-- Month/year nav -->
       <div class="dp__nav">

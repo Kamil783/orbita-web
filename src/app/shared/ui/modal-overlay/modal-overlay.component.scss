@@ -2,6 +2,9 @@
 .overlay {
   position: fixed;
   inset: 0;
+  // Pin to the *visible* viewport: on iOS `inset: 0` alone can leave the bottom
+  // of the overlay (and of a full-height side panel) under Safari's toolbar.
+  height: 100dvh;
   z-index: 100;
   display: flex;
   align-items: center;
@@ -31,6 +34,7 @@
   width: 100%;
   max-width: 440px;
   max-height: calc(100vh - 32px);
+  max-height: calc(100dvh - 32px);
   background: var(--surface-panel);
   border-radius: 16px;
   padding: 40px 32px 32px;
