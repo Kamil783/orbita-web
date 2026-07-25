@@ -2,6 +2,8 @@
 .overlay {
   position: fixed;
   inset: 0;
+  // Pin to the visible viewport — see modal-overlay.
+  height: 100dvh;
   z-index: 50;
   display: flex;
   justify-content: flex-end;

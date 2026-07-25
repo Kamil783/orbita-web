@@ -179,6 +179,7 @@
   // budget for the popover top offset (~140px), header (~70px) and form
   // (~240px with all three inputs). Falls back to 320px on tall screens.
   max-height: min(320px, calc(100vh - 450px));
+  max-height: min(320px, calc(100dvh - 450px));
   // If the calc above produces a tiny/negative value on very short viewports,
   // keep at least ~120px so the user still sees a couple of rows + scrollbar.
   min-height: 120px;
@@ -654,7 +655,7 @@
 
   .fab {
     right: 16px;
-    bottom: 80px;
+    bottom: calc(80px + var(--safe-bottom));
     width: 48px;
     height: 48px;
 
@@ -673,7 +674,7 @@
     left: 16px;
     right: 16px;
     top: auto;
-    bottom: 96px;
+    bottom: calc(96px + var(--safe-bottom));
     width: auto;
     max-width: none;
   }

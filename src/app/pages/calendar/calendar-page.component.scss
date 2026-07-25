@@ -824,7 +824,7 @@
 
   .fab {
     right: 16px;
-    bottom: 80px;
+    bottom: calc(80px + var(--safe-bottom));
     width: 48px;
     height: 48px;
 
